@@ -38,16 +38,17 @@ void DensityClustering::performClustering()
 	double timeTemp;
 	gettimeofday(&start, NULL);
 
-	OPTICS(maxDist*multiTimes, minPts);
+	float radius_eps = maxDist*multiTimes;
+	OPTICS(radius_eps, minPts);
 
 	gettimeofday(&end, NULL);
 	timeTemp = ((end.tv_sec  - start.tv_sec) * 1000000u 
 			   + end.tv_usec - start.tv_usec) / 1.e6;
-	activityList.push_back("DBSCAN clustering takes: ");
+	activityList.push_back("OPTICS clustering takes: ");
 	timeList.push_back(to_string(timeTemp)+" s");
 
-	getGroup(maxDist*multiTimes);
-	extractFeatures(minDist*multiTimes, minPts);
+	getGroup(radius_eps);
+	extractFeatures(radius_eps, minPts);
 }
 
 
@@ -58,6 +59,7 @@ void DensityClustering::OPTICS(const float& radius_eps,
 
 	for(int i=0;i<ds.dataMatrix.rows();++i)
 	{
+		std::cout << i << std::endl;
 		if(nodeVec[i].visited)
 			continue;
 		const vector<int>& neighbor = nodeVec[i].neighbor;
@@ -68,17 +70,21 @@ void DensityClustering::OPTICS(const float& radius_eps,
 		{
 			LinkedList seeds;
 			update(i, neighbor, seeds, radius_eps, minPts);
-			pointNode *temp;
-			while((temp = seeds.start))
+			pointNode *temp = seeds.start;
+			while(temp)
 			{
 				if(nodeVec[temp->value.index].visited)
+				{
+					temp = temp->next;
 					continue;
+				}
 				const vector<int>& neighborChild = nodeVec[temp->value.index].neighbor;
 					  /*regionQuery(temp->value.index, radius_eps)*/;
 				nodeVec[temp->value.index].visited = true;
 				orderedList.push_back(temp->value.index);
 				if(nodeVec[temp->value.index].core_distance!=-1)
 					update(temp->value.index, neighborChild, seeds, radius_eps, minPts);
+				temp = seeds.start;
 			}
 		}
 	}
@@ -168,7 +174,7 @@ void DensityClustering::setDataset(const int& argc,
 
 void DensityClustering::setNormOption()
 {
-	std::cout << "Choose a norm from 0-11!" << std::endl;
+	std::cout << "Choose a norm from 0-12!" << std::endl;
 	std::cin >> normOption;
 	std::cout << std::endl;
 	/*  
@@ -186,7 +192,7 @@ void DensityClustering::setNormOption()
 		11: cosine similarity
 	*/
 	bool found = false;
-	for (int i = 0; i < 12&&!found; ++i)
+	for (int i = 0; i < 13&&!found; ++i)
 	{
 		if(normOption==i)
 		{
@@ -237,7 +243,7 @@ void DensityClustering::getDistRange(float& minDist,
 const int DensityClustering::setMinPts()
 {
 	std::cout << std::endl;
-	std::cout << "Input the minPts for DBSCAN in [0" << ", "
+	std::cout << "Input the minPts for OPTICS in [0" << ", "
 			  << ds.dataMatrix.rows() << "]:" << std::endl;
 	int minPts;
 	std::cin >> minPts;
@@ -255,7 +261,7 @@ const float DensityClustering::setTimesMin(const float& minDist,
 {
 	std::cout << std::endl;
 	float lowerBound = minDist/maxDist;
-	std::cout << "Input the multiplication for DBSCAN radius in ["
+	std::cout << "Input the multiplication for OPTICS radius in ["
 	          << lowerBound << ",1.0]:" << std::endl;
 	float multiTimes;
 	std::cin >> multiTimes;
@@ -481,6 +487,8 @@ void DensityClustering::computeCoredDistance(const float& radius_eps,
 			nodeVec[i].core_distance = smallestRange[minPts-1];
 		}
 	}	
+
+	std::cout << "Precomputing for cored-distance is done!" << std::endl;
 }
 
 
@@ -507,14 +515,23 @@ void DensityClustering::getGroup(const float& radius_eps)
 	float threshold;
 	std::cin >> threshold;
 	threshold*=radius_eps;
+	std::cout << threshold << std::endl;
+	bool findSummit = false;
 	for(int i=0;i<orderedList.size();++i)
 	{
 		if(nodeVec[orderedList[i]].reachabilityDist>=threshold)
 		{
-			++tag;
+			findSummit = true;
 		}
 		else
+		{
+			if(findSummit)
+			{
+				findSummit = false;
+				++tag;
+			}
 			nodeVec[orderedList[i]].group = tag;
+		}
 	}
 
 	writeReachability();
@@ -531,7 +548,8 @@ void DensityClustering::writeReachability()
 	}
 	for (int i = 0; i < orderedList.size(); ++i)
 	{
-		ofile << orderedList[i] << " " << nodeVec[orderedList[i]].reachabilityDist << std::endl;
+		ofile << orderedList[i] << " " << nodeVec[orderedList[i]].reachabilityDist 
+		<< " " << nodeVec[orderedList[i]].group << std::endl;
 	}
 	ofile << std::endl;
 	ofile.close();
