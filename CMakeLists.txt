@@ -101,3 +101,13 @@ file( GLOB OPTICS_SRC ${CMAKE_CURRENT_SOURCE_DIR}/src/OPTICS/*.cpp )
 add_executable(optics ${OPTICS_SRC})
 target_link_libraries(optics ${ALL_LIBS})
 ###############################################
+
+
+###############################################
+# generate ahc executable
+set( AHC_SRC
+   )
+file( GLOB AHC_SRC ${CMAKE_CURRENT_SOURCE_DIR}/src/AHC/*.cpp )  
+add_executable(ahc ${AHC_SRC})
+target_link_libraries(ahc ${ALL_LIBS})
+###############################################
