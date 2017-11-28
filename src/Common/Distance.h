@@ -3,6 +3,7 @@
 
 #include "Metric.h"
 
+extern float **distanceMatrix;
 
 const float getBMetric_3(const VectorXf& row,
 						 const int& size,
@@ -129,5 +130,10 @@ const float getDisimilarity(const VectorXf& first,
 							const MetricPreparation& object);
 
 
+bool getDistanceMatrix(const MatrixXf& data,
+				       const int& normOption,
+					   const MetricPreparation& object);
+
+void deleteDistanceMatrix(const int& Row);
 
 #endif

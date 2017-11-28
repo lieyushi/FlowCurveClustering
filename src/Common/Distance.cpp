@@ -1,6 +1,7 @@
 #include "Distance.h"
 
 
+float **distanceMatrix = NULL;
 /* ------------------ Compute norm 3 for trajectories ------------------------- */
 // given a center trajectory and index of pre-stored vector 
 const float getBMetric_3(const VectorXf& row,
@@ -883,6 +884,7 @@ const float getDisimilarity(const VectorXf& first,
 const float getMetric_MOP(const VectorXf& first, const VectorXf& second)
 {
 	const int& vNum = first.size()/3;
+	float result, f_to_s, s_to_f;
 	float summation = 0;
 	for(int i=0;i<vNum;++i)
 	{
@@ -895,5 +897,69 @@ const float getMetric_MOP(const VectorXf& first, const VectorXf& second)
 		}
 		summation+=minDist;
 	}
-	return summation/vNum;
+	s_to_f = summation/vNum;
+
+	summation = 0;
+	for(int i=0;i<vNum;++i)
+	{
+		float minDist = FLT_MAX;
+		Vector3f m_i = Vector3f(second(3*i),second(3*i+1),second(3*i+2));
+		for(int j=0;j<vNum;++j)
+		{
+			Vector3f n_j = Vector3f(first(3*j),first(3*j+1),first(3*j+2));
+			minDist = std::min((m_i-n_j).norm(),minDist);
+		}
+		summation+=minDist;
+	}
+	f_to_s = summation/vNum;
+
+	result = (f_to_s+s_to_f)/2.0;
+	return result;
+}
+
+
+bool getDistanceMatrix(const MatrixXf& data,
+				       const int& normOption,
+					   const MetricPreparation& object)
+{
+	try
+	{
+		const int& Row = data.rows();
+		distanceMatrix = new float*[Row];
+	#pragma omp parallel for schedule(dynamic) num_threads(8)
+		for (int i = 0; i < Row; ++i)
+		{
+			distanceMatrix[i] = new float[Row];
+			for (int j = 0; j < Row; ++j)
+			{
+					distanceMatrix[i][j] = getDisimilarity(data.row(i), data.row(j), i, j, normOption, object);
+			}
+		}
+
+		std::cout << "Finished computing distance matrix!" << std::endl;
+		return true;
+	}
+	catch(std::bad_alloc& exc)
+	{
+		return false;
+	}
+}
+
+
+void deleteDistanceMatrix(const int& Row)
+{
+	if(distanceMatrix)
+	{
+	#pragma omp parallel for schedule(dynamic) num_threads(8)	
+		for (int i = 0; i < Row; ++i)
+		{
+			if(distanceMatrix[i])
+			{
+				delete[] distanceMatrix[i];
+				distanceMatrix[i] = NULL;
+			}	
+		}
+		delete[] distanceMatrix;
+		distanceMatrix = NULL;
+	}
 }

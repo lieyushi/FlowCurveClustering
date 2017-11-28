@@ -3,7 +3,6 @@
 
 #include "PreComputing.h"
 
-
 void computeMeanRotation(const Eigen::MatrixXf& data, 
 						 const int& Row, 
 						 const int& Column, 

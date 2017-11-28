@@ -111,8 +111,10 @@ const float Silhouette::getA_i(const std::vector<std::vector<int> >& storage,
 	{
 		if(clusterSet[j]!=index)
 		{
-			inClusterDist += getDist(index, clusterSet[j], object, 
-							 array, normOption);
+			if(distanceMatrix)
+				inClusterDist += distanceMatrix[index][clusterSet[j]];
+			else
+				inClusterDist += getDist(index, clusterSet[j], object, array, normOption);
 		}
 	}
 	if(isnan(inClusterDist))
@@ -148,8 +150,10 @@ const float Silhouette::getB_i(const std::vector<std::vector<int> >& storage,
 			perClusterDist = 0;
 			for (int k = 0; k < outClusterSet.size(); ++k)
 			{
-				perClusterDist += getDist(index, outClusterSet[k], object, 
-							      array, normOption);
+				if(distanceMatrix)
+					perClusterDist+=distanceMatrix[index][outClusterSet[k]];
+				else
+					perClusterDist += getDist(index, outClusterSet[k], object, array, normOption);
 			}
 			if(perClusterDist<0)
 			{

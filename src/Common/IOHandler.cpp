@@ -34,15 +34,41 @@ void IOHandler::readFile(const string& fileName,
 	// set currentNumber to record how many streamlines u want to read in
 	//int currentDimensions;
 
+	std::vector<float> vec(3);
+	float temp;
 	maxElement = 0;
 	while(getline(fin, line) /* && currentNumber < MAXNUMBER*/)
 	{
 		//currentDimensions = 0;
+		int tag = 0, count = 0;
 		ss.str(line);
-		/* extract point coordinates from data file */
 		while(ss>>part /*&& currentDimensions<3*MAXDIMENSION*/)
 		{
-			tempVec.push_back(atof(part.c_str()));
+			/* operations below would remove duplicate vertices because that would damage our computation */
+			temp = atof(part.c_str());
+			if(tag>=3)
+			{
+				if(count<3)
+				{
+					vec[count] = temp;
+					++tag;
+					++count;
+				}
+				if(count==3)
+				{
+					int size = tempVec.size();
+					if(!(abs(vec[0]-tempVec[size-3])<1.0e-5&&abs(vec[1]-tempVec[size-2])<1.0e-5&&abs(vec[2]-tempVec.back())<1.0e-5))
+					{
+						tempVec.push_back(vec[0]);
+						tempVec.push_back(vec[1]);
+						tempVec.push_back(vec[2]);
+					}
+					count = 0;
+				}
+				continue;
+			}
+			tempVec.push_back(temp);
+			++tag;
 			//currentDimensions++;
 		}
 		/* accept only streamlines with at least three vertices */
@@ -59,6 +85,7 @@ void IOHandler::readFile(const string& fileName,
 		//currentNumber++;
 	}
 	fin.close();
+	
 	
 	vertexCount/=dimension;
 	std::cout << "File reader has been completed, and it toally has " << dataVec.size() << " trajectories and " 
