@@ -7,36 +7,6 @@
 
 #include "Predefined.h"
 
-
-// dfs treeNode to find leaf nodes
-void dfsTraversal(std::vector<int>& elementList, TreeNode* node)
-{
-	//empty node
-	if(node==NULL)
-		return;
-	//leaf node
-	if(node->left==NULL&&node->right==NULL)
-		elementList.push_back(node->index);
-	if(node->left)
-		dfsTraversal(elementList, node->left);
-	if(node->right)
-		dfsTraversal(elementList, node->right);
-}
-
-// delete treeNode nodes
-void deleteTreeNode(TreeNode* &node)
-{
-	TreeNode* temp = node;
-	if(node)
-	{
-		delete node;
-		node = NULL;
-		deleteTreeNode(temp->left);
-		deleteTreeNode(temp->right);
-	}
-}
-
-
 // remove two elements in template vector
 template <class T>
 void deleteVecElements(std::vector<T>& original, const T& first, const T& second)

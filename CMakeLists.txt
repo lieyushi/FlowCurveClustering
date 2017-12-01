@@ -22,7 +22,8 @@ include_directories(
     /usr/include/eigen3
     /usr/local/include/
     /usr/local/include/vtk-6.3/
-	./src
+    src/Common/
+	  ./src
     .
 )
 

@@ -12,11 +12,27 @@ AHC::AHC(const int& argc, char **argv)
 	setDataset(argc, argv);
 	setNormOption();
 
+	/* very hard to decide whether needed to perform such pre-processing */
 	object = MetricPreparation(ds.dataMatrix.rows(), ds.dataMatrix.cols());
 	object.preprocessing(ds.dataMatrix, ds.dataMatrix.rows(), ds.dataMatrix.cols(), normOption);
 
-	getDistanceMatrix(ds.dataMatrix, normOption, object);
-	setThreshold();
+	/* would store distance matrix instead because it would save massive time */
+	struct timeval start, end;
+	double timeTemp;
+	gettimeofday(&start, NULL);
+
+	if(!getDistanceMatrix(ds.dataMatrix, normOption, object))
+	{
+		std::cout << "Failure to compute distance matrix!" << std::endl;
+	}
+
+	gettimeofday(&end, NULL);
+	timeTemp = ((end.tv_sec  - start.tv_sec) * 1000000u 
+			   + end.tv_usec - start.tv_usec) / 1.e6;
+	activityList.push_back("Distance matrix computing takes: ");
+	timeList.push_back(to_string(timeTemp)+" s");
+
+	getDistRange();
 }
 
 /* destructor */
@@ -28,52 +44,166 @@ AHC::~AHC()
 /* perform clustering function */
 void AHC::performClustering()
 {
+	std::vector<Ensemble> nodeVec;
+
+	/* perform hierarchical clustering */
+	std::cout << "---------------------" << std::endl;
+	std::cout << "1. clustering by a fixed group, 2. clustering by a distance threshold." << std::endl;
+	int clusteringOption;
+	std::cin >> clusteringOption;
+	assert(clusteringOption==1 || clusteringOption==2);
+
+	if(clusteringOption==1)
+		bottomUp_byGroup(nodeVec);
+	else if(clusteringOption==2)
+		bottomUp_byThreshold(nodeVec);
+
+	vector<vector<int>> neighborVec(numberOfClusters);
+	// element size for all groups
+	vector<int> storage(numberOfClusters);
+
+	// geometric center
+	Eigen::MatrixXf centroid = Eigen::MatrixXf::Zero(numberOfClusters,ds.dataMatrix.cols());
+
+
+	// set label information
+	setLabel(nodeVec, neighborVec, storage, centroid);
+
+	nodeVec.clear();
+
+	extractFeatures(storage, neighborVec, centroid);
+}
+
+
+/* perform hierarchical clustering by given a group */
+void AHC::bottomUp_byGroup(std::vector<Ensemble>& nodeVec)
+{
 	const int& Row = ds.dataMatrix.rows();
+	std::cout << "-------------------------------------------------------------------------------" << std::endl;
+	std::cout << "Expected number of clusters from [0, " << Row << "]:";
+	std::cin >> expectedClusters;
+	assert(expectedClusters>0 && expectedClusters<Row/10);
 
+	/* would store distance matrix instead because it would save massive time */
+	struct timeval start, end;
+	double timeTemp;
+	gettimeofday(&start, NULL);
+
+	int clusterCount = 0;
+	const int& minExpected = 0.8*expectedClusters;
+	const int& maxExpected = 1.2*expectedClusters;
+	float minDist = distRange[0], maxDist = distRange[1]/4.0;
+	int iteration = 0;
+	std::cout << ".." << std::endl;
+	std::cout << ".." << std::endl;
+	std::cout << "Binary search starts!" << std::endl;
+	while(true)
+	{
+		distanceThreshold = (minDist+maxDist)/2.0;
+		hierarchicalMerging(nodeVec);
+		clusterCount = nodeVec.size();
+		std::cout << "Iteration " << (++iteration) << " finds " << clusterCount << " groups!" << std::endl;
+		if(clusterCount>=minExpected && clusterCount<=maxExpected)
+			break;
+		else if(clusterCount<minExpected)
+			maxDist = distanceThreshold;
+		else 
+			minDist = distanceThreshold;
+	}
+
+	gettimeofday(&end, NULL);
+	timeTemp = ((end.tv_sec  - start.tv_sec) * 1000000u 
+			   + end.tv_usec - start.tv_usec) / 1.e6;
+	stringstream ss;
+	ss << expectedClusters;
+	string cluster_str = ss.str();
+
+	ss.str("");
+	ss << iteration;
+
+	activityList.push_back("To achieve "+cluster_str+" groups will take " + ss.str() + " binary search and take: ");
+	timeList.push_back(to_string(timeTemp)+" s");
+
+}
+
+
+/* perform hierarchical clustering by given a threshold */
+void AHC::bottomUp_byThreshold(std::vector<Ensemble>& nodeVec)
+{
+	std::cout << "-------------------------------------------------------------------------------" << std::endl;
+	std::cout << "Input threshold: [" << distRange[0] << "," << distRange[1] <<"]: ";
+	std::cin >> distanceThreshold;
+	assert(distanceThreshold>distRange[0] && distanceThreshold<distRange[1]);
+
+	/* would store distance matrix instead because it would save massive time */
+	struct timeval start, end;
+	double timeTemp;
+	gettimeofday(&start, NULL);
+
+	hierarchicalMerging(nodeVec);
+
+	gettimeofday(&end, NULL);
+	timeTemp = ((end.tv_sec  - start.tv_sec) * 1000000u 
+			   + end.tv_usec - start.tv_usec) / 1.e6;
+	stringstream ss;
+	ss << distanceThreshold;
+	activityList.push_back("To cluster by distance "+ss.str()+" will take: ");
+	timeList.push_back(to_string(timeTemp)+" s");
+
+}
+
+
+/* perform AHC merging by given a distance threshold */
+void AHC::hierarchicalMerging(std::vector<Ensemble>& nodeVec)
+{
+	const int Row = ds.dataMatrix.rows();
+
+	nodeVec.clear();
 //could have used vector, but since there're too many operations inside so should use set
-	std::unordered_set<TreeNode*> nodeSet;
+	nodeVec = std::vector<Ensemble>(Row);
 //create node in forest structure
-	for(int i=0;i<ds.dataMatrix.rows();++i)
-		nodeSet.insert(new TreeNode(i));
+#pragma omp parallel for schedule(dynamic) num_threads(8)
+	for(int i=0;i<nodeVec.size();++i)
+	{
+		nodeVec[i].index = i;
+		nodeVec[i].element.push_back(i);
+	}
 
-	//two iterators to record positions of set 
-	std::unordered_set<TreeNode*>::iterator iter_i, iter_j;
+	//two iterators to record positions of set
+	std::vector<Ensemble>::iterator iter_i, iter_j;
 
-	//vector to store new node 
-	std::vector<TreeNode*> newNodeList;
+	//vector to store new node
+	std::vector<Ensemble> newNodeList;
 	do
 	{
 		//insert new node obtained from previous step
 		if(!newNodeList.empty())
 		{
-			nodeSet.insert(newNodeList.begin(), newNodeList.end());
+			nodeVec.insert(nodeVec.end(), newNodeList.begin(), newNodeList.end());
 			newNodeList.clear();
 		}
 		//iter_i prior, iter_j consecutive
-		iter_i = nodeSet.begin();
+		iter_i = nodeVec.begin();
 		iter_j = iter_i;
 		++iter_j;
-		while(iter_i!=nodeSet.end())
+		int mergedCount = 0;
+		while(iter_i!=nodeVec.end())
 		{
-			// j reaches end, should move i forward
-			if(iter_j==nodeSet.end())
+			// j reaches end or i is merged, should move i forward
+			if(iter_j==nodeVec.end() || (*iter_i).merged)
 			{
 				++iter_i;
 				iter_j = iter_i;
 				++iter_j;
 			}
-
+			// j node already merged, so no longer consideration
+			else if((*iter_j).merged)
+				++iter_j;
 			// move j and calculate distance for mutual pairs
 			else
 			{
-				vector<int> firstList, secondList;
-
-				//dfs traversal to get element vector for two nodes
-				dfsTraversal(firstList, *iter_i);
-				dfsTraversal(secondList, *iter_j);
-
 				//compute distance between two clusters by single/complete/average linkages
-				const float& linkageDist = getDistAtNodes(firstList, secondList, linkageOption);
+				const float& linkageDist = getDistAtNodes((*iter_i).element, (*iter_j).element, linkageOption);
 
 				//larger distance than threshold, then move forward
 				if(linkageDist>distanceThreshold)
@@ -81,73 +211,75 @@ void AHC::performClustering()
 				//merge two clusters into one cluster if smaller than threshold
 				else
 				{
-					TreeNode* left = *iter_i, *right = *iter_j;
-					if(!left||!right)
-					{
-						std::cout << "Error found NULL in agglomerative hierarchical clustering!" << std::endl;\
-						exit(1);
-					}
-
 					//add merged node whose index is total element size
-					TreeNode* newNode = new TreeNode(firstList.size()+secondList.size());
-					newNode->left=left;
-					newNode->right=right;
+					vector<int> first = (*iter_i).element, second = (*iter_j).element;
+					Ensemble newNode = Ensemble(first.size()+second.size());
+					newNode.element = first;
+					newNode.element.insert(newNode.element.begin(), second.begin(), second.end());
 					newNodeList.push_back(newNode);
 
-					//remove two nodes from orginal vector
-					nodeSet.erase(iter_i);
-					nodeSet.erase(iter_j);
+					(*iter_i).merged = true;
+					(*iter_j).merged = true;
 
-					//calculate j-i
-					int diff = std::distance(iter_i, iter_j);
-					//more than one, then move i to i+1
-					if(diff>1)
-					{
-						++iter_i;
-						iter_j=iter_i;
-						++iter_j;
-					}
-					//i and j are adjacent, then i = j+1, j = i+1
-					else
-					{
-						++iter_j;
-						iter_i=iter_j;
-						++iter_j;
-					}
+					++iter_i;
+					iter_j = iter_i;
+					++iter_j;
+
+					mergedCount+=2;
 				}
 			}
 		}
 
+		/* erase would cost so much time so we'd better directly use copy
+		for (auto iter=nodeVec.begin(); iter!=nodeVec.end();)
+		{
+			if((*iter).merged)
+				iter=nodeVec.erase(iter);
+			else
+				++iter;
+		}*/
+
+
+		/* use copy and backup to delete those merged elements */
+		assert(nodeVec.size()>=mergedCount);
+		std::vector<Ensemble> copyNode(nodeVec.size()-mergedCount);
+		int c_i = 0;
+		for(int i=0;i<nodeVec.size();++i)
+		{
+			if(!nodeVec[i].merged)
+				copyNode[c_i++] = nodeVec[i];
+		}
+		nodeVec.clear();
+		nodeVec = copyNode;
+		copyNode.clear();
+
+		mergedCount = 0;
+
 	}while(!newNodeList.empty());	//merging happens constantly
 
-	//create an ordered_map to sort the node by size of contained elements
-	std::map<int, TreeNode*> increasingOrder;
-	for(auto iter = nodeSet.begin();iter!=nodeSet.end();++iter)
-	{
-		increasingOrder.insert(make_pair((*iter)->index, *iter));
-	}
+	newNodeList.clear();
 
-	nodeSet.clear();
+	numberOfClusters = nodeVec.size();
 
-	// group tag by increasing order
+	std::sort(nodeVec.begin(), nodeVec.end(), [](const Ensemble& e1, const Ensemble& e2)
+	{return e1.element.size()<e2.element.size() ||(e1.element.size()==e2.element.size()&&e1.index<e2.index);});
+}
+
+
+/* perform group-labeling information */
+void AHC::setLabel(const std::vector<Ensemble>& nodeVec, vector<vector<int> >& neighborVec,
+			      vector<int>& storage, Eigen::MatrixXf& centroid)
+{
+// group tag by increasing order
 	int groupID = 0;
-
-	// element lists for all groups
-	vector<vector<int>> neighborVec(increasingOrder.size());
 
 	// element list for each group
 	vector<int> eachContainment;
 
-	// element size for all groups
-	vector<int> storage(increasingOrder.size());
-
-	// find centroid matrix
-	Eigen::MatrixXf centroid = Eigen::MatrixXf::Zero(increasingOrder.size(),ds.dataMatrix.cols());
-
 	// find group id and neighboring vec
-	for(auto iter = increasingOrder.begin(); iter!=increasingOrder.end(); ++iter)
+	for(auto iter = nodeVec.begin(); iter!=nodeVec.end();++iter)
 	{
-		dfsTraversal(eachContainment, (*iter).second);
+		eachContainment = (*iter).element;
 		neighborVec[groupID] = eachContainment;
 	#pragma omp parallel num_threads(8)
 		{
@@ -158,17 +290,15 @@ void AHC::performClustering()
 			#pragma omp critical
 				centroid.row(groupID) += ds.dataMatrix.row(eachContainment[i]);
 			}
-			eachContainment.clear();
-			storage[groupID] = (*iter).first;
-			centroid.row(groupID)/=eachContainment.size();
-			++groupID;
 		}
+		storage[groupID] = (*iter).element.size();
+		centroid.row(groupID)/=eachContainment.size();
+		++groupID;
+		eachContainment.clear();
 	}
-	numberOfClusters = groupID;
-	increasingOrder.clear();
-
-	extractFeatures(storage, neighborVec, centroid);
 }
+
+
 
 /* extract features from datasets as representative curves */
 void AHC::extractFeatures(const std::vector<int>& storage, const std::vector<std::vector<int> >& neighborVec,
@@ -245,12 +375,16 @@ void AHC::extractFeatures(const std::vector<int>& storage, const std::vector<std
 	timeList.push_back(to_string(timeTemp)+" s");
 
 	std::cout << "Finishing extracting features!" << std::endl;	
-	IOHandler::printFeature("optimization_closest.vtk", closest, sil.sCluster, ds.dimension);
-	IOHandler::printFeature("optimization_furthest.vtk", furthest, sil.sCluster, ds.dimension);
-	IOHandler::printFeature("optimization_centroid.vtk", center_vec, sil.sCluster,ds.dimension);
 
-	IOHandler::printToFull(ds.dataVec, sil.sData, "optimization_SValueLine", ds.fullName, ds.dimension);
-	IOHandler::printToFull(ds.dataVec, group, sil.sCluster, "optimization_SValueCluster", ds.fullName, ds.dimension);
+	stringstream ss;
+	ss << "norm_" << normOption;
+
+	IOHandler::printFeature("AHC_closest_"+ss.str()+".vtk", closest, sil.sCluster, ds.dimension);
+	IOHandler::printFeature("AHC_furthest_"+ss.str()+".vtk", furthest, sil.sCluster, ds.dimension);
+	IOHandler::printFeature("AHC_centroid_"+ss.str()+".vtk", center_vec, sil.sCluster,ds.dimension);
+
+	IOHandler::printToFull(ds.dataVec, sil.sData, "AHC_SValueLine_"+ss.str(), ds.fullName, ds.dimension);
+	IOHandler::printToFull(ds.dataVec, group, sil.sCluster, "AHC_SValueCluster_"+ss.str(), ds.fullName, ds.dimension);
 
 	activityList.push_back("numCluster is: ");
 	timeList.push_back(to_string(numberOfClusters));
@@ -337,11 +471,13 @@ void AHC::setNormOption()
 
 
 /* set threshold for AHC function */
-void AHC::setThreshold()
+void AHC::getDistRange()
 {
 	const float& Percentage = 0.05;
 	const int& Row = ds.dataMatrix.rows();
-	float minDist = FLT_MAX, maxDist = FLT_MIN;
+
+	distRange = vector<float>(2);
+	distRange[0] = FLT_MAX, distRange[1] = FLT_MIN;
 	const int& totalSize = int(Percentage*Row);
 #pragma omp parallel num_threads(8)
 	{
@@ -367,16 +503,13 @@ void AHC::setThreshold()
 
 		#pragma omp critical
 			{
-				minDist = std::min(minDist, i_min);
-				maxDist = std::max(maxDist, i_max);
+				distRange[0] = std::min(distRange[0], i_min);
+				distRange[1] = std::max(distRange[1], i_max);
 			}
 		}
 	}
 
-	std::cout << "Distance threshold is: [" << minDist << ", " << maxDist << "]." << std::endl;
-	std::cout << "Input threshold: ";
-	std::cin >> distanceThreshold;
-	assert(distanceThreshold>minDist && distanceThreshold<maxDist);
+	std::cout << "Distance threshold is: [" << distRange[0] << ", " << distRange[1] << "]." << std::endl;
 }
 
 

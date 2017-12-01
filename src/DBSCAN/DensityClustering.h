@@ -1,9 +1,9 @@
 #ifndef _DENSITYCLUSTERING_H
 #define _DENSITYCLUSTERING_H
 
-#include "../Common/IOHandler.h"
-#include "../Common/Initialization.h"
-#include "../Common/Silhouette.h"
+#include "IOHandler.h"
+#include "Initialization.h"
+#include "Silhouette.h"
 
 enum PointType
 {

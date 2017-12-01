@@ -2,6 +2,7 @@
 #define _OPTICS_H_
 
 #include "Predefined.h"
+#include <string>
 
 /* algorithm implemented based on https://en.wikipedia.org/wiki/OPTICS_algorithm */
 

@@ -58,6 +58,12 @@ private:
 /* how many clusters to be needed */
 	int numberOfClusters;
 
+/* expected cluster number as input */
+	int expectedClusters;
+
+/* distance range recorded */
+	vector<float> distRange;		
+
 /* k-means initialization option */
 	int initializationOption;
 
@@ -71,10 +77,23 @@ private:
 	void setNormOption();
 
 /* set threshold for AHC function */
-	void setThreshold();
+	void getDistRange();
 
 /* get distance between two treeNode nodes */
 	const float getDistAtNodes(const vector<int>& firstList, const vector<int>& secondList, const int& Linkage);
+
+/* perform AHC merging by given a distance threshold */
+	void hierarchicalMerging(std::vector<Ensemble>& nodeVec);
+
+/* perform group-labeling information */
+	void setLabel(const std::vector<Ensemble>& nodeVec, vector<vector<int> >& neighborVec,
+			      vector<int>& storage, Eigen::MatrixXf& centroid);
+
+/* perform hierarchical clustering by given a group */
+	void bottomUp_byGroup(std::vector<Ensemble>& nodeVec);
+
+/* perform hierarchical clustering by given a threshold */
+	void bottomUp_byThreshold(std::vector<Ensemble>& nodeVec);		
 
 };
 

@@ -2,8 +2,8 @@
 #define _CLUSTERANALYSIS_H_
 
 #include "CFTree.h"
-#include "../Common/IOHandler.h"
-#include "../Common/Silhouette.h"
+#include "IOHandler.h"
+#include "Silhouette.h"
 //#include "item_type.h"
 #include <string>
 #include <sstream>
@@ -244,7 +244,7 @@ void getBirchClustering(std::vector<item_type<dim> >& items,
 	*/
 
 	bool found = false;
-	for (int i = 0; i < 12&&!found; ++i)
+	for (int i = 0; i < 13&&!found; ++i)
 	{
 		if(normOption==i)
 		{

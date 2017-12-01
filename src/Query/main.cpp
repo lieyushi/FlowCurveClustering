@@ -46,13 +46,15 @@ void streamlineQuery(const int& argc,
 
 	int searchInteresting;
 	char isContinued;
-	for (int i = 2; i < 12; ++i)
+	for (int i = 2; i < 13; ++i)
 	{
-		std::cout << "Wanted to continue the query?" << std::endl
-				  << "Y. Yes; N. No" << std::endl;
-		std::cin >> isContinued;
-		if(isContinued=='N'||isContinued=='n')
-			break;
+		if(i!=12)
+			continue;
+		//std::cout << "Wanted to continue the query?" << std::endl
+		//		  << "Y. Yes; N. No" << std::endl;
+		//std::cin >> isContinued;
+		//if(isContinued=='N'||isContinued=='n')
+		//	break;
 		std::cin.ignore();
 		std::cout << "-----------------------------------------------" << std::endl
 				  << "--------------------- Norm " << i << " string query" 

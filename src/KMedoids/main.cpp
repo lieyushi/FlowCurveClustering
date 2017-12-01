@@ -119,8 +119,10 @@ void featureExtraction(const int& number,
 
 	KMedoids kmedoid(pm, data, numOfClusters);
 
-	for(int i = 0;i<12;i++)
+	for(int i = 0;i<13;i++)
 	{
+		if(i!=12)
+			continue;
 		gettimeofday(&start, NULL);
 		ss << strName << "_KMeans";
 		performKMedoids(ss.str(), dataVec, dimension, 

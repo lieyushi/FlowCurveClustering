@@ -4,8 +4,8 @@
 #include <cmath>
 #include <cstring>
 #include <cassert>
-#include "../Common/IOHandler.h"
-#include "../Common/Distance.h"
+#include "IOHandler.h"
+#include "Distance.h"
 
 #ifndef M_PI
 	#define M_PI 3.141592653
