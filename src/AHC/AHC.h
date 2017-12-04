@@ -77,7 +77,7 @@ private:
 	void setNormOption();
 
 /* set threshold for AHC function */
-	void getDistRange();
+	void getDistRange();	
 
 /* get distance between two treeNode nodes */
 	const float getDistAtNodes(const vector<int>& firstList, const vector<int>& secondList, const int& Linkage);
@@ -94,6 +94,9 @@ private:
 
 /* perform hierarchical clustering by given a threshold */
 	void bottomUp_byThreshold(std::vector<Ensemble>& nodeVec);		
+
+/* get string for linkage type */
+	string getLinkageStr();	
 
 };
 

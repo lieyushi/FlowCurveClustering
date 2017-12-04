@@ -17,6 +17,7 @@ struct DataSet
 
 	string strName;
 	string fullName;
+	string dataName;
 
 };
 

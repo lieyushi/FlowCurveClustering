@@ -261,6 +261,7 @@ void AHC::hierarchicalMerging(std::vector<Ensemble>& nodeVec)
 
 	numberOfClusters = nodeVec.size();
 
+	/* use alpha function to sort the group by its size */
 	std::sort(nodeVec.begin(), nodeVec.end(), [](const Ensemble& e1, const Ensemble& e2)
 	{return e1.element.size()<e2.element.size() ||(e1.element.size()==e2.element.size()&&e1.index<e2.index);});
 }
@@ -306,6 +307,13 @@ void AHC::extractFeatures(const std::vector<int>& storage, const std::vector<std
 {
 	const int& Row = ds.dataMatrix.rows();
 	const int& Column = ds.dataMatrix.cols();
+
+	std::cout << "Final group number information: " << std::endl;
+	for (int i = 0; i < storage.size(); ++i)
+	{
+		std::cout << storage[i] << " ";
+	}
+	std::cout << std::endl;
 
 	IOHandler::printClustersNoise(ds.dataVec,group,storage,
 			 "norm"+to_string(normOption),ds.fullName,ds.dimension);
@@ -379,9 +387,11 @@ void AHC::extractFeatures(const std::vector<int>& storage, const std::vector<std
 	stringstream ss;
 	ss << "norm_" << normOption;
 
-	IOHandler::printFeature("AHC_closest_"+ss.str()+".vtk", closest, sil.sCluster, ds.dimension);
-	IOHandler::printFeature("AHC_furthest_"+ss.str()+".vtk", furthest, sil.sCluster, ds.dimension);
-	IOHandler::printFeature("AHC_centroid_"+ss.str()+".vtk", center_vec, sil.sCluster,ds.dimension);
+	string linkage = getLinkageStr();
+
+	IOHandler::printFeature(ds.dataName+"_AHC_"+linkage+"_closest_"+ss.str()+".vtk", closest, sil.sCluster, ds.dimension);
+	IOHandler::printFeature(ds.dataName+"_AHC_"+linkage+"_furthest_"+ss.str()+".vtk", furthest, sil.sCluster, ds.dimension);
+	IOHandler::printFeature(ds.dataName+"_AHC_"+linkage+"_centroid_"+ss.str()+".vtk", center_vec, sil.sCluster,ds.dimension);
 
 	IOHandler::printToFull(ds.dataVec, sil.sData, "AHC_SValueLine_"+ss.str(), ds.fullName, ds.dimension);
 	IOHandler::printToFull(ds.dataVec, group, sil.sCluster, "AHC_SValueCluster_"+ss.str(), ds.fullName, ds.dimension);
@@ -393,6 +403,8 @@ void AHC::extractFeatures(const std::vector<int>& storage, const std::vector<std
 	timeList.push_back(to_string(sil.sAverage));
 
 	IOHandler::generateReadme(activityList,timeList);
+
+	IOHandler::writeReadme("Linkage: "+linkage+", ");
 }
 
 /* set dataset from user command */
@@ -406,6 +418,7 @@ void AHC::setDataset(const int& argc, char **argv)
 		exit(1);
 	}
 	ds.strName = string("../dataset/")+string(argv[1]);
+	ds.dataName = string(argv[1]);
 	ds.dimension = atoi(argv[2]);
 
 	int sampleOption;
@@ -588,3 +601,24 @@ const float AHC::getDistAtNodes(const vector<int>& firstList, const vector<int>&
 	return result;
 }
 
+
+/* get string for linkage type */
+string AHC::getLinkageStr()
+{
+	string result;
+	switch(linkageOption)
+	{
+	case 0:
+		result = "single";
+		break;
+
+	case 1:
+		result = "complete";
+		break;
+
+	case 2:
+		result = "average";
+		break;
+	}
+	return result;
+}
