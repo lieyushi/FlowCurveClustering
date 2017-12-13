@@ -335,6 +335,8 @@ void AHC::extractFeatures(const std::vector<int>& storage, const std::vector<std
 	IOHandler::generateReadme(activityList,timeList);
 
 	IOHandler::writeReadme("Linkage: "+linkage+", "+"norm option is "+normStr+", "+"entropy ratio is "+entropyStr);
+
+	IOHandler::writeGroupSize(storage);
 }
 
 /* set dataset from user command */

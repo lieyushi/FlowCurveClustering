@@ -1192,6 +1192,40 @@ void IOHandler::generateReadme(const std::vector<string>& activityList,
 	{
 		readme << activityList[i] << timeList[i] << std::endl;
 	}
+    readme.close();
+}
+
+
+void IOHandler::writeReadme(const string& comments)
+{
+	if(comments.empty())
+		return;
+	std::ofstream readme("../dataset/README",ios::out | ios::app);
+	if(!readme)
+	{
+		std::cout << "Error creating readme!" << std::endl;
+		exit(1);
+	}
+	readme << comments << std::endl;
+    readme.close();
+}
+
+
+void IOHandler::writeGroupSize(const std::vector<int>& storage)
+{
+	if(storage.empty())
+		return;
+	std::ofstream readme("../dataset/README",ios::out | ios::app);
+	if(!readme)
+	{
+		std::cout << "Error creating readme!" << std::endl;
+		exit(1);
+	}
+	readme << "Final cluster size: " << storage.size() << std::endl;
+	for (int i = 0; i < storage.size(); ++i)
+	{
+		readme << storage[i] << " ";
+	}
 	readme << std::endl;
     readme.close();
 }

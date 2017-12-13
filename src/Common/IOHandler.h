@@ -155,6 +155,11 @@ public:
 	static void writeReadme(const std::vector<ExtractedLine>& closest, 
 							const std::vector<ExtractedLine>& furthest);
 
+	static void writeReadme(const string& comments);
+
+	static void writeGroupSize(const std::vector<int>& storage);
+
+
 /* expand array to the longest size so that we can perform entrywise comparison */
 	static void expandArray(MatrixXf& data, 
 							const std::vector< std::vector<float> >& dataVec, 
