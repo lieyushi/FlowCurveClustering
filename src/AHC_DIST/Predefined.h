@@ -25,8 +25,7 @@ struct DataSet
 struct Ensemble
 {
 	int index = -1;
-
-	/* to alleviate the computational cost to traverse all node elements */
+	bool merged = false;
 	std::vector<int> element;
 
 	Ensemble(const int& index): index(index)
@@ -39,19 +38,5 @@ struct Ensemble
 // remove two elements in template vector
 template <class T>
 void deleteVecElements(std::vector<T>& origine, const T& first, const T& second);
-
-
-/* we will use a min-heap to perserve sorted distance for hirarchical clustering */
-struct DistNode
-{
-	int first = -1, second = -1;
-	float distance = -1.0;
-
-	DistNode(const int& first, const int& second, const float& dist):first(first), second(second), distance(dist)
-	{}
-
-	DistNode()
-	{}
-};
 
 #endif

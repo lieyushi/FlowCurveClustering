@@ -1,19 +1,12 @@
-/* Standard agglomerative hierarchical clustering methods.
- * Assume input object number is N, then form a N*N distance matrix to be stored.
- * Basic procedures are
- * 	1. store distance matrix
- * 	2. min-heap to sort mutual distance
- * 	3. every time merge two nodes with smallest distance and update the min-heap
- * 	4. merge until only one cluster or given cluster number is obtained
+/* Agglomerative hierarchical clustering implementation with single thread.
+ * It's very hard to achieve multi-threaded speedup because it involves many
+ * merge operation.
  */
 
-/* Performance and memory usage analysis
- * 1. Performance
- * 		N*N (distance matrix) + 2N*N logN (build min-heap) + 2N*N*log(N*N) (min-heap update)
- * 2. Memory usage
- * 		N*N (distance matrix) + N*N(min-heap)
- *
- * Would expect this algorithm to be super time-consuming and memory-wasting
+/* This implementation seems not to be a pure and standard agglomerative hierarchical
+ * clustering method. Instead, it's more like a Birch  method which would merge all relavant
+ * objects within a given threshold. Hence, it could not get any type of required cluster
+ * number.
  */
 
 #ifndef _AHC_H_
@@ -22,9 +15,7 @@
 #include "Predefined.h"
 #include <unordered_set>
 #include <map>
-#include <unordered_map>
 #include <string>
-#include <algorithm>
 
 class AHC
 {
@@ -63,11 +54,20 @@ private:
 /* timeList vector to store time information */
 	std::vector<string> timeList;
 
+/* distanc threshold */
+	float distanceThreshold;
+
 /* store dataset information */
 	DataSet ds;
 
 /* how many clusters to be needed */
 	int numberOfClusters;
+
+/* expected cluster number as input */
+	int expectedClusters;
+
+/* distance range recorded */
+	vector<float> distRange;		
 
 /* k-means initialization option */
 	int initializationOption;
@@ -81,16 +81,24 @@ private:
 /* set norm option, must be within 0-12 */
 	void setNormOption();
 
-/* compute distance between two clusters based on likage type */
+/* set threshold for AHC function */
+	void getDistRange();	
+
+/* get distance between two treeNode nodes */
 	const float getDistAtNodes(const vector<int>& firstList, const vector<int>& secondList, const int& Linkage);
 
 /* perform AHC merging by given a distance threshold */
-	void hierarchicalMerging(std::unordered_map<int, Ensemble>& nodeMap, std::vector<DistNode>& dNodeVec,
-			  std::vector<Ensemble>& nodeVec);
+	void hierarchicalMerging(std::vector<Ensemble>& nodeVec);
 
 /* perform group-labeling information */
 	void setLabel(const std::vector<Ensemble>& nodeVec, vector<vector<int> >& neighborVec,
 			      vector<int>& storage, Eigen::MatrixXf& centroid);
+
+/* perform hierarchical clustering by given a group */
+	void bottomUp_byGroup(std::vector<Ensemble>& nodeVec);
+
+/* perform hierarchical clustering by given a threshold */
+	void bottomUp_byThreshold(std::vector<Ensemble>& nodeVec);		
 
 /* get string for linkage type */
 	string getLinkageStr();	
@@ -103,9 +111,6 @@ private:
 
 /* get entropy ratio string */ 
 	string getEntropyStr(const float& EntropyRatio);	
-
-/* set a vector for min-heap */
-	void setValue(std::vector<DistNode>& dNodeVec);
 
 };
 
