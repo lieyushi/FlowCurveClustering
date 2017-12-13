@@ -105,6 +105,16 @@ target_link_libraries(optics ${ALL_LIBS})
 
 
 ###############################################
+# generate ahc_dist executable
+set( AHC_DIST_SRC
+   )
+file( GLOB AHC_DIST_SRC ${CMAKE_CURRENT_SOURCE_DIR}/src/AHC_DIST/*.cpp )  
+add_executable(ahc_dist ${AHC_DIST_SRC})
+target_link_libraries(ahc_dist ${ALL_LIBS})
+###############################################
+
+
+###############################################
 # generate ahc executable
 set( AHC_SRC
    )
