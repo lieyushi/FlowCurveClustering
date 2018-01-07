@@ -122,3 +122,13 @@ file( GLOB AHC_SRC ${CMAKE_CURRENT_SOURCE_DIR}/src/AHC/*.cpp )
 add_executable(ahc ${AHC_SRC})
 target_link_libraries(ahc ${ALL_LIBS})
 ###############################################
+
+
+###############################################
+# generate ahc executable
+set( SC_SRC
+   )
+file( GLOB SC_SRC ${CMAKE_CURRENT_SOURCE_DIR}/src/SpectralClustering/*.cpp )  
+add_executable(sc ${SC_SRC})
+target_link_libraries(sc ${ALL_LIBS})
+###############################################
