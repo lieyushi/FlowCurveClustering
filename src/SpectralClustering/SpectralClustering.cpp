@@ -66,14 +66,7 @@ void SpectralClustering::setLabel(vector<vector<int> >& neighborVec, vector<int>
 {
 	std::vector<Ensemble> nodeVec(storage.size());
 
-	for(int i=0;i<storage.size();++i)
-	{
-		for(int j=0;j<neighborVec[i].size();++j)
-			std::cout << neighborVec[i][j] << " ";
-		std::cout << std::endl;
-	}
-	std::cout << std::endl;
-
+	std::cout << "Cluster label setting begins with " << nodeVec.size() << " clusters..." << std::endl;
 #pragma omp parallel for schedule(dynamic) num_threads(8)
 	for(int i=0;i<nodeVec.size();++i)
 	{
@@ -103,6 +96,8 @@ void SpectralClustering::setLabel(vector<vector<int> >& neighborVec, vector<int>
 		}
 		centroid.row(i) = tempVec/storage[i];
 	}
+
+	std::cout << "Cluster label setting ends..." << std::endl;
 }
 
 
@@ -808,8 +803,14 @@ void SpectralClustering::getEigvecRotation(std::vector<int>& storage, std::vecto
 	Eigen::MatrixXf vecRot;
 	Eigen::MatrixXf vecIn = X.block(0,0,X.rows(),2);
 	Evrot* e = NULL;
+
+	struct timeval start, end;
+	gettimeofday(&start, NULL);
+
+	std::cout << "Eigenvector rotation starts..." << std::endl;
 	for (int g=2; g <= X.cols(); g++) {
 		// make it incremental (used already aligned vectors)
+		std::cout << "column " << g << std::endl;
 		if( g > 2 ) {
 			vecIn.resize(X.rows(),g);
 			vecIn.block(0,0,vecIn.rows(),g-1) = e->getRotatedEigenVectors();
@@ -829,6 +830,11 @@ void SpectralClustering::getEigvecRotation(std::vector<int>& storage, std::vecto
 			vecRot = e->getRotatedEigenVectors();
 		}
 	}
+
+	gettimeofday(&end, NULL);
+	float timeTemp = ((end.tv_sec-start.tv_sec)*1000000u+end.tv_usec-start.tv_usec)/1.e6;
+	activityList.push_back("Eigenvector rotation takes: ");
+	timeList.push_back(to_string(timeTemp)+" s");
 
 	clusterCenter = Eigen::MatrixXf::Zero(neighborVec.size(),vecRot.cols());
 	storage = std::vector<int>(neighborVec.size());

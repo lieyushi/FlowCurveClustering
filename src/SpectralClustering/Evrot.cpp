@@ -43,7 +43,7 @@ Evrot::~Evrot() {
 void Evrot::evrot() {
 
 	// definitions
-	int max_iter = 200;
+	int max_iter = 100;
 	float dQ,Q,Q_new,Q_old1,Q_old2,Q_up,Q_down;
 	float alpha;
 	int iter,d;
@@ -56,6 +56,7 @@ void Evrot::evrot() {
 	Q_old1 = Q;
 	Q_old2 = Q;
 	iter = 0;
+
 	while( iter < max_iter ){ // iterate to refine quality
 		iter++;
 		for( d = 0; d < mNumAngles; d++ ){
@@ -147,6 +148,14 @@ void Evrot::cluster_assign() {
 			}
 		}
 	}
+
+/* delete cluster that has zero elements in case that vanishing vector won't create trouble */
+	std::vector<std::vector<int> > tempCluster;
+	for(int i=0;i<mClusters.size();++i)
+		if(!mClusters[i].empty())
+			tempCluster.push_back(mClusters[i]);
+	mClusters.clear();
+	mClusters = tempCluster;
 }
 
 
