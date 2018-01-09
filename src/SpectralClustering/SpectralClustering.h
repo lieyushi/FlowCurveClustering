@@ -9,6 +9,7 @@
 #define _SPECTRAL_CLUSTERING_H_
 
 #include "Predefined.h"
+#include "Evrot.h"
 #include <unordered_set>
 #include <map>
 #include <string>
@@ -160,6 +161,18 @@ private:
 	/* get dJ/d_theta the gradient */
 	const float getGradientToTheta(const int& k,  const Eigen::MatrixXf& X);
 
+
+/********************************** Vector Rotation from library *********************************************
+ ********************************** from library https://github.com/pthimon/clustering ***********************/
+	float mMaxQuality = 0;
+	int mMethod;
+
+	/* get cluster information based on eigenvector rotation */
+	void getEigvecRotation(std::vector<int>& storage, std::vector<std::vector<int> >& neighborVec,
+			               Eigen::MatrixXf& clusterCenter, const Eigen::MatrixXf& X);
+
+	/* get derivate method as input, 1. numerical derivative, 2. true derivative */
+	void getDerivateMethod();
 };
 
 void getMatrixPow(Eigen::DiagonalMatrix<float,Dynamic>& matrix, const float& powNumber);

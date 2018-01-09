@@ -66,6 +66,14 @@ void SpectralClustering::setLabel(vector<vector<int> >& neighborVec, vector<int>
 {
 	std::vector<Ensemble> nodeVec(storage.size());
 
+	for(int i=0;i<storage.size();++i)
+	{
+		for(int j=0;j<neighborVec[i].size();++j)
+			std::cout << neighborVec[i][j] << " ";
+		std::cout << std::endl;
+	}
+	std::cout << std::endl;
+
 #pragma omp parallel for schedule(dynamic) num_threads(8)
 	for(int i=0;i<nodeVec.size();++i)
 	{
@@ -73,8 +81,9 @@ void SpectralClustering::setLabel(vector<vector<int> >& neighborVec, vector<int>
 		nodeVec[i].element = neighborVec[i];
 	}
 
+	/* sort group index by size of elements containd inside */
 	std::sort(nodeVec.begin(), nodeVec.end(), [](const Ensemble& first, const Ensemble& second)
-			{return first.size<second.size|| (first.size==second.size&&first.element[0]<second.element[0]);});
+	{return first.size<second.size|| (first.size==second.size&&first.element[0]<second.element[0]);});
 
 	neighborVec = std::vector<std::vector<int> >(nodeVec.size());
 	storage = std::vector<int>(nodeVec.size());
@@ -87,7 +96,11 @@ void SpectralClustering::setLabel(vector<vector<int> >& neighborVec, vector<int>
 		storage[i] = nodeVec[i].size;
 		Eigen::VectorXf tempVec = Eigen::VectorXf::Zero(ds.dataMatrix.cols());
 		for(int j=0;j<storage[i];++j)
+		{
 			tempVec+=ds.dataMatrix.row(i).transpose();
+			/* don't forget to re-compute the group tag */
+			group[neighborVec[i][j]]=i;
+		}
 		centroid.row(i) = tempVec/storage[i];
 	}
 }
@@ -130,7 +143,8 @@ void SpectralClustering::extractFeatures(const std::vector<int>& storage, const 
 
 	gettimeofday(&start, NULL);
 	Silhouette sil;
-	sil.computeValue(normOption,ds.dataMatrix,ds.dataMatrix.rows(),ds.dataMatrix.cols(),group,object,numberOfClusters);
+	sil.computeValue(normOption,ds.dataMatrix,ds.dataMatrix.rows(),ds.dataMatrix.cols(),group,object,
+			         numberOfClusters, neighborVec);
 	gettimeofday(&end, NULL);
 	timeTemp = ((end.tv_sec  - start.tv_sec) * 1000000u 
 			   + end.tv_usec - start.tv_usec) / 1.e6;
@@ -542,7 +556,13 @@ void SpectralClustering::getEigenClustering(const Eigen::MatrixXf& laplacianMatr
 	/* eigenvector rotation */
 	else if(postProcessing==2)
 	{
-		return;
+		getDerivateMethod();
+
+		getEigvecRotation(storage,neighborVec,clusterCenter,eigenVec);
+
+		setLabel(neighborVec, storage, clusterCenter);
+
+		extractFeatures(storage,neighborVec,clusterCenter);
 	}
 }
 
@@ -573,6 +593,7 @@ void SpectralClustering::performKMeans(const Eigen::MatrixXf& eigenVec,
 									   std::vector<int>& storage,
 									   std::vector<std::vector<int> >& neighborVec)
 {
+
 	const int& Row = eigenVec.rows();
 	const int& Column = eigenVec.cols();
 
@@ -677,6 +698,12 @@ void SpectralClustering::setLexicogList()
 }
 
 
+
+/* this is my own implementation of Eigenvector rotation, however, I would use library got online for this implementation
+ * as shown in https://github.com/pthimon/clustering
+ */
+
+
 /* generate theta list */
 void SpectralClustering::setThetaList()
 {
@@ -760,13 +787,7 @@ const float SpectralClustering::getGradientToTheta(const int& k, const Eigen::Ma
 	{
 		float value_r = 0;
 		int m_i=0;
-		Eigen::VectorXf r_i=Z.row(i);
-		for(int j=0;j<C;++j)
-		{
-			if(r_i(j)>r_i(m_i))
-				m_i=j;
-		}
-		float M_i=r_i(m_i);
+		float M_i=XV.row(i).maxCoeff(&m_i);
 		for(int j=0;j<C;++j)
 		{
 			/* here get dMi/d\theta is hard, so we compute the matrix instead and got the element */
@@ -778,3 +799,66 @@ const float SpectralClustering::getGradientToTheta(const int& k, const Eigen::Ma
 	return result;
 }
 
+
+/* get cluster information based on eigenvector rotation */
+void SpectralClustering::getEigvecRotation(std::vector<int>& storage, std::vector<std::vector<int> >& neighborVec,
+        								   Eigen::MatrixXf& clusterCenter, const Eigen::MatrixXf& X)
+{
+	mMaxQuality = 0;
+	Eigen::MatrixXf vecRot;
+	Eigen::MatrixXf vecIn = X.block(0,0,X.rows(),2);
+	Evrot* e = NULL;
+	for (int g=2; g <= X.cols(); g++) {
+		// make it incremental (used already aligned vectors)
+		if( g > 2 ) {
+			vecIn.resize(X.rows(),g);
+			vecIn.block(0,0,vecIn.rows(),g-1) = e->getRotatedEigenVectors();
+			vecIn.block(0,g-1,X.rows(),1) = X.block(0,g-1,X.rows(),1);
+			delete e;
+		}
+		//perform the rotation for the current number of dimensions
+		e = new Evrot(vecIn, mMethod);
+
+		//save max quality
+		if (e->getQuality() > mMaxQuality) {
+			mMaxQuality = e->getQuality();
+		}
+		//save cluster data for max cluster or if we're near the max cluster (so prefer more clusters)
+		if ((e->getQuality() > mMaxQuality) || (mMaxQuality - e->getQuality() <= 0.001)) {
+			neighborVec = e->getClusters();
+			vecRot = e->getRotatedEigenVectors();
+		}
+	}
+
+	clusterCenter = Eigen::MatrixXf::Zero(neighborVec.size(),vecRot.cols());
+	storage = std::vector<int>(neighborVec.size());
+
+#pragma omp parallel for schedule(dynamic) num_threads(8)
+	for (unsigned int i=0; i < neighborVec.size(); i++)
+	{
+		storage[i] = neighborVec[i].size();
+		for (unsigned int j=0; j < neighborVec[i].size(); j++)
+		{
+			//sum points within cluster
+			clusterCenter.row(i) += vecRot.row(neighborVec[i][j]);
+		}
+	}
+
+#pragma omp parallel for schedule(dynamic) num_threads(8)
+	for (unsigned int i=0; i < neighborVec.size(); i++) {
+		//find average point within cluster
+		clusterCenter.row(i) = clusterCenter.row(i) / neighborVec[i].size();
+	}
+
+	numberOfClusters = neighborVec.size();
+}
+
+
+/* get derivate method as input, 1. numerical derivative, 2. true derivative */
+void SpectralClustering::getDerivateMethod()
+{
+	std::cout << "------------------------------------------------" << std::endl;
+	std::cout << "Please input derivative method: 1.numerical derivative, 2.true derivative." << std::endl;
+	std::cin >> mMethod;
+	assert(mMethod==1 || mMethod==2);
+}
