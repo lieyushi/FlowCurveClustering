@@ -14,7 +14,13 @@ Implemented clustering techniques include
 
 	BIRCH (a fast hierarchical clustering)
 
-	The distance metric is provided from my paper (http://www2.cs.uh.edu/~chengu/Publications/3DFlowVis/curveClustering.pdf)
+	Agglomerative hierarchical clustering (ahc)(primitive version with one-pair-merge every time)
+
+	Agglomerative hierarchical clustering with distance (ahc_dist) (updated version with pairs merged given distance of threshold)
+
+	Spectral Clustering (1. k-means, 2. eigenvector rotation from self-tuning spectral clustering)
+
+	The distance metric is provided from my paper (http://www2.cs.uh.edu/~chengu/Publications/3DFlowVis/curveClustering.pdf). Would incorporate more eixsting metrics.
 
 
 -------------------------------------------------
