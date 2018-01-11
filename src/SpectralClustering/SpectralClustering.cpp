@@ -345,6 +345,9 @@ void SpectralClustering::setNormOption()
 	std::cout << "Input a post-processing method: 1.k-means, 2.eigenvector rotation: " << std::endl;
 	std::cin >> postProcessing;
 	assert(postProcessing==1||postProcessing==2);
+
+	if(postProcessing==2)
+		getDerivateMethod();
 }
 
 
@@ -551,8 +554,6 @@ void SpectralClustering::getEigenClustering(const Eigen::MatrixXf& laplacianMatr
 	/* eigenvector rotation */
 	else if(postProcessing==2)
 	{
-		getDerivateMethod();
-
 		getEigvecRotation(storage,neighborVec,clusterCenter,eigenVec);
 
 		setLabel(neighborVec, storage, clusterCenter);
