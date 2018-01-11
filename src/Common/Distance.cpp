@@ -875,6 +875,9 @@ const float getDisimilarity(const VectorXf& first,
 
 	case 12:
 		length = getMetric_MOP(first, second);
+
+	case 13:
+		length = getMetric_Hausdorff(first, second);
 	}
 
 	return length;
@@ -917,6 +920,40 @@ const float getMetric_MOP(const VectorXf& first, const VectorXf& second)
 	return result;
 }
 
+/* get Hausdorff distance between streamlines */
+const float getMetric_Hausdorff(const VectorXf& first, const VectorXf& second)
+{
+	const int& vNum = first.size()/3;
+	float result, f_to_s=-1.0, s_to_f=-1.0;
+	for(int i=0;i<vNum;++i)
+	{
+		float minDist = FLT_MAX;
+		Vector3f m_i = Vector3f(first(3*i),first(3*i+1),first(3*i+2));
+		for(int j=0;j<vNum;++j)
+		{
+			Vector3f n_j = Vector3f(second(3*j),second(3*j+1),second(3*j+2));
+			minDist = std::min((m_i-n_j).norm(),minDist);
+		}
+		s_to_f=std::max(s_to_f, minDist);
+	}
+
+	for(int i=0;i<vNum;++i)
+	{
+		float minDist = FLT_MAX;
+		Vector3f m_i = Vector3f(second(3*i),second(3*i+1),second(3*i+2));
+		for(int j=0;j<vNum;++j)
+		{
+			Vector3f n_j = Vector3f(first(3*j),first(3*j+1),first(3*j+2));
+			minDist = std::min((m_i-n_j).norm(),minDist);
+		}
+		f_to_s=std::max(f_to_s, minDist);
+	}
+
+	result = std::max(f_to_s, s_to_f);
+	return result;
+}
+
+
 
 bool getDistanceMatrix(const MatrixXf& data,
 				       const int& normOption,
@@ -932,6 +969,10 @@ bool getDistanceMatrix(const MatrixXf& data,
 			distanceMatrix[i] = new float[Row];
 			for (int j = 0; j < Row; ++j)
 			{
+				/* don't wish to waste computation on diagonal element */
+				if(i==j)
+					distanceMatrix[i][j] = 0.0;
+				else
 					distanceMatrix[i][j] = getDisimilarity(data.row(i), data.row(j), i, j, normOption, object);
 			}
 		}
@@ -962,4 +1003,36 @@ void deleteDistanceMatrix(const int& Row)
 		delete[] distanceMatrix;
 		distanceMatrix = NULL;
 	}
+}
+
+
+const float getRotation(const std::vector<vector<float> >& streamline, std::vector<float>& rotation)
+{
+	if(streamline.empty())
+		return -1;
+	float result = 0, eachSum;
+	const int& size = streamline.size();
+	rotation = std::vector<float>(size);
+	std::vector<float> eachLine;
+	Eigen::Vector3f first, second;
+	int lineSize;
+	for(int i=0;i<size;++i)
+	{
+		eachSum = 0;
+		eachLine = streamline[i];
+		lineSize = eachLine.size()/3-2;
+		for(int j=0;j<lineSize;++j)
+		{
+			first<<eachLine[3*j+3]-eachLine[3*j],eachLine[3*j+4]-eachLine[3*j+1],eachLine[3*j+5]-eachLine[3*j+2];
+			second<<eachLine[3*j+6]-eachLine[3*j+3],eachLine[3*j+7]-eachLine[3*j+4],eachLine[3*j+8]-eachLine[3*j+5];
+			float angle = first.dot(second)/first.norm()/second.norm();
+			angle = std::max(angle,float(-1.0));
+			angle = std::min(angle,float(1.0));
+			eachSum+=acos(angle);
+		}
+		rotation[i]=eachSum;
+		result+=eachSum;
+	}
+	result/=size;
+	return result;
 }

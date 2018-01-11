@@ -98,6 +98,72 @@ void Silhouette::computeValue(const int& normOption,
 }
 
 
+void Silhouette::computeValue(const int& normOption,
+							  const MatrixXf& array,
+							  const int& Row,
+							  const int& Column,
+							  const std::vector<int>& group,
+							  const MetricPreparation& object,
+							  const int& groupNumber,
+							  const std::vector<vector<int> >& storage)
+{
+	sData.clear();
+	sCluster.clear();
+	sData = std::vector<float>(Row,0);
+	assert(Row==group.size());
+
+	//groupNumber doesn't include noise group
+	sCluster = std::vector<float>(groupNumber, 0);
+
+	// compute Silhouette value for each data
+	float sSummation = 0;
+
+#pragma omp parallel num_threads(8)
+	{
+	#pragma omp for nowait
+		for (int i = 0; i < group.size(); ++i)
+		{
+			if(group[i]<0)
+				continue;
+			const float& a_i = getA_i(storage, group, array, i, object, normOption);
+			const float& b_i = getB_i(storage, group, array, i, object, normOption);
+
+			float s_i;
+			if(abs(a_i-b_i)<1.0e-8)
+				s_i = 0;
+			else if(a_i<b_i)
+				s_i = 1 - a_i/b_i;
+			else
+				s_i = b_i/a_i - 1;
+			if(isnan(s_i))
+			{
+				std::cout << "Error for nan number!" << std::endl;
+				exit(1);
+			}
+			sData[i] = s_i;
+
+		#pragma omp critical
+			sSummation += s_i;
+		}
+	}
+	sAverage = sSummation/(group.size());
+
+#pragma omp parallel for schedule(dynamic) num_threads(8)
+	for (int i = 0; i < sCluster.size(); ++i)
+	{
+		float& eachCluster = sCluster[i];
+		eachCluster = 0;
+		const std::vector<int>& clustSet = storage[i];
+		for (int j = 0; j < clustSet.size(); ++j)
+		{
+			eachCluster += sData[clustSet[j]];
+		}
+		eachCluster/=clustSet.size();
+	}
+}
+
+
+
 const float Silhouette::getA_i(const std::vector<std::vector<int> >& storage,
 							   const std::vector<int>& group,
 						 	   const MatrixXf& array,

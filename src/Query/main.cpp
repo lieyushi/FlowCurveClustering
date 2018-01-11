@@ -46,7 +46,7 @@ void streamlineQuery(const int& argc,
 
 	int searchInteresting;
 	char isContinued;
-	for (int i = 2; i < 13; ++i)
+	for (int i = 2; i < 14; ++i)
 	{
 		if(i!=12)
 			continue;

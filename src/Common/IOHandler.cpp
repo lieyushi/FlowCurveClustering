@@ -1058,6 +1058,105 @@ void IOHandler::printFeature(const string& fileName,
 }
 
 
+void IOHandler::printFeature(const string& fileName,
+							 const std::vector<std::vector<float> >& array,
+							 const std::vector<float>& sCluster,
+							 const std::vector<float>& rotation,
+							 const int& dimension)
+{
+	if(array.empty() || sCluster.empty())
+			return;
+		stringstream ss;
+		ss << "../dataset/" << fileName;
+		ofstream fout(ss.str().c_str(), ios::out);
+		if(!fout)
+		{
+			std::cout << "Error creating file!" << std::endl;
+			exit(-1);
+		}
+
+		int vertexCount = 0;
+		for (int i = 0; i < array.size(); ++i)
+		{
+			vertexCount += array[i].size();
+		}
+		vertexCount /= dimension;
+
+		fout << "# vtk DataFile Version 3.0" << std::endl << "Bernard streamline" << std::endl
+		     << "ASCII" << std::endl << "DATASET POLYDATA" << std::endl;
+		fout << "POINTS " << vertexCount << " float" << std::endl;
+
+		int subSize, arraySize;
+		std::vector<float> tempVec;
+		for (int i = 0; i < array.size(); ++i)
+		{
+			tempVec = array[i];
+			subSize = tempVec.size()/dimension;
+			for (int j = 0; j < subSize; ++j)
+			{
+				for (int k = 0; k < dimension; ++k)
+				{
+					fout << tempVec[j*dimension+k] << " ";
+				}
+				fout << endl;
+			}
+		}
+
+		fout << "LINES " << array.size() << " " << (vertexCount+array.size()) << std::endl;
+
+		subSize = 0;
+		for (int i = 0; i < array.size(); ++i)
+		{
+			arraySize = array[i].size()/dimension;
+			fout << arraySize << " ";
+			for (int j = 0; j < arraySize; ++j)
+			{
+				fout << subSize+j << " ";
+			}
+			subSize+=arraySize;
+			fout << std::endl;
+		}
+		fout << "POINT_DATA" << " " << vertexCount << std::endl;
+		fout << "SCALARS group int 1" << std::endl;
+		fout << "LOOKUP_TABLE group_table" << std::endl;
+
+		for (int i = 0; i < array.size(); ++i)
+		{
+			arraySize = array[i].size()/dimension;
+			for (int j = 0; j < arraySize; ++j)
+			{
+				fout << i << std::endl;
+			}
+		}
+
+		fout << "SCALARS silhouette float 1" << std::endl;
+		fout << "LOOKUP_TABLE silhouette_table" << std::endl;
+
+		for (int i = 0; i < array.size(); ++i)
+		{
+			arraySize = array[i].size()/dimension;
+			for (int j = 0; j < arraySize; ++j)
+			{
+				fout << sCluster[i] << std::endl;
+			}
+		}
+
+		fout << "SCALARS rotation float 1" << std::endl;
+		fout << "LOOKUP_TABLE rotation_table" << std::endl;
+
+		for (int i = 0; i < array.size(); ++i)
+		{
+			arraySize = array[i].size()/dimension;
+			for (int j = 0; j < arraySize; ++j)
+			{
+				fout << rotation[i] << std::endl;
+			}
+		}
+
+		fout.close();
+}
+
+
 void IOHandler::printClusters(const std::vector< std::vector<float> >& dataVec, 
 							  const std::vector<int>& group, 
 				 			  const std::vector<int>& storage, 

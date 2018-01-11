@@ -91,7 +91,7 @@ const float getMetric_10(const int& first,
 
 const float getMetric_MOP(const VectorXf& first, const VectorXf& second);
 
-
+const float getMetric_Hausdorff(const VectorXf& first, const VectorXf& second);
 
 const float getNorm(const Eigen::VectorXf& centroid,
 					const Eigen::VectorXf& r2,
@@ -135,5 +135,10 @@ bool getDistanceMatrix(const MatrixXf& data,
 					   const MetricPreparation& object);
 
 void deleteDistanceMatrix(const int& Row);
+
+/* get rotation for a series of streamlines */
+const float getRotation(const std::vector<vector<float> >& streamline, std::vector<float>& rotation);
+
+
 
 #endif

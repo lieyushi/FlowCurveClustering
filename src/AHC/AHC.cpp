@@ -239,8 +239,7 @@ void AHC::extractFeatures(const std::vector<int>& storage, const std::vector<std
 	}
 	std::cout << std::endl;
 
-	IOHandler::printClustersNoise(ds.dataVec,group,storage,
-			 "norm"+to_string(normOption),ds.fullName,ds.dimension);
+	IOHandler::printClusters(ds.dataVec,group,storage,"norm"+to_string(normOption),ds.fullName,ds.dimension);
 
 	struct timeval start, end;
 	double timeTemp;
@@ -319,8 +318,14 @@ void AHC::extractFeatures(const std::vector<int>& storage, const std::vector<std
 	string normStr = getNormStr();
 	string entropyStr = getEntropyStr(EntropyRatio);
 
-	IOHandler::printFeature(ds.dataName+"_AHC_"+linkage+"_closest_"+ss.str()+".vtk", closest, sil.sCluster, ds.dimension);
-	IOHandler::printFeature(ds.dataName+"_AHC_"+linkage+"_furthest_"+ss.str()+".vtk", furthest, sil.sCluster, ds.dimension);
+	std::vector<float> closestRotation, furthestRotation;
+	const float& closestAverage = getRotation(closest, closestRotation);
+	const float& furthestAverage = getRotation(furthest, furthestRotation);
+
+	IOHandler::printFeature(ds.dataName+"_AHC_"+linkage+"_closest_"+ss.str()+".vtk", closest, sil.sCluster,
+			                closestRotation, ds.dimension);
+	IOHandler::printFeature(ds.dataName+"_AHC_"+linkage+"_furthest_"+ss.str()+".vtk", furthest, sil.sCluster,
+							furthestRotation, ds.dimension);
 	IOHandler::printFeature(ds.dataName+"_AHC_"+linkage+"_centroid_"+ss.str()+".vtk", center_vec, sil.sCluster,ds.dimension);
 
 	IOHandler::printToFull(ds.dataVec, sil.sData, "AHC_SValueLine_"+ss.str(), ds.fullName, ds.dimension);
@@ -331,6 +336,12 @@ void AHC::extractFeatures(const std::vector<int>& storage, const std::vector<std
 
 	activityList.push_back("Average Silhouette is: ");
 	timeList.push_back(to_string(sil.sAverage));
+
+	activityList.push_back("Average rotation of closest is: ");
+	timeList.push_back(to_string(closestAverage));
+
+	activityList.push_back("Average rotation of furthest is: ");
+	timeList.push_back(to_string(furthestAverage));
 
 	IOHandler::generateReadme(activityList,timeList);
 
@@ -382,7 +393,7 @@ void AHC::setDataset(const int& argc, char **argv)
 /* set norm option, must be within 0-12 */
 void AHC::setNormOption()
 {
-	std::cout << "Input a norm option 0-12!" << std::endl;
+	std::cout << "Input a norm option 0-13!" << std::endl;
 	std::cin >> normOption;
 	std::cout << std::endl;
 	/*  
@@ -399,9 +410,10 @@ void AHC::setNormOption()
 		10: x*y/|x||y| borrowed from machine learning
 		11: cosine similarity
 		12: mean of closest point distance
+		13: Hausdorff distance
 	*/
 	bool found = false;
-	for (int i = 0; i < 13&&!found; ++i)
+	for (int i = 0; i < 14&&!found; ++i)
 	{
 		if(normOption==i)
 		{

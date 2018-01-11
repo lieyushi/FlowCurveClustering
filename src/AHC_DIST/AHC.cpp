@@ -315,8 +315,7 @@ void AHC::extractFeatures(const std::vector<int>& storage, const std::vector<std
 	}
 	std::cout << std::endl;
 
-	IOHandler::printClustersNoise(ds.dataVec,group,storage,
-			 "norm"+to_string(normOption),ds.fullName,ds.dimension);
+	IOHandler::printClusters(ds.dataVec,group,storage,"norm"+to_string(normOption),ds.fullName,ds.dimension);
 
 	struct timeval start, end;
 	double timeTemp;

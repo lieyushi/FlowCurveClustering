@@ -26,14 +26,14 @@ public:
 					  const MetricPreparation& object,
 					  const int& groupNumber);
 
-	void computeValueNoise(const int& normOption,
-					  	   const MatrixXf& array, 
-					  	   const int& Row, 
-					  	   const int& Column,
-					  	   const std::vector<int>& group, 
-					  	   const MetricPreparation& object,
-					  	   const int& groupNumber,
-					  	   const std::vector<int>& storage);
+	void computeValue(const int& normOption,
+					  const MatrixXf& array,
+					  const int& Row,
+					  const int& Column,
+					  const std::vector<int>& group,
+					  const MetricPreparation& object,
+					  const int& groupNumber,
+					  const std::vector<vector<int> >& storage);
 
 	void reset();
 

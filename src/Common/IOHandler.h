@@ -214,6 +214,13 @@ public:
 				 			 const std::vector<float>& sCluster,
 				 			 const int& dimension);
 
+	static void printFeature(const string& fileName,
+							 const std::vector<std::vector<float> >& array,
+							 const std::vector<float>& sCluster,
+							 const std::vector<float>& rotation,
+							 const int& dimension);
+
+
 	static void printClusters(const std::vector< std::vector<float> >& dataVec, 
 							  const std::vector<int>& group, 
 				 			  const std::vector<int>& storage, 
