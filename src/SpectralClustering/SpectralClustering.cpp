@@ -7,32 +7,16 @@ SpectralClustering::SpectralClustering()
 }
 
 /* argument constructor with argc and argv */
-SpectralClustering::SpectralClustering(const int& argc, char **argv)
+SpectralClustering::SpectralClustering(const int& argc, char **argv, const Para& p, bool& automatic)
 {
 	setDataset(argc, argv);
-	setNormOption();
 
-	/* very hard to decide whether needed to perform such pre-processing */
-	object = MetricPreparation(ds.dataMatrix.rows(), ds.dataMatrix.cols());
-	object.preprocessing(ds.dataMatrix, ds.dataMatrix.rows(), ds.dataMatrix.cols(), normOption);
+	if(automatic)
+		setParameterAutomatic(p);
 
-	/* would store distance matrix instead because it would save massive time */
-	struct timeval start, end;
-	double timeTemp;
-	gettimeofday(&start, NULL);
+	else
+		getParameterUserInput();
 
-	if(!getDistanceMatrix(ds.dataMatrix, normOption, object))
-	{
-		std::cout << "Failure to compute distance matrix!" << std::endl;
-	}
-
-	gettimeofday(&end, NULL);
-	timeTemp = ((end.tv_sec  - start.tv_sec) * 1000000u 
-			   + end.tv_usec - start.tv_usec) / 1.e6;
-	activityList.push_back("Distance matrix computing takes: ");
-	timeList.push_back(to_string(timeTemp)+" s");
-
-	getSigmaList();
 }
 
 /* destructor */
@@ -44,6 +28,67 @@ SpectralClustering::~SpectralClustering()
 /* perform clustering function */
 void SpectralClustering::performClustering()
 {
+	//distance metric type
+	/*
+		0: Euclidean Norm
+		1: Fraction Distance Metric
+		2: piece-wise angle average
+		3: Bhattacharyya metric for rotation
+		4: average rotation
+		5: signed-angle intersection
+		6: normal-direction multivariate distribution
+		7: Bhattacharyya metric with angle to a fixed direction
+		8: Piece-wise angle average \times standard deviation
+		9: normal-direction multivariate un-normalized distribution
+		10: x*y/|x||y| borrowed from machine learning
+		11: cosine similarity
+		12: mean of closest point distance
+		13: Hausdorff distance
+	*/
+	for(int i=0;i<=13;++i)
+	{
+		std::cout << "----------------------------------------------------" << std::endl;
+		std::cout << "Experiment on norm " << i << " starts!--------------" << std::endl;
+
+		activityList.clear();
+		timeList.clear();
+		clusterByNorm(i);
+
+		std::cout << std::endl;
+	}
+}
+
+
+/* run clustering based on different norm */
+void SpectralClustering::clusterByNorm(const int& norm)
+{
+	normOption = norm;
+
+	/* very hard to decide whether needed to perform such pre-processing */
+	object = MetricPreparation(ds.dataMatrix.rows(), ds.dataMatrix.cols());
+	object.preprocessing(ds.dataMatrix, ds.dataMatrix.rows(), ds.dataMatrix.cols(), normOption);
+
+	/* would store distance matrix instead because it would save massive time */
+	struct timeval start, end;
+	double timeTemp;
+	gettimeofday(&start, NULL);
+
+	deleteDistanceMatrix(ds.dataMatrix.rows());
+
+	if(!getDistanceMatrix(ds.dataMatrix, normOption, object))
+	{
+		std::cout << "Failure to compute distance matrix!" << std::endl;
+	}
+
+	gettimeofday(&end, NULL);
+	timeTemp = ((end.tv_sec  - start.tv_sec) * 1000000u
+			   + end.tv_usec - start.tv_usec) / 1.e6;
+	activityList.push_back("Distance matrix computing takes: ");
+	timeList.push_back(to_string(timeTemp)+" s");
+
+	getSigmaList();
+
+
 	Eigen::MatrixXf adjacencyMatrix, laplacianMatrix;
 	Eigen::DiagonalMatrix<float,Dynamic> degreeMatrix;
 
@@ -57,7 +102,6 @@ void SpectralClustering::performClustering()
 	getLaplacianMatrix(adjacencyMatrix, degreeMatrix, laplacianMatrix);
 
 	getEigenClustering(laplacianMatrix);
-
 }
 
 
@@ -264,90 +308,10 @@ void SpectralClustering::setDataset(const int& argc, char **argv)
 	ds.dataName = string(argv[1]);
 	ds.dimension = atoi(argv[2]);
 
-	int sampleOption;
-    std::cout << "choose a sampling method for the dataset?" << std::endl
-	    	  << "1.directly filling with last vertex; 2. uniform sampling." << std::endl;
-	std::cin >> sampleOption;
-	assert(sampleOption==1||sampleOption==2);
-
 	IOHandler::readFile(ds.strName,ds.dataVec,ds.vertexCount,ds.dimension,ds.maxElements);
 
 	ds.fullName = ds.strName+"_full.vtk";
 	IOHandler::printVTK(ds.fullName, ds.dataVec, ds.vertexCount, ds.dimension);
-
-	if(sampleOption==1)
-		IOHandler::expandArray(ds.dataMatrix,ds.dataVec,ds.dimension,ds.maxElements);
-	else if(sampleOption==2)
-		IOHandler::sampleArray(ds.dataMatrix,ds.dataVec,ds.dimension,ds.maxElements);
-
-	group = std::vector<int>(ds.dataMatrix.rows());
-
-/* the default value for streamline clustering is 2 normalized Laplacian */
-	std::cout << "---------------------------" << std::endl;
-	std::cout << "Laplacian option: 1.Normalized Laplacian, 2.Unsymmetric Laplacian" << std::endl;
-	std::cout << "..And in streamline clustering people tend to choose 1.Normalized Laplacian!-----------" << std::endl;
-	std::cin >> LaplacianOption;;
-	assert(LaplacianOption==1||LaplacianOption==2);
-}
-
-/* set norm option, must be within 0-12 */
-void SpectralClustering::setNormOption()
-{
-	std::cout << "Input a norm option 0-13!" << std::endl;
-	std::cin >> normOption;
-	std::cout << std::endl;
-	/*  
-		0: Euclidean Norm
-		1: Fraction Distance Metric
-		2: piece-wise angle average
-		3: Bhattacharyya metric for rotation
-		4: average rotation
-		5: signed-angle intersection
-		6: normal-direction multivariate distribution
-		7: Bhattacharyya metric with angle to a fixed direction
-		8: Piece-wise angle average \times standard deviation
-		9: normal-direction multivariate un-normalized distribution
-		10: x*y/|x||y| borrowed from machine learning
-		11: cosine similarity
-		12: mean of closest point distance
-		13: Hausdorff distance
-	*/
-	bool found = false;
-	for (int i = 0; i < 14&&!found; ++i)
-	{
-		if(normOption==i)
-		{
-			found = true;
-			break;
-		}
-	}
-	if(!found)
-	{
-		std::cout << "Cannot find the norm!" << std::endl;
-		exit(1);
-	}
-
-	int sortedOption;
-	std::cout << "Please choose whether local scaling by sorted distance: 1. yes, 2. no: " << std::endl;
-	std::cin >> sortedOption;
-	assert(sortedOption==1||sortedOption==2);
-	if(sortedOption==1)
-		sortedOption = true;
-	else if(sortedOption==2)
-		sortedOption = false;
-
-	std::cout << "-----------------------------------------------------------------------" << std::endl;
-	std::cout << "Input a desired cluster number among [1, " << ds.dataMatrix.rows() << "]: ";
-	std::cin >> numberOfClusters;
-	assert(numberOfClusters>1 && numberOfClusters<ds.dataMatrix.rows()/10);
-
-	std::cout << "-----------------------------------------------------------------------" << std::endl;
-	std::cout << "Input a post-processing method: 1.k-means, 2.eigenvector rotation: " << std::endl;
-	std::cin >> postProcessing;
-	assert(postProcessing==1||postProcessing==2);
-
-	if(postProcessing==2)
-		getDerivateMethod();
 }
 
 
@@ -556,6 +520,10 @@ void SpectralClustering::getEigenClustering(const Eigen::MatrixXf& laplacianMatr
 	{
 		getEigvecRotation(storage,neighborVec,clusterCenter,eigenVec);
 
+		/* in case of zero cluster forms. Corner case for ill-conditioned position */
+		if(storage.empty())
+			return;
+
 		setLabel(neighborVec, storage, clusterCenter);
 
 		extractFeatures(storage,neighborVec,clusterCenter);
@@ -681,121 +649,6 @@ void SpectralClustering::performKMeans(const Eigen::MatrixXf& eigenVec,
 }
 
 
-/* generate lexicogList */
-void SpectralClustering::setLexicogList()
-{
-	for(int i=0;i<numberOfClusters-1;++i)
-	{
-		for(int j=i+1;j<numberOfClusters;++j)
-		{
-			lexicogList.push_back(std::make_pair(i,j));
-		}
-	}
-}
-
-
-
-/* this is my own implementation of Eigenvector rotation, however, I would use library got online for this implementation
- * as shown in https://github.com/pthimon/clustering
- */
-
-
-/* generate theta list */
-void SpectralClustering::setThetaList()
-{
-	int K = lexicogList.size();
-	thetaList = std::vector<float>(K);
-	const float& theta_s = -M_PI/2.0;
-	const float& theta_e = M_PI/2.0;
-	const float& theta_step = (theta_e-theta_s)/(float)K;
-#pragma omp parallel for schedule(dynamic) num_threads(8)
-	for(int i=0;i<K;++i)
-		thetaList[i]=theta_s+theta_step*i;
-}
-
-
-/* get Givens rotation matrix given k and theta, and k should start from 0 instead of 1*/
-Eigen::MatrixXf SpectralClustering::getGivensRotation(const int& k, const float& theta)
-{
-	Eigen::MatrixXf result = Eigen::MatrixXf::Zero(numberOfClusters,numberOfClusters);
-	std::pair<int,int> p = lexicogList[k];
-	for(int i=0;i<numberOfClusters;++i)
-	{
-		if(i==p.first || i==p.second)
-			result(i,i)=cos(theta);
-		else
-			result(i,i)=1.0;
-	}
-	result(p.first,p.second)=sin(theta);
-	result(p.second,p.first)=-sin(theta);
-	return result;
-}
-
-
-/* get Matrix U, and a b starts from 1 as well */
-Eigen::MatrixXf SpectralClustering::getMatrixU(const int& a, const int& b)
-{
-	Eigen::MatrixXf matrixU = Eigen::MatrixXf::Identity(numberOfClusters,numberOfClusters);
-	if(b<a)
-		return matrixU;
-	else
-	{
-		for(int i=a;i<=b;++i)
-			matrixU*=getGivensRotation(i-1,thetaList[i-1]);
-	}
-	return matrixU;
-}
-
-
-/* get Matrix V which is derivative of Givens(k, theta(k)) w.r.t. theta(k) */
-Eigen::MatrixXf SpectralClustering::getMatrixV(const int& k)
-{
-	const float& theta = thetaList[k-1];
-	Eigen::MatrixXf matrixV = Eigen::MatrixXf::Zero(numberOfClusters,numberOfClusters);
-	std::pair<int,int> p = lexicogList[k];
-	matrixV(p.first,p.first)=matrixV(p.second,p.second)=-sin(theta);
-	matrixV(p.first,p.second)=cos(theta);
-	matrixV(p.second,p.first)=-cos(theta);
-	return matrixV;
-}
-
-
-/* get Matrix A */
-Eigen::MatrixXf SpectralClustering::getMatrixA(const int& k, const Eigen::MatrixXf& X)
-{
-	Eigen::MatrixXf matrixA;
-	matrixA = X*getMatrixU(1,k-1)*getMatrixV(k)*getMatrixU(k+1,thetaList.size());
-	return matrixA;
-}
-
-
-/* get dJ/d_theta the gradient */
-const float SpectralClustering::getGradientToTheta(const int& k, const Eigen::MatrixXf& X)
-{
-	float result = 0;
-	const Eigen::MatrixXf& Z = X*getGivensRotation(k-1, thetaList[k-1]);
-	const int& n = Z.rows();
-	const int& C = Z.cols();
-	const Eigen::MatrixXf& A = getMatrixA(k, X);
-	const Eigen::MatrixXf& XV = X*getMatrixV(k);
-#pragma omp parallel for schedule(dynamic) num_threads(8)
-	for(int i=0;i<n;++i)
-	{
-		float value_r = 0;
-		int m_i=0;
-		float M_i=XV.row(i).maxCoeff(&m_i);
-		for(int j=0;j<C;++j)
-		{
-			/* here get dMi/d\theta is hard, so we compute the matrix instead and got the element */
-			value_r+=Z(i,j)/M_i/M_i*A(i,j)-Z(i,j)*Z(i,j)/M_i/M_i/M_i*XV(i,m_i);
-		}
-		result+=value_r;
-	}
-	result*=2.0;
-	return result;
-}
-
-
 /* get cluster information based on eigenvector rotation */
 void SpectralClustering::getEigvecRotation(std::vector<int>& storage, std::vector<std::vector<int> >& neighborVec,
         								   Eigen::MatrixXf& clusterCenter, const Eigen::MatrixXf& X)
@@ -837,6 +690,9 @@ void SpectralClustering::getEigvecRotation(std::vector<int>& storage, std::vecto
 	activityList.push_back("Eigenvector rotation takes: ");
 	timeList.push_back(to_string(timeTemp)+" s");
 
+	if(neighborVec.empty())
+		return;
+
 	clusterCenter = Eigen::MatrixXf::Zero(neighborVec.size(),vecRot.cols());
 	storage = std::vector<int>(neighborVec.size());
 
@@ -860,12 +716,81 @@ void SpectralClustering::getEigvecRotation(std::vector<int>& storage, std::vecto
 	numberOfClusters = neighborVec.size();
 }
 
-
-/* get derivate method as input, 1. numerical derivative, 2. true derivative */
-void SpectralClustering::getDerivateMethod()
+/* set automatic parameter */
+void SpectralClustering::setParameterAutomatic(const Para& p)
 {
-	std::cout << "------------------------------------------------" << std::endl;
-	std::cout << "Please input derivative method: 1.numerical derivative, 2.true derivative." << std::endl;
-	std::cin >> mMethod;
-	assert(mMethod==1 || mMethod==2);
+
+	if(p.sampled==1)
+		IOHandler::expandArray(ds.dataMatrix,ds.dataVec,ds.dimension,ds.maxElements);
+	else if(p.sampled==2)
+		IOHandler::sampleArray(ds.dataMatrix,ds.dataVec,ds.dimension,ds.maxElements);
+
+	group = std::vector<int>(ds.dataMatrix.rows());
+
+	/* the default value for streamline clustering is 2 normalized Laplacian */
+	LaplacianOption = p.LaplacianOption;
+
+	isDistSorted = p.isDistSorted;
+
+	numberOfClusters = p.numberOfClusters;
+
+	postProcessing = p.postProcessing;
+
+	mMethod = p.mMethod;
+
+}
+
+
+
+/* set parameter */
+void SpectralClustering::getParameterUserInput()
+{
+	int sampleOption;
+	std::cout << "choose a sampling method for the dataset?" << std::endl
+			  << "1.directly filling with last vertex; 2. uniform sampling." << std::endl;
+	std::cin >> sampleOption;
+	assert(sampleOption==1||sampleOption==2);
+
+	if(sampleOption==1)
+		IOHandler::expandArray(ds.dataMatrix,ds.dataVec,ds.dimension,ds.maxElements);
+	else if(sampleOption==2)
+		IOHandler::sampleArray(ds.dataMatrix,ds.dataVec,ds.dimension,ds.maxElements);
+
+	group = std::vector<int>(ds.dataMatrix.rows());
+
+	/* the default value for streamline clustering is 2 normalized Laplacian */
+	std::cout << "---------------------------" << std::endl;
+	std::cout << "Laplacian option: 1.Normalized Laplacian, 2.Unsymmetric Laplacian" << std::endl;
+	std::cout << "..And in streamline clustering people tend to choose 1.Normalized Laplacian!-----------" << std::endl;
+	std::cin >> LaplacianOption;
+	assert(LaplacianOption==1||LaplacianOption==2);
+
+
+	int sortedOption;
+	std::cout << "Please choose whether local scaling by sorted distance: 1. yes, 2. no: " << std::endl;
+	std::cin >> sortedOption;
+	assert(sortedOption==1||sortedOption==2);
+	if(sortedOption==1)
+		sortedOption = true;
+	else if(sortedOption==2)
+		sortedOption = false;
+
+	std::cout << "-----------------------------------------------------------------------" << std::endl;
+	std::cout << "Input a desired cluster number among [1, " << ds.dataMatrix.rows() << "]: ";
+	std::cin >> numberOfClusters;
+	assert(numberOfClusters>1 && numberOfClusters<ds.dataMatrix.rows()/10);
+
+	std::cout << "-----------------------------------------------------------------------" << std::endl;
+	std::cout << "Input a post-processing method: 1.k-means, 2.eigenvector rotation: " << std::endl;
+	std::cin >> postProcessing;
+	assert(postProcessing==1||postProcessing==2);
+
+	if(postProcessing==2)
+	{
+		std::cout << "------------------------------------------------" << std::endl;
+		std::cout << "Please input derivative method: 1.numerical derivative, 2.true derivative." << std::endl;
+		std::cin >> mMethod;
+		assert(mMethod==1 || mMethod==2);
+	}
+
 }

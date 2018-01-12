@@ -20,8 +20,33 @@
 
 /* update date size for gradient descent */
 #ifndef GradientStep
-#define GradientStep 0.3
+	#define GradientStep 0.3
 #endif
+
+
+struct Para
+{
+
+	/* 1.directly filling with last vertex; 2. uniform sampling */
+	int sampled;
+
+	/* Laplacian option: 1.Normalized Laplacian, 2.Unsymmetric Laplacian */
+	int LaplacianOption;
+
+	/* local scaling by sorted distance: true, false */
+	bool isDistSorted;
+
+	/* preset number of clusters */
+	int numberOfClusters;
+
+	/* post-processing method: 1.k-means, 2.eigenvector rotation*/
+	int postProcessing;
+
+	/* derivative method for eigen rotation: 1.numerical derivative, 2.true derivative */
+	int mMethod;
+};
+
+
 
 class SpectralClustering
 {
@@ -32,7 +57,7 @@ public:
 	SpectralClustering();
 
 /* argument constructor with argc and argv */
-	SpectralClustering(const int& argc, char **argv);
+	SpectralClustering(const int& argc, char **argv, const Para& p, bool& automatic);
 
 /* destructor */
 	~SpectralClustering();
@@ -50,7 +75,7 @@ private:
 	MetricPreparation object;
 
 /* input norm option */
-	int normOption;
+	int normOption = -1;
 
 /* group information */
 	std::vector<int> group;
@@ -65,10 +90,10 @@ private:
 	DataSet ds;
 
 /* how many clusters to be needed */
-	int numberOfClusters;
+	int numberOfClusters = -1;
 
 /* k-means initialization option */
-	int initializationOption;
+	int initializationOption = -1;
 
 /* distance range vector */
 	std::vector<float> distRange;
@@ -77,13 +102,13 @@ private:
 	std::vector<float> sigmaVec;
 
 /* Laplacian option, 1: Unnormalized Laplacian, 2: normalized Laplacian, 3: Random Walk Laplacian */
-	int LaplacianOption;
+	int LaplacianOption = -1;
 
 /* what kind of 5-th neighbor point would be obtained? */
-	bool isDistSorted;
+	bool isDistSorted = -1;
 
 /* what kind of post-processing is to be chosen */
-	int postProcessing;
+	int postProcessing = -1;
 
 /**********************************************************************************************************
  **************************************   Private member functions   **************************************
@@ -96,8 +121,14 @@ private:
 /* set dataset from user command */
 	void setDataset(const int& argc, char **argv);
 
-/* set norm option, must be within 0-12 */
-	void setNormOption();
+/* set parameter */
+	void getParameterUserInput();
+
+/* set automatic parameter */
+	void setParameterAutomatic(const Para& p);
+
+/* run clustering based on different norm */
+	void clusterByNorm(const int& norm);
 
 /* perform group-labeling information */
 	void setLabel(vector<vector<int> >& neighborVec, vector<int>& storage, Eigen::MatrixXf& centroid);
@@ -132,47 +163,15 @@ private:
 					   std::vector<std::vector<int> >& neighborVec);
 
 
-/* http://lihi.eew.technion.ac.il/files/Publications/SelfTuningClustering.pdf */
-/********************************** Vector Rotation *********************************************/
-	/* lexicographical list of (i,j) */
-	vector<std::pair<int,int> > lexicogList;
-
-	/* theta list for gradient descent method */
-	vector<float> thetaList;
-
-	/* generate lexicogList */
-	void setLexicogList();
-
-	/* generate theta list */
-	void setThetaList();
-
-	/* get Givens rotation matrix given k and theta */
-	Eigen::MatrixXf getGivensRotation(const int& k, const float& theta);
-
-	/* get Matrix U */
-	Eigen::MatrixXf getMatrixU(const int& a, const int& b);
-
-	/* get Matrix V */
-	Eigen::MatrixXf getMatrixV(const int& k);
-
-	/* get Matrix A */
-	Eigen::MatrixXf getMatrixA(const int& k, const Eigen::MatrixXf& X);
-
-	/* get dJ/d_theta the gradient */
-	const float getGradientToTheta(const int& k,  const Eigen::MatrixXf& X);
-
-
 /********************************** Vector Rotation from library *********************************************
  ********************************** from library https://github.com/pthimon/clustering ***********************/
 	float mMaxQuality = 0;
-	int mMethod;
+	int mMethod = -1;
 
 	/* get cluster information based on eigenvector rotation */
 	void getEigvecRotation(std::vector<int>& storage, std::vector<std::vector<int> >& neighborVec,
 			               Eigen::MatrixXf& clusterCenter, const Eigen::MatrixXf& X);
 
-	/* get derivate method as input, 1. numerical derivative, 2. true derivative */
-	void getDerivateMethod();
 };
 
 void getMatrixPow(Eigen::DiagonalMatrix<float,Dynamic>& matrix, const float& powNumber);
