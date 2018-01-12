@@ -32,7 +32,8 @@ void setPara(Para& p)
 	p.isDistSorted = true;
 
 	/* preset number of clusters */
-	p.numberOfClusters = 50;
+	std::cout << "Input a preset cluster numbers: " << std::endl;
+	std::cin >> p.numberOfClusters;
 
 	/* post-processing method: 1.k-means, 2.eigenvector rotation*/
 	p.postProcessing = 2;
