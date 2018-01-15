@@ -26,7 +26,7 @@ SpectralClustering::~SpectralClustering()
 }
 
 /* perform clustering function */
-void SpectralClustering::performClustering()
+void SpectralClustering::performClustering(const int& presetCluster)
 {
 	//distance metric type
 	/*
@@ -52,6 +52,11 @@ void SpectralClustering::performClustering()
 
 		activityList.clear();
 		timeList.clear();
+		numberOfClusters = presetCluster;
+
+		activityList.push_back("Preset numOfClusters is: ");
+		timeList.push_back(to_string(presetCluster));
+
 		clusterByNorm(i);
 
 		std::cout << std::endl;
@@ -519,6 +524,9 @@ void SpectralClustering::getEigenClustering(const Eigen::MatrixXf& laplacianMatr
 	else if(postProcessing==2)
 	{
 		getEigvecRotation(storage,neighborVec,clusterCenter,eigenVec);
+
+		if(neighborVec.empty())
+			return;
 
 		setLabel(neighborVec, storage, clusterCenter);
 

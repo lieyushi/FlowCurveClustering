@@ -14,7 +14,7 @@ int main(int argc, char **argv)
 	bool automatic = true;
 
 	SpectralClustering spectClus(argc, argv, p, automatic);
-	spectClus.performClustering();
+	spectClus.performClustering(p.numberOfClusters);
 	return 0;
 }
 

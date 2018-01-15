@@ -63,7 +63,7 @@ public:
 	~SpectralClustering();
 
 /* perform clustering function */
-	void performClustering();
+	void performClustering(const int& presetCluster);
 
 private:
 
