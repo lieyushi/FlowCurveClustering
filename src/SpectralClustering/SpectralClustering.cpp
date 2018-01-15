@@ -520,10 +520,6 @@ void SpectralClustering::getEigenClustering(const Eigen::MatrixXf& laplacianMatr
 	{
 		getEigvecRotation(storage,neighborVec,clusterCenter,eigenVec);
 
-		/* in case of zero cluster forms. Corner case for ill-conditioned position */
-		if(storage.empty())
-			return;
-
 		setLabel(neighborVec, storage, clusterCenter);
 
 		extractFeatures(storage,neighborVec,clusterCenter);
@@ -661,11 +657,13 @@ void SpectralClustering::getEigvecRotation(std::vector<int>& storage, std::vecto
 	struct timeval start, end;
 	gettimeofday(&start, NULL);
 
-	std::cout << "Eigenvector rotation starts..." << std::endl;
-	for (int g=2; g <= X.cols(); g++) {
+	std::cout << "Eigenvector rotation starts within " << X.cols() << " columns..." << std::endl;
+	for (int g=2; g <= X.cols(); g++)
+	{
 		// make it incremental (used already aligned vectors)
 		std::cout << "column " << g << std::endl;
-		if( g > 2 ) {
+		if( g > 2 )
+		{
 			vecIn.resize(X.rows(),g);
 			vecIn.block(0,0,vecIn.rows(),g-1) = e->getRotatedEigenVectors();
 			vecIn.block(0,g-1,X.rows(),1) = X.block(0,g-1,X.rows(),1);
@@ -675,11 +673,13 @@ void SpectralClustering::getEigvecRotation(std::vector<int>& storage, std::vecto
 		e = new Evrot(vecIn, mMethod);
 
 		//save max quality
-		if (e->getQuality() > mMaxQuality) {
+		if (e->getQuality() > mMaxQuality)
+		{
 			mMaxQuality = e->getQuality();
 		}
 		//save cluster data for max cluster or if we're near the max cluster (so prefer more clusters)
-		if ((e->getQuality() > mMaxQuality) || (mMaxQuality - e->getQuality() <= 0.001)) {
+		if ((e->getQuality() > mMaxQuality) || (mMaxQuality - e->getQuality() <= 0.001))
+		{
 			neighborVec = e->getClusters();
 			vecRot = e->getRotatedEigenVectors();
 		}
