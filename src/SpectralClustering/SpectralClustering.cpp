@@ -746,6 +746,8 @@ void SpectralClustering::setParameterAutomatic(const Para& p)
 
 	mMethod = p.mMethod;
 
+	extractOption = p.extractOption;
+
 }
 
 

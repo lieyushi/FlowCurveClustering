@@ -40,4 +40,7 @@ void setPara(Para& p)
 
 	/* derivative method for eigen rotation: 1.numerical derivative, 2.true derivative */
 	p.mMethod = 2;
+
+	/* extraction option, 1. centroid, closest and furthest, 2. median, 3. statistical representation */
+	p.extractOption = 1;
 }

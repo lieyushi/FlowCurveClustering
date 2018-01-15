@@ -44,6 +44,9 @@ struct Para
 
 	/* derivative method for eigen rotation: 1.numerical derivative, 2.true derivative */
 	int mMethod;
+
+	/* extraction option, 1. centroid, closest and furthest, 2. median, 3. statistical representation */
+	int extractOption;
 };
 
 
@@ -109,6 +112,9 @@ private:
 
 /* what kind of post-processing is to be chosen */
 	int postProcessing = -1;
+
+/* extraction option, 1. centroid, closest and furthest, 2. median, 3. statistical representation */
+	int extractOption = -1;
 
 /**********************************************************************************************************
  **************************************   Private member functions   **************************************
