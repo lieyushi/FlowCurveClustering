@@ -14,7 +14,9 @@ int main(int argc, char **argv)
 	bool automatic = true;
 
 	SpectralClustering spectClus(argc, argv, p, automatic);
+
 	spectClus.performClustering(p.numberOfClusters);
+
 	return 0;
 }
 
@@ -22,7 +24,7 @@ int main(int argc, char **argv)
 
 void setPara(Para& p)
 {
-	/* 1.directly filling with last vertex; 2. uniform sampling */
+	/* 1.directly filling with last vertex; 2. uniform sampling, 3. equal-arc sampling */
 	p.sampled = 2;
 
 	/* Laplacian option: 1.Normalized Laplacian, 2.Unsymmetric Laplacian */

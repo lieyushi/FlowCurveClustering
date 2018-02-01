@@ -31,7 +31,7 @@ void SpectralClustering::performClustering(const int& presetCluster)
 	//distance metric type
 	/*
 		0: Euclidean Norm
-		1: Fraction Distance Metric
+		1: Fraction Distance Metric (could have been ignored but be different)
 		2: piece-wise angle average
 		3: Bhattacharyya metric for rotation
 		4: average rotation
@@ -40,13 +40,16 @@ void SpectralClustering::performClustering(const int& presetCluster)
 		7: Bhattacharyya metric with angle to a fixed direction
 		8: Piece-wise angle average \times standard deviation
 		9: normal-direction multivariate un-normalized distribution
-		10: x*y/|x||y| borrowed from machine learning
-		11: cosine similarity
+		10: x*y/|x||y| borrowed from machine learning (would delete as well)
+		11: cosine similarity (would delete as well)
 		12: mean of closest point distance
 		13: Hausdorff distance
 	*/
 	for(int i=0;i<=13;++i)
 	{
+		/* don't want to deal with many too naive metrics */
+		//if(i==10||i==11)
+		//	continue;
 		std::cout << "----------------------------------------------------" << std::endl;
 		std::cout << "Experiment on norm " << i << " starts!--------------" << std::endl;
 
@@ -660,16 +663,18 @@ void SpectralClustering::getEigvecRotation(std::vector<int>& storage, std::vecto
 	mMaxQuality = 0;
 	Eigen::MatrixXf vecRot;
 	Eigen::MatrixXf vecIn = X.block(0,0,X.rows(),2);
-	Evrot* e = NULL;
+	Evrot *e = NULL;
 
 	struct timeval start, end;
 	gettimeofday(&start, NULL);
 
-	std::cout << "Eigenvector rotation starts within " << X.cols() << " columns..." << std::endl;
-	for (int g=2; g <= X.cols(); g++)
+	const int& xCols = X.cols();
+
+	std::cout << "Eigenvector rotation starts within " << xCols << " columns..." << std::endl;
+	for (int g=2; g <= xCols; g++)
 	{
 		// make it incremental (used already aligned vectors)
-		std::cout << "column " << g << std::endl;
+		std::cout << "column " << g << ":";
 		if( g > 2 )
 		{
 			vecIn.resize(X.rows(),g);
@@ -685,6 +690,8 @@ void SpectralClustering::getEigvecRotation(std::vector<int>& storage, std::vecto
 		{
 			mMaxQuality = e->getQuality();
 		}
+
+		std::cout << " max quality is " << mMaxQuality << ", Evrot has quality " << e->getQuality() << std::endl;
 		//save cluster data for max cluster or if we're near the max cluster (so prefer more clusters)
 		if ((e->getQuality() > mMaxQuality) || (mMaxQuality - e->getQuality() <= 0.001))
 		{
@@ -732,6 +739,8 @@ void SpectralClustering::setParameterAutomatic(const Para& p)
 		IOHandler::expandArray(ds.dataMatrix,ds.dataVec,ds.dimension,ds.maxElements);
 	else if(p.sampled==2)
 		IOHandler::sampleArray(ds.dataMatrix,ds.dataVec,ds.dimension,ds.maxElements);
+	else if(p.sampled==3)
+		IOHandler::uniformArcSampling(ds.dataMatrix,ds.dataVec,ds.dimension,ds.maxElements);
 
 	group = std::vector<int>(ds.dataMatrix.rows());
 
@@ -765,6 +774,8 @@ void SpectralClustering::getParameterUserInput()
 		IOHandler::expandArray(ds.dataMatrix,ds.dataVec,ds.dimension,ds.maxElements);
 	else if(sampleOption==2)
 		IOHandler::sampleArray(ds.dataMatrix,ds.dataVec,ds.dimension,ds.maxElements);
+	else if(sampleOption==3)
+		IOHandler::uniformArcSampling(ds.dataMatrix,ds.dataVec,ds.dimension,ds.maxElements);
 
 	group = std::vector<int>(ds.dataMatrix.rows());
 

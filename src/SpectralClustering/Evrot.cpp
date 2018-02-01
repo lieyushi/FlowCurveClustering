@@ -34,13 +34,15 @@ Evrot::Evrot(const Eigen::MatrixXf& X, int method):
 
 
 
-Evrot::~Evrot() {
+Evrot::~Evrot()
+{
 
 }
 
 
 
-void Evrot::evrot() {
+void Evrot::evrot()
+{
 
 	// definitions
 	int max_iter = 100;
@@ -122,7 +124,8 @@ void Evrot::evrot() {
 
 
 
-void Evrot::cluster_assign() {
+void Evrot::cluster_assign()
+{
 	// find max of each row
 	Eigen::VectorXi max_index_col(mNumData);
 #pragma omp parallel for schedule(dynamic) num_threads(8)
@@ -159,7 +162,8 @@ void Evrot::cluster_assign() {
 }
 
 
-float Evrot::evqual(const Eigen::MatrixXf& X) {
+float Evrot::evqual(const Eigen::MatrixXf& X)
+{
 	// take the square of all entries and find max of each row
 	Eigen::MatrixXf X2(X.rows(), X.cols());
 #pragma omp parallel for schedule(dynamic) num_threads(8)
@@ -186,7 +190,8 @@ float Evrot::evqual(const Eigen::MatrixXf& X) {
 
 
 
-float Evrot::evqualitygrad(const Eigen::VectorXf& theta, const int& angle_index) {
+float Evrot::evqualitygrad(const Eigen::VectorXf& theta, const int& angle_index)
+{
 	// build V,U,A
 	Eigen::MatrixXf V = gradU(theta, angle_index);
 
@@ -223,13 +228,15 @@ float Evrot::evqualitygrad(const Eigen::VectorXf& theta, const int& angle_index)
 	return dJ;
 }
 
-Eigen::MatrixXf Evrot::rotate_givens(const Eigen::VectorXf& theta) {
+Eigen::MatrixXf Evrot::rotate_givens(const Eigen::VectorXf& theta)
+{
 	Eigen::MatrixXf G = build_Uab(theta, 0, mNumAngles-1);
 	Eigen::MatrixXf Y = mX*G;
 	return Y;
 }
 
-Eigen::MatrixXf Evrot::build_Uab(const Eigen::VectorXf& theta, const int& a, const int& b) {
+Eigen::MatrixXf Evrot::build_Uab(const Eigen::VectorXf& theta, const int& a, const int& b)
+{
 	int k,i;
 	//set Uab to be an identity matrix
 	Eigen::MatrixXf Uab(mNumDims,mNumDims);
@@ -253,7 +260,8 @@ Eigen::MatrixXf Evrot::build_Uab(const Eigen::VectorXf& theta, const int& a, con
 	return Uab;
 }
 
-Eigen::MatrixXf Evrot::gradU(const Eigen::VectorXf& theta, const int& k) {
+Eigen::MatrixXf Evrot::gradU(const Eigen::VectorXf& theta, const int& k)
+{
 	Eigen::MatrixXf V(mNumDims,mNumDims);
 	V.setZero();
 

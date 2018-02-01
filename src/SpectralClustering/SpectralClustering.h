@@ -27,7 +27,7 @@
 struct Para
 {
 
-	/* 1.directly filling with last vertex; 2. uniform sampling */
+	/* 1.directly filling with last vertex; 2. uniform sampling, 3. equal-arc sampling */
 	int sampled;
 
 	/* Laplacian option: 1.Normalized Laplacian, 2.Unsymmetric Laplacian */
