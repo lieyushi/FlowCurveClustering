@@ -15,6 +15,11 @@ DensityClustering::DensityClustering(const int& argc,
 	object = MetricPreparation(ds.dataMatrix.rows(), ds.dataMatrix.cols());
 	object.preprocessing(ds.dataMatrix, ds.dataMatrix.rows(), ds.dataMatrix.cols(), normOption);
 	
+	if(!getDistanceMatrix(ds.dataMatrix, normOption, object))
+	{
+		std::cout << "Failure to compute distance matrix!" << std::endl;
+	}
+
 	nodeVec = vector<PointNode>(ds.dataMatrix.rows(),PointNode());
 }
 
@@ -27,18 +32,14 @@ DensityClustering::~DensityClustering()
 
 void DensityClustering::performClustering()
 {
-	float minDist, maxDist;
-	getDistRange(minDist, maxDist);
-	std::cout << "Distance range is [" << minDist << ", "
-			  << maxDist << "]." << std::endl;
 	minPts = setMinPts();
-	multiTimes = setTimesMin(minDist, maxDist);
+	float distThreshold = getDistThreshold(minPts);
 
 	struct timeval start, end;
 	double timeTemp;
 	gettimeofday(&start, NULL);
 
-	DBSCAN(maxDist*multiTimes, minPts);
+	DBSCAN(distThreshold, minPts);
 
 	gettimeofday(&end, NULL);
 	timeTemp = ((end.tv_sec  - start.tv_sec) * 1000000u 
@@ -46,8 +47,71 @@ void DensityClustering::performClustering()
 	activityList.push_back("DBSCAN clustering takes: ");
 	timeList.push_back(to_string(timeTemp)+" s");
 
-	extractFeatures(minDist*multiTimes, minPts);
+	extractFeatures(distThreshold, minPts);
 }
+
+
+const float DensityClustering::getDistThreshold(const int& minPts)
+{
+	std::cout << "Choose distThreshold setup option: 1.user input, 2.minPts-th dist." << std::endl;
+	int distOption;
+	std::cin >> distOption;
+
+	assert(distOption==1 || distOption==2);
+
+	if(distOption==1)
+	{
+		float minDist, maxDist;
+		getDistRange(minDist, maxDist);
+		std::cout << "Distance range is [" << minDist << ", " << maxDist << "]." << std::endl;
+		multiTimes = setTimesMin(minDist, maxDist);
+		return multiTimes*maxDist;
+	}
+	else if(distOption==2)
+	{
+		/* should be pointed as average distance of minPts-th dist */
+		return getAverageDist(minPts);
+	}
+}
+
+
+/* compute minPts-th dist for all candidates */
+const float DensityClustering::getAverageDist(const int& minPts)
+{
+	float result = 0.0;
+	const int& rowSize = ds.dataMatrix.rows();
+#pragma omp parallel num_threads(8)
+	{
+	#pragma omp for nowait
+		for (int i = 0; i < rowSize; ++i)
+		{
+			std::vector<float> minDistVec(minPts, FLT_MAX);
+			float tempDist;
+			for (int j=0;j<rowSize;++j)
+			{
+				if(i==j)
+					continue;
+				if(distanceMatrix)
+					tempDist = distanceMatrix[i][j];
+				else
+					tempDist=getDisimilarity(ds.dataMatrix.row(i), ds.dataMatrix.row(j),i,j,normOption, object);
+
+				if(tempDist<minDistVec[minPts-1])
+					minDistVec[minPts-1]=tempDist;
+				for(int l=minPts-1;l>=1;--l)
+				{
+					if(minDistVec[l]>minDistVec[l-1])
+						std::swap(minDistVec[l], minDistVec[l-1]);
+				}
+			}
+
+		#pragma omp critical
+			result += minDistVec[minPts-1];
+		}
+	}
+	return result/rowSize;
+}
+
 
 
 void DensityClustering::DBSCAN(const float& radius_eps,
@@ -107,8 +171,12 @@ const vector<int> DensityClustering::regionQuery(const int& index,
 	{
 		if(i==index)
 			continue;
-		tempDist=getDisimilarity(ds.dataMatrix.row(index),
-				 ds.dataMatrix.row(i),index,i,normOption, object);
+
+		/* in case somebody uses distance matrix */
+		if(distanceMatrix)
+			tempDist = distanceMatrix[index][i];
+		else
+			tempDist=getDisimilarity(ds.dataMatrix.row(index), ds.dataMatrix.row(i),index,i,normOption, object);
 		if(tempDist<=radius_eps)
 			neighborArray.push_back(i);
 	}
@@ -131,9 +199,9 @@ void DensityClustering::setDataset(const int& argc,
 
 	int sampleOption;
     std::cout << "choose a sampling method for the dataset?" << std::endl
-	    	  << "1.directly filling with last vertex; 2. uniform sampling." << std::endl;
+	    	  << "1.directly filling with last vertex; 2. uniform sampling; 3. equal-arc sampling. " << std::endl;
 	std::cin >> sampleOption;
-	assert(sampleOption==1||sampleOption==2);
+	assert(sampleOption==1||sampleOption==2||sampleOption==3);
 
 	IOHandler::readFile(ds.strName,ds.dataVec,ds.vertexCount,ds.dimension,ds.maxElements);
 
@@ -144,6 +212,8 @@ void DensityClustering::setDataset(const int& argc,
 		IOHandler::expandArray(ds.dataMatrix,ds.dataVec,ds.dimension,ds.maxElements);
 	else if(sampleOption==2)
 		IOHandler::sampleArray(ds.dataMatrix,ds.dataVec,ds.dimension,ds.maxElements);
+	else if(sampleOption==3)
+		IOHandler::uniformArcSampling(ds.dataMatrix,ds.dataVec,ds.dimension,ds.maxElements);
 }
 
 
@@ -196,18 +266,22 @@ void DensityClustering::getDistRange(float& minDist,
 	#pragma omp for nowait
 		for (int i = 0; i < chosen; ++i)
 		{
+			float tempDist;
 			for (int j = 0; j < Rows; ++j)
 			{
 				if(i==j)
 					continue;
-				float dist = getDisimilarity(ds.dataMatrix.row(i),
+				if(distanceMatrix)
+					tempDist = distanceMatrix[i][j];
+				else
+					tempDist = getDisimilarity(ds.dataMatrix.row(i),
 					  ds.dataMatrix.row(j),i,j,normOption,object);
 			#pragma omp critical 
 				{
-					if(dist<minDist)
-						minDist=dist;
-					if(dist>maxDist)
-						maxDist=dist;
+					if(tempDist<minDist)
+						minDist=tempDist;
+					if(tempDist>maxDist)
+						maxDist=tempDist;
 				}
 			}
 		}	
@@ -219,8 +293,7 @@ void DensityClustering::getDistRange(float& minDist,
 const int DensityClustering::setMinPts()
 {
 	std::cout << std::endl;
-	std::cout << "Input the minPts for DBSCAN in [0" << ", "
-			  << ds.dataMatrix.rows() << "]:" << std::endl;
+	std::cout << "Input the minPts for DBSCAN in [0" << ", " << ds.dataMatrix.rows() << "], 6 preferred: " << std::endl;
 	int minPts;
 	std::cin >> minPts;
 	if(minPts<=0 || minPts>=ds.dataMatrix.rows())

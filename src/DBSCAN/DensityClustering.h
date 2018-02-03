@@ -87,6 +87,12 @@ private:
 
 	void extractFeatures(const float& radius_eps,
 							   const int& minPts);
+
+	/* two ways for getting eps, one is for user input, the other is average minPts-th dist for all candidates */
+	const float getDistThreshold(const int& minPts);
+
+	/* compute minPts-th dist for all candidates */
+	const float getAverageDist(const int& minPts);
 };
 
 #endif
