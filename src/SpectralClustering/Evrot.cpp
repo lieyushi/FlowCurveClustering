@@ -168,8 +168,12 @@ float Evrot::evqual(const Eigen::MatrixXf& X)
 	Eigen::MatrixXf X2(X.rows(), X.cols());
 #pragma omp parallel for schedule(dynamic) num_threads(8)
 	for(int i=0;i<X.rows();++i)
+	{
 		for(int j=0;j<X.cols();++j)
+		{
 			X2(i,j)=X(i,j)*X(i,j);
+		}
+	}
 
 	Eigen::VectorXf max_values(X.rows());
 
@@ -183,6 +187,7 @@ float Evrot::evqual(const Eigen::MatrixXf& X)
 	{
 		X2.row(i) = X2.row(i) / max_values[i];
 	}
+
 	float J = 1.0 - (X2.sum()/mNumData -1.0)/mNumDims;
 
 	return J;

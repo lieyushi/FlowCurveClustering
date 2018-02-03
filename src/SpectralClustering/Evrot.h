@@ -20,6 +20,7 @@
 #include <math.h>
 #include <eigen3/Eigen/Core>
 #include <eigen3/Eigen/Dense>
+#include <exception>
 
 using namespace Eigen;
 using namespace std;

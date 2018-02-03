@@ -48,8 +48,8 @@ void SpectralClustering::performClustering(const int& presetCluster)
 	for(int i=0;i<=13;++i)
 	{
 		/* don't want to deal with many too naive metrics */
-		//if(i==10||i==11)
-		//	continue;
+		if(i==10||i==11)
+			continue;
 		std::cout << "----------------------------------------------------" << std::endl;
 		std::cout << "Experiment on norm " << i << " starts!--------------" << std::endl;
 

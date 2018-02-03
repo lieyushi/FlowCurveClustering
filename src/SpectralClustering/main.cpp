@@ -25,7 +25,7 @@ int main(int argc, char **argv)
 void setPara(Para& p)
 {
 	/* 1.directly filling with last vertex; 2. uniform sampling, 3. equal-arc sampling */
-	p.sampled = 2;
+	p.sampled = 3;
 
 	/* Laplacian option: 1.Normalized Laplacian, 2.Unsymmetric Laplacian */
 	p.LaplacianOption = 1;
