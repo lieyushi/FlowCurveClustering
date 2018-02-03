@@ -400,6 +400,78 @@ void IOHandler::expandArray(MatrixXf& data,
 }
 
 
+/* sample equal-sized array by equal arcs given a numOfVertices count */
+void IOHandler::uniformArcSampling(MatrixXf& data,
+								   const std::vector< std::vector<float> >& dataVec,
+								   const int& dimension,
+								   const int& maxElements)
+{
+	const int& numOfRows = dataVec.size();
+
+	/* assign memory for required matrix */
+	const int& totalSize = 3*maxElements;
+	data = Eigen::MatrixXf(numOfRows, totalSize);
+#pragma omp parallel for schedule(dynamic) num_threads(8)
+	/* compute total length of streamline and record each cumulative length information */
+	for(int i=0;i<numOfRows;++i)
+	{
+		float entireLength = 0.0, lineLength;
+		const std::vector<float>& eachVec = dataVec[i];
+		const int& vecSize = eachVec.size();
+		const int& lineNum = vecSize/3-1;
+		Eigen::Vector3f lineSeg;
+
+		vector<float> pairwise(lineNum);
+		for(int j=0;j<lineNum;++j)
+		{
+			lineSeg(0)=eachVec[3*j+3]-eachVec[3*j];
+			lineSeg(1)=eachVec[3*j+4]-eachVec[3*j+1];
+			lineSeg(2)=eachVec[3*j+5]-eachVec[3*j+2];
+			lineLength = lineSeg.norm();
+			entireLength+=lineLength;
+			pairwise[j]=entireLength;
+		}
+
+		float eachLength = entireLength/(maxElements-1);
+		Eigen::VectorXf row_i(data.row(i).size());
+
+		/* insert starting vertex */
+		row_i(0)=eachVec[0];
+		row_i(1)=eachVec[1];
+		row_i(2)=eachVec[2];
+
+		/* insert ending vertex */
+		row_i(totalSize-3)=eachVec[vecSize-3];
+		row_i(totalSize-2)=eachVec[vecSize-2];
+		row_i(totalSize-1)=eachVec[vecSize-1];
+
+		float tempLength, tempRatio, ratioComplement;
+		int preLine, preVertex, postVertex;
+		for(int j=1;j<=maxElements-2;++j)
+		{
+			/* current length */
+			tempLength = j*eachLength;
+
+			/* pre-index of coordinates */
+			preLine = std::lower_bound(pairwise.begin(), pairwise.end(), tempLength)-pairwise.begin()-1;
+
+			/* locate vertex index */
+			preVertex = preLine+1;
+			postVertex = preVertex+1;
+
+			/* use linear interpolation to generate new coordinates */
+			tempRatio = (tempLength-pairwise[preLine])/(pairwise[preLine+1]-pairwise[preLine]);
+			ratioComplement = 1.0-tempRatio;
+			row_i(3*j) = tempRatio*eachVec[3*postVertex]+ratioComplement*eachVec[3*preVertex];
+			row_i(3*j+1) = tempRatio*eachVec[3*postVertex+1]+ratioComplement*eachVec[3*preVertex+1];
+			row_i(3*j+2) = tempRatio*eachVec[3*postVertex+2]+ratioComplement*eachVec[3*preVertex+2];
+		}
+
+		data.row(i) = row_i;
+	}
+}
+
+
 /* Uniformly sample array along streamlines instead of filling by the last index */
 void IOHandler::sampleArray(MatrixXf& data, 
 							const std::vector< std::vector<float> >& dataVec, 
@@ -920,6 +992,7 @@ void IOHandler::printTXT(float **data,
 }
 
 
+/* directly align vector object to Eigen::MatrixXf. Map vector to vector as well */
 void IOHandler::expandArray(std::vector<std::vector<float> >& equalArray,
 							const std::vector<std::vector<float> >& trajectories, 
 						 	const int& dimension,

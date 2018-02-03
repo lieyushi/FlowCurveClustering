@@ -11,6 +11,7 @@
 #include <climits>
 #include <cassert>
 #include <float.h>
+#include <unordered_map>
 #include <eigen3/Eigen/Dense>
 #include <eigen3/Eigen/Core>
 #include <eigen3/Eigen/SVD>
@@ -166,6 +167,7 @@ public:
 							const int& dimension, 
 							const int& maxElements);
 
+/* directly align vector object to Eigen::MatrixXf. Map vector to vector as well */
 	static void expandArray(std::vector<std::vector<float> >& equalArray,
 							const std::vector<std::vector<float> >& trajectories, 
 						 	const int& dimension,
@@ -181,6 +183,13 @@ public:
 	static void formArray(float ***data, 
 						  const std::vector< std::vector<float> >& dataVec, 
 						  const int& dimension);
+
+/* sample equal-sized array by equal arcs given a numOfVertices count */
+	static void uniformArcSampling(MatrixXf& data,
+								   const std::vector< std::vector<float> >& dataVec,
+								   const int& dimension,
+								   const int& maxElements);
+
 
 	static void deleteArray(float **data, 
 							const int& row);
