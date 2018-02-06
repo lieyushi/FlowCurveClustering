@@ -5,6 +5,8 @@
 #include "Initialization.h"
 #include "Silhouette.h"
 
+#include <queue>
+
 enum PointType
 {
 	CORE = 0,

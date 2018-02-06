@@ -132,3 +132,13 @@ file( GLOB SC_SRC ${CMAKE_CURRENT_SOURCE_DIR}/src/SpectralClustering/*.cpp )
 add_executable(sc ${SC_SRC})
 target_link_libraries(sc ${ALL_LIBS})
 ###############################################
+
+
+###############################################
+# generate affinityPropagation executable
+set( AP_SRC
+   )
+file( GLOB AP_SRC ${CMAKE_CURRENT_SOURCE_DIR}/src/AffinityPropagation/*.cpp )  
+add_executable(affinityPropagation ${AP_SRC})
+target_link_libraries(affinityPropagation ${ALL_LIBS})
+###############################################

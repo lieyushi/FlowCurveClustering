@@ -473,6 +473,8 @@ void DensityClustering::computeCoredDistance(const float& radius_eps,
 		/* find minPts-th smallest element in vector by linear traversal */
 		if(distRecord.size()>=minPts)
 		{
+			/* A k*n complex algorithm */
+			/*
 			vector<float> smallestRange(minPts,FLT_MAX);	//update to get minPts-th smallest
 			for(int k=0;k<distRecord.size();++k)
 			{
@@ -485,6 +487,17 @@ void DensityClustering::computeCoredDistance(const float& radius_eps,
 				}
 			}
 			nodeVec[i].core_distance = smallestRange[minPts-1];
+			*/
+
+			/* instead we shall apply a n*logk algorithm */
+			std::priority_queue<float> smallestRange;
+			for(int k=0;k<distRecord.size();++k)
+			{
+				smallestRange.push(distRecord[k]);
+				if(smallestRange.size()>minPts)
+					smallestRange.pop();
+			}
+			nodeVec[i].core_distance = smallestRange.top();
 		}
 	}	
 

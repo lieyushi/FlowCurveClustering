@@ -338,6 +338,8 @@ void SpectralClustering::getSigmaList()
 	#pragma omp parallel for schedule(dynamic) num_threads(8)
 		for(int i=0;i<Row;++i)
 		{
+			/* this is a n*k implementation by linear scan */
+			/*
 			std::vector<float> limitVec(SCALING, FLT_MAX);
 			float tempDist;
 			for(int j=0;j<Row;++j)
@@ -348,11 +350,11 @@ void SpectralClustering::getSigmaList()
 					tempDist = distanceMatrix[i][j];
 				else
 					tempDist = getDisimilarity(ds.dataMatrix, i, j, normOption, object);
-				/* element is even larger than the biggest */
+				// element is even larger than the biggest
 				if(tempDist>=limitVec.back())
 					continue;
 
-				/* update the SCALING smallest vec elements */
+				// update the SCALING smallest vec elements
 				if(tempDist<limitVec.back())
 					limitVec.back() = tempDist;
 				for(int k=limitVec.size()-1;k>0;--k)
@@ -361,7 +363,26 @@ void SpectralClustering::getSigmaList()
 						std::swap(limitVec[k],limitVec[k-1]);
 				}
 			}
-			sigmaVec[i] = limitVec.back();
+			*/
+
+			/* instead we implement a n*logk priority_queue method for finding k-th smallest element */
+			std::priority_queue<float> limitQueue;
+			float tempDist;
+			for(int j=0;j<Row;++j)
+			{
+				if(i==j)
+					continue;
+				if(distanceMatrix)
+					tempDist = distanceMatrix[i][j];
+				else
+					tempDist = getDisimilarity(ds.dataMatrix, i, j, normOption, object);
+				// element is even larger than the biggest
+				limitQueue.push(tempDist);
+				if(limitQueue.size()>SCALING)
+					limitQueue.pop();
+			}
+
+			sigmaVec[i] = limitQueue.top();
 		}
 	}
 	else

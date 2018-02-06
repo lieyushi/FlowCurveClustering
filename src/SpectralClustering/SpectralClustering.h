@@ -12,6 +12,7 @@
 #include "Evrot.h"
 #include <unordered_set>
 #include <map>
+#include <queue>
 #include <string>
 
 /* local scaling for Gaussian kernel size */

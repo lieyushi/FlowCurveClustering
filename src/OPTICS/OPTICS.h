@@ -3,6 +3,7 @@
 
 #include "Predefined.h"
 #include <string>
+#include <queue>
 
 /* algorithm implemented based on https://en.wikipedia.org/wiki/OPTICS_algorithm */
 

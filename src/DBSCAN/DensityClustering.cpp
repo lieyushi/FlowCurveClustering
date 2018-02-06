@@ -85,6 +85,8 @@ const float DensityClustering::getAverageDist(const int& minPts)
 	#pragma omp for nowait
 		for (int i = 0; i < rowSize; ++i)
 		{
+			/* a linear k*n implementation by directly using a vector for linear mapping */
+			/*
 			std::vector<float> minDistVec(minPts, FLT_MAX);
 			float tempDist;
 			for (int j=0;j<rowSize;++j)
@@ -103,10 +105,28 @@ const float DensityClustering::getAverageDist(const int& minPts)
 					if(minDistVec[l]>minDistVec[l-1])
 						std::swap(minDistVec[l], minDistVec[l-1]);
 				}
+			}*/
+
+			/* use a priority_queue<float> with n*logk time complexity */
+			std::priority_queue<float> minDistArray;
+			float tempDist;
+			for (int j=0;j<rowSize;++j)
+			{
+				if(i==j)
+					continue;
+				if(distanceMatrix)
+					tempDist = distanceMatrix[i][j];
+				else
+					tempDist=getDisimilarity(ds.dataMatrix.row(i), ds.dataMatrix.row(j),i,j,normOption, object);
+
+				minDistArray.push(tempDist);
+				if(minDistArray.size()>minPts)
+					minDistArray.pop();
+
 			}
 
 		#pragma omp critical
-			result += minDistVec[minPts-1];
+			result += minDistArray.top();
 		}
 	}
 	return result/rowSize;
