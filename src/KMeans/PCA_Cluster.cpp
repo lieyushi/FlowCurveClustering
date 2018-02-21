@@ -20,6 +20,8 @@ void PCA_Cluster::performPCA_Clustering(const Eigen::MatrixXf& data,
 	VectorXf meanTrajectory(Column);
 	int PC_Number;
 
+
+
 	performSVD(cArray, data, Row, Column, PC_Number, SingVec, meanTrajectory);
 	performPC_KMeans(cArray, Row, Column, PC_Number, SingVec, meanTrajectory, 
 					 massCenter, CLUSTER, group, totalNum, closest, 
@@ -339,6 +341,7 @@ void PCA_Cluster::performDirectK_Means(const Eigen::MatrixXf& data,
 									   float& entropy,
 									   Silhouette& sil)
 {
+
 	performFullK_MeansByClusters(data, Row, Column, massCenter, CLUSTER, group, 
 								 totalNum, closest, furthest, normOption, entropy, sil);
 }

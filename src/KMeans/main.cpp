@@ -144,8 +144,8 @@ void featureExtraction(const int& number,
 
 	for(int i = 0;i<13;i++)
 	{
-		if(i!=12)
-			continue;
+		//if(i!=12)
+		//	continue;
 		gettimeofday(&start, NULL);
 		ss << strName << "_KMeans";
 		performK_Means(ss.str(), dataVec, cluster, dimension, 

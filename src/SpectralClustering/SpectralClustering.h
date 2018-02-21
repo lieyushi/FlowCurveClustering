@@ -16,7 +16,8 @@
 #include <string>
 
 /* local scaling for Gaussian kernel size */
-#define SCALING 5
+/* might be defined as 0.05*totalCount as in Blood Flow Clustering and Applications in
+Virtual Stenting of Intracranial Aneurysms */
 
 
 /* update date size for gradient descent */
@@ -116,6 +117,9 @@ private:
 
 /* extraction option, 1. centroid, closest and furthest, 2. median, 3. statistical representation */
 	int extractOption = -1;
+
+/* scaling factor for spectral clustering to decide Gaussian kernel size */
+	int SCALING;
 
 /**********************************************************************************************************
  **************************************   Private member functions   **************************************

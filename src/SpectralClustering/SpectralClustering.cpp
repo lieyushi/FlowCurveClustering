@@ -45,11 +45,11 @@ void SpectralClustering::performClustering(const int& presetCluster)
 		12: mean of closest point distance
 		13: Hausdorff distance
 	*/
-	for(int i=0;i<=13;++i)
+	for(int i=9;i<=13;++i)
 	{
 		/* don't want to deal with many too naive metrics */
-		if(i==10||i==11)
-			continue;
+		//if(i!=13)
+		//	continue;
 		std::cout << "----------------------------------------------------" << std::endl;
 		std::cout << "Experiment on norm " << i << " starts!--------------" << std::endl;
 
@@ -320,6 +320,8 @@ void SpectralClustering::setDataset(const int& argc, char **argv)
 
 	ds.fullName = ds.strName+"_full.vtk";
 	IOHandler::printVTK(ds.fullName, ds.dataVec, ds.vertexCount, ds.dimension);
+
+	SCALING = 0.05*ds.dataVec.size();
 }
 
 
@@ -668,7 +670,7 @@ void SpectralClustering::performKMeans(const Eigen::MatrixXf& eigenVec,
 		}
 		std::cout << "K-means iteration " << ++tag << " completed, and moving is "
 		<< moving << "!" << std::endl;
-	}while(abs(moving-before)/before >= 1.0e-2 && tag < 50 && moving>2.0);
+	}while(abs(moving-before)/before >= 1.0e-3 && tag < 50/* && moving>2.0*/);
 
 	gettimeofday(&end, NULL);
 	float timeTemp = ((end.tv_sec-start.tv_sec)*1000000u+end.tv_usec-start.tv_usec)/1.e6;
