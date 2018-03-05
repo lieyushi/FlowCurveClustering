@@ -20,6 +20,25 @@ struct Ensemble
 };
 
 
+/* evaluation measure class which contains silhouette, gamma statistics, entropy and DB Index */
+struct EvaluationMeasure
+{
+	std::vector<float> silVec;
+	std::vector<float> gammaVec;
+	std::vector<float> entropyVec;
+	std::vector<float> dbIndexVec;
+};
+
+
+/* record event list and time list */
+struct TimeRecorder
+{
+	std::vector<string> eventList;
+	std::vector<string> timeList;
+};
+
+
+
 class PCA_Cluster
 {
 public: 
@@ -32,8 +51,9 @@ public:
 		 							  std::vector<int>& totalNum, 
 		 							  std::vector<ExtractedLine>& closest,
 		 							  std::vector<ExtractedLine>& furthest,
-		 							  float& entropy,
-		 							  Silhouette& sil);
+									  EvaluationMeasure& measure,
+									  TimeRecorder& tr,
+									  Silhouette& sil);
 
 	static void performPCA_Clustering(const Eigen::MatrixXf& data, 
 									  const int& Row, 
@@ -44,7 +64,8 @@ public:
 									  std::vector<ExtractedLine>& closest, 
 									  std::vector<ExtractedLine>& furthest, 
 									  const int& Cluster, 
-									  float& entropy,
+									  EvaluationMeasure& measure,
+									  TimeRecorder& tr,
 									  Silhouette& sil);
 
 	static void performDirectK_Means(const Eigen::MatrixXf& data, 
@@ -56,7 +77,8 @@ public:
 									 std::vector<ExtractedLine>& closest,
 									 std::vector<ExtractedLine>& furthest, 
 									 const int& normOption,
-									 float& entropy,
+									 EvaluationMeasure& measure,
+									 TimeRecorder& tr,
 									 Silhouette& sil);
 
 	static void performDirectK_Means(const Eigen::MatrixXf& data, 
@@ -69,7 +91,8 @@ public:
 									 std::vector<ExtractedLine>& furthest, 
 									 const int& Cluster, 
 									 const int& normOption,
-									 float& entropy,
+									 EvaluationMeasure& measure,
+									 TimeRecorder& tr,
 									 Silhouette& sil);
 
 private:
@@ -80,7 +103,8 @@ private:
 						   const int& Column, 
 						   int& PC_Number, 
 						   MatrixXf& SingVec,
-	                       VectorXf& meanTrajectory);
+	                       VectorXf& meanTrajectory,
+						   TimeRecorder& tr);
 
 	static void performPC_KMeans(const MatrixXf& cArray, 
 								 const int& Row,
@@ -95,7 +119,8 @@ private:
 								 std::vector<ExtractedLine>& closest, 
 								 std::vector<ExtractedLine>& furthest, 
 								 const Eigen::MatrixXf& data,
-								 float& entropy,
+								 EvaluationMeasure& measure,
+								 TimeRecorder& tr,
 								 Silhouette& sil);
 
 	static void performAHC(const MatrixXf& cArray, 
@@ -117,8 +142,9 @@ private:
 						   					 std::vector<ExtractedLine>& closest, 
 						   					 std::vector<ExtractedLine>& furthest, 
 						   					 const int& normOption,
-						   					 float& entropy,
-						   					 Silhouette& sil);
+											 EvaluationMeasure& measure,
+											 TimeRecorder& tr,
+											 Silhouette& sil);
 
 };
 

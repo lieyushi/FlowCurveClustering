@@ -66,9 +66,12 @@ void DensityClustering::OPTICS(const float& radius_eps,
 			  /*regionQuery(i,radius_eps)*/;
 		nodeVec[i].visited = true;
 		orderedList.push_back(i);
-		if(nodeVec[i].core_distance!=1.0)
+		if(nodeVec[i].core_distance!=-1.0)
 		{
-			LinkedList seeds;
+			/* linkedList is good, but would be O(n), so delete it */
+			 LinkedList seeds;
+
+			/* should use priority queue */
 			update(i, neighbor, seeds, radius_eps, minPts);
 			pointNode *temp = seeds.start;
 			while(temp)
@@ -82,7 +85,7 @@ void DensityClustering::OPTICS(const float& radius_eps,
 					  /*regionQuery(temp->value.index, radius_eps)*/;
 				nodeVec[temp->value.index].visited = true;
 				orderedList.push_back(temp->value.index);
-				if(nodeVec[temp->value.index].core_distance!=-1)
+				if(nodeVec[temp->value.index].core_distance!=-1.0)
 					update(temp->value.index, neighborChild, seeds, radius_eps, minPts);
 				temp = seeds.start;
 			}
@@ -154,6 +157,13 @@ void DensityClustering::setDataset(const int& argc,
 	ds.strName = string("../dataset/")+string(argv[1]);
 	ds.dimension = atoi(argv[2]);
 
+	/* need to judge whether it is a PBF dataset or not */
+	std::cout << "It is a PBF dataset? 1.Yes, 2.No." << std::endl;
+	int PBFInput;
+	std::cin >> PBFInput;
+	assert(PBFInput==1||PBFInput==0);
+	isPBF = (PBFInput==1);
+
 	int sampleOption;
     std::cout << "choose a sampling method for the dataset?" << std::endl
 	    	  << "1.directly filling with last vertex; 2. uniform sampling." << std::endl;
@@ -177,8 +187,7 @@ void DensityClustering::setNormOption()
 	std::cout << "Choose a norm from 0-12!" << std::endl;
 	std::cin >> normOption;
 	std::cout << std::endl;
-	/*  
-		0: Euclidean Norm
+	/*  0: Euclidean Norm
 		1: Fraction Distance Metric
 		2: piece-wise angle average
 		3: Bhattacharyya metric for rotation
@@ -190,9 +199,13 @@ void DensityClustering::setNormOption()
 		9: normal-direction multivariate un-normalized distribution
 		10: x*y/|x||y| borrowed from machine learning
 		11: cosine similarity
+		12: Mean-of-closest point distance (MCP)
+		13: Hausdorff distance min_max(x_i,y_i)
+		14: Signature-based measure from http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=6231627
+		15: Procrustes distance take from http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=6787131
 	*/
 	bool found = false;
-	for (int i = 0; i < 13&&!found; ++i)
+	for (int i = 0; i < 16&&!found; ++i)
 	{
 		if(normOption==i)
 		{
@@ -342,6 +355,16 @@ void DensityClustering::extractFeatures(const float& radius_eps,
 
 	container.insert(container.begin(),storage[0].size());
 
+	const int& Row = ds.dataMatrix.rows();
+	float entropy = 0.0, probability;
+	for(int i=0;i<container.size();++i)
+	{
+		probability = float(container[i])/float(Row);
+		entropy+=probability*log2f(probability);
+	}
+	entropy = -entropy/log2f(numClusters);
+
+
 	IOHandler::printClustersNoise(ds.dataVec,item_cids,container, 
 		 "norm"+to_string(normOption),ds.fullName,ds.dimension);
 
@@ -349,15 +372,33 @@ void DensityClustering::extractFeatures(const float& radius_eps,
 	double timeTemp;
 
 	numClusters-=1;
+
+
+	/* if the dataset is not PBF, then should record distance matrix for Gamma matrix compution */
+	if(!isPBF)
+	{
+		deleteDistanceMatrix(ds.dataMatrix.rows());
+
+		if(!getDistanceMatrix(ds.dataMatrix, normOption, object))
+		{
+			std::cout << "Failure to compute distance matrix!" << std::endl;
+		}
+	}
+
+
 	gettimeofday(&start, NULL);
 	Silhouette sil;
-	sil.computeValue(normOption,ds.dataMatrix,ds.dataMatrix.rows(),
-		ds.dataMatrix.cols(),item_cids,object,numClusters);
+	sil.computeValue(normOption,ds.dataMatrix,ds.dataMatrix.rows(),ds.dataMatrix.cols(),
+					 item_cids,object,numClusters, isPBF);
+
 	gettimeofday(&end, NULL);
 	timeTemp = ((end.tv_sec  - start.tv_sec) * 1000000u 
 			   + end.tv_usec - start.tv_usec) / 1.e6;
 	activityList.push_back("Silhouette calculation takes: ");
 	timeList.push_back(to_string(timeTemp)+" s");
+
+
+	IOHandler::writeReadme(entropy, sil);
 
 	const int& numNoise = storage[0].size();
 	storage.erase(storage.begin());
@@ -409,9 +450,15 @@ void DensityClustering::extractFeatures(const float& radius_eps,
 		furthest[i] = ds.dataVec[maxIndex];
 	}
 
+/* measure closest and furthest rotation */
+	std::vector<float> closestRot, furthestRot;
+	const float& closestAverage = getRotation(closest, closestRot);
+	const float& furthestAverage = getRotation(furthest, furthestRot);
+
+	IOHandler::writeReadme(closestAverage, furthestAverage);
+
 	gettimeofday(&end, NULL);
-	timeTemp = ((end.tv_sec  - start.tv_sec) * 1000000u 
-			   + end.tv_usec - start.tv_usec) / 1.e6;
+	timeTemp = ((end.tv_sec  - start.tv_sec) * 1000000u + end.tv_usec - start.tv_usec) / 1.e6;
 	activityList.push_back("Feature extraction takes: ");
 	timeList.push_back(to_string(timeTemp)+" s");
 
@@ -434,9 +481,6 @@ void DensityClustering::extractFeatures(const float& radius_eps,
 
 	activityList.push_back("numCluster is: ");
 	timeList.push_back(to_string(numClusters));
-
-	activityList.push_back("Average Silhouette is: ");
-	timeList.push_back(to_string(sil.sAverage));
 
 	activityList.push_back("Noise number is: ");
 	timeList.push_back(to_string(numNoise));

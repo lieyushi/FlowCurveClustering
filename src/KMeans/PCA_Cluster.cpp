@@ -5,6 +5,9 @@ const int& CLUSTER = 8;
 
 extern int initializationOption;
 
+/* an external value to judge whether it is a PBF or not */
+extern bool isPBF;
+
 void PCA_Cluster::performPCA_Clustering(const Eigen::MatrixXf& data, 
 										const int& Row, 
 										const int& Column, 
@@ -13,8 +16,9 @@ void PCA_Cluster::performPCA_Clustering(const Eigen::MatrixXf& data,
 									    std::vector<int>& totalNum, 
 									    std::vector<ExtractedLine>& closest,
 									    std::vector<ExtractedLine>& furthest,
-									    float& entropy,
-									    Silhouette& sil)
+										EvaluationMeasure& measure,
+										TimeRecorder& tr,
+										Silhouette& sil)
 {
 	MatrixXf cArray, SingVec;
 	VectorXf meanTrajectory(Column);
@@ -22,10 +26,9 @@ void PCA_Cluster::performPCA_Clustering(const Eigen::MatrixXf& data,
 
 
 
-	performSVD(cArray, data, Row, Column, PC_Number, SingVec, meanTrajectory);
+	performSVD(cArray, data, Row, Column, PC_Number, SingVec, meanTrajectory, tr);
 	performPC_KMeans(cArray, Row, Column, PC_Number, SingVec, meanTrajectory, 
-					 massCenter, CLUSTER, group, totalNum, closest, 
-					 furthest, data, entropy, sil);
+					 massCenter, CLUSTER, group, totalNum, closest, furthest, data, measure, tr, sil);
 }
 
 
@@ -36,7 +39,8 @@ void PCA_Cluster::performSVD(MatrixXf& cArray,
 							 const int& Column,
 							 int& PC_Number, 
 							 MatrixXf& SingVec, 
-							 VectorXf& meanTrajectory)
+							 VectorXf& meanTrajectory,
+							 TimeRecorder& tr)
 {
 	Eigen::MatrixXf temp = data;
 
@@ -60,7 +64,9 @@ void PCA_Cluster::performSVD(MatrixXf& cArray,
 	gettimeofday(&end, NULL);
 	const double& delta = ((end.tv_sec  - start.tv_sec) * 1000000u + end.tv_usec - start.tv_usec) / 1.e6;
 
-	std::cout << "SVD decomposition takes " <<delta << " s!" << std::endl;
+	tr.eventList.push_back("SVD takes ");
+	tr.timeList.push_back(to_string(delta)+"s");
+
 	/* compute new attribute space based on principal component */
 	MatrixXf coefficient = temp*SingVec;
 	/*  decide first r dorminant PCs with a threshold */
@@ -105,8 +111,9 @@ void PCA_Cluster::performPC_KMeans(const MatrixXf& cArray,
 				 				   std::vector<ExtractedLine>& closest,
 				 				   std::vector<ExtractedLine>& furthest, 
 				 				   const Eigen::MatrixXf& data,
-				 				   float& entropy,
-				 				   Silhouette& sil)
+								   EvaluationMeasure& measure,
+								   TimeRecorder& tr,
+								   Silhouette& sil)
 {
 	MetricPreparation object(Row, Column);
 	object.preprocessing(data, Row, Column, 0);
@@ -209,22 +216,24 @@ void PCA_Cluster::performPC_KMeans(const MatrixXf& cArray,
 	
 	float delta = ((end.tv_sec  - start.tv_sec) * 1000000u + end.tv_usec - start.tv_usec) / 1.e6;
 
-	std::cout << "K-Means for PC takes " << delta << " s!" << std::endl;
+	tr.eventList.push_back("k-means iteration for PC takes ");
+	tr.timeList.push_back(to_string(delta)+"s");
 
 	std::multimap<int,int> groupMap;
 
-	entropy = 0.0;
+	float entropy = 0.0;
 	float probability;
+
+
 	for (int i = 0; i < Cluster; ++i)
 	{
 		groupMap.insert(std::pair<int,int>(storage[i],i));
 		if(storage[i]>0)
 		{
 			probability = float(storage[i])/float(Row);
-			entropy += probability*log(probability);
+			entropy += probability*log2f(probability);
 		}
 	}
-	entropy = -entropy;
 
 	int groupNo = 0;
 	int increasingOrder[Cluster];
@@ -235,6 +244,10 @@ void PCA_Cluster::performPC_KMeans(const MatrixXf& cArray,
 			increasingOrder[it->second] = (groupNo++);
 		}
 	}
+
+	/* calculate the balanced entropy */
+	entropy = -entropy/log2f(groupNo);
+
 
 #pragma omp parallel for schedule(dynamic) num_threads(8)	
 	for (int i = 0; i < Row; ++i)
@@ -305,15 +318,25 @@ void PCA_Cluster::performPC_KMeans(const MatrixXf& cArray,
 /* Silhouette effect */
 	gettimeofday(&start, NULL);
 
-	MetricPreparation mp;
-	sil.computeValue(0,cArray,Row,Column,group,mp, groupNo);
+	sil.computeValue(cArray,group,groupNo,isPBF);
+
 	std::cout << "Silhouette computation completed!" << std::endl;
 
 	gettimeofday(&end, NULL);
 	delta = ((end.tv_sec  - start.tv_sec) * 1000000u + end.tv_usec - start.tv_usec) / 1.e6;
-	std::cout << "Silhouette takes " << delta << " s!" << std::endl;
+
+	tr.eventList.push_back("Clustering evaluation computing takes: ");
+	tr.timeList.push_back(to_string(delta)+"s");
+
+
+	/* store the evaluation value result */
+	measure.silVec.push_back(sil.sAverage);
+	measure.gammaVec.push_back(sil.gammaStatistic);
+	measure.entropyVec.push_back(entropy);
+	measure.dbIndexVec.push_back(sil.dbIndex);
 
 }
+
 
 
 void PCA_Cluster::performAHC(const MatrixXf& cArray, 
@@ -338,12 +361,13 @@ void PCA_Cluster::performDirectK_Means(const Eigen::MatrixXf& data,
 									   std::vector<ExtractedLine>& closest,
 									   std::vector<ExtractedLine>& furthest, 
 									   const int& normOption,
-									   float& entropy,
+									   EvaluationMeasure& measure,
+									   TimeRecorder& tr,
 									   Silhouette& sil)
 {
 
 	performFullK_MeansByClusters(data, Row, Column, massCenter, CLUSTER, group, 
-								 totalNum, closest, furthest, normOption, entropy, sil);
+								 totalNum, closest, furthest, normOption, measure, tr, sil);
 }
 
 
@@ -356,17 +380,17 @@ void PCA_Cluster::performPCA_Clustering(const Eigen::MatrixXf& data,
 										std::vector<ExtractedLine>& closest, 
 										std::vector<ExtractedLine>& furthest, 
 										const int& Cluster,
-										float& entropy,
+										EvaluationMeasure& measure,
+										TimeRecorder& tr,
 										Silhouette& sil)
 {
 	MatrixXf cArray, SingVec;
 	VectorXf meanTrajectory(Column);
 	int PC_Number;
 
-	performSVD(cArray, data, Row, Column, PC_Number, SingVec, meanTrajectory);
+	performSVD(cArray, data, Row, Column, PC_Number, SingVec, meanTrajectory, tr);
 	performPC_KMeans(cArray, Row, Column, PC_Number, SingVec, meanTrajectory, 
-					 massCenter, Cluster, group, totalNum, closest,
-					 furthest, data, entropy, sil);
+					 massCenter, Cluster, group, totalNum, closest, furthest, data, measure, tr, sil);
 }
 
 
@@ -380,11 +404,12 @@ void PCA_Cluster::performDirectK_Means(const Eigen::MatrixXf& data,
 									   std::vector<ExtractedLine>& furthest, 
 									   const int& Cluster, 
 									   const int& normOption,
-									   float& entropy,
+									   EvaluationMeasure& measure,
+									   TimeRecorder& tr,
 									   Silhouette& sil)
 {
 	performFullK_MeansByClusters(data, Row, Column, massCenter, Cluster, group, 
-								 totalNum, closest, furthest, normOption, entropy, sil);
+								 totalNum, closest, furthest, normOption, measure, tr, sil);
 }
 
 
@@ -398,7 +423,8 @@ void PCA_Cluster::performFullK_MeansByClusters(const Eigen::MatrixXf& data,
 											   std::vector<ExtractedLine>& closest, 
 											   std::vector<ExtractedLine>& furthest, 
 											   const int& normOption,
-											   float& entropy,
+											   EvaluationMeasure& measure,
+											   TimeRecorder& tr,
 											   Silhouette& sil)
 {	
 	MetricPreparation object(Row, Column);
@@ -497,24 +523,28 @@ void PCA_Cluster::performFullK_MeansByClusters(const Eigen::MatrixXf& data,
 	}while(abs(moving-before)/before >= 1.0e-2 && tag < 20 && moving > 5.0);
 	
 	gettimeofday(&end, NULL);
-	double delta = ((end.tv_sec  - start.tv_sec) * 1000000u + end.tv_usec - start.tv_usec) / 1.e6;
+	double delta = ((end.tv_sec - start.tv_sec) * 1000000u + end.tv_usec - start.tv_usec) / 1.e6;
 
-	std::cout << "K-means takes " << delta << " s!" << std::endl;
+	tr.eventList.push_back("k-means iteration takes ");
+	tr.timeList.push_back(to_string(delta)+"s");
 
 	std::multimap<int,int> groupMap;
-	entropy = 0.0;
-	float probability;
+
+	float entropy = 0.0, probability;
 	int increasingOrder[Cluster];
+
+	int nonZero = 0;
 	for (int i = 0; i < Cluster; ++i)
 	{
 		groupMap.insert(std::pair<int,int>(storage[i],i));
 		if(storage[i]>0)
 		{
-			probability = float(storage[i])/float(Row);
-			entropy += probability*log(probability);
+			probability=float(storage[i])/float(Row);
+			entropy+=probability*log2f(probability);
+			++nonZero;
 		}
 	}
-	entropy = -entropy;
+	entropy = -entropy/log2f(nonZero);
 
 	int groupNo = 0;
 	for (std::multimap<int,int>::iterator it = groupMap.begin(); it != groupMap.end(); ++it)
@@ -597,15 +627,38 @@ void PCA_Cluster::performFullK_MeansByClusters(const Eigen::MatrixXf& data,
 /* Silhouette computation started */
 
 	//groupNo record group numbers */
-	gettimeofday(&start, NULL);
-	std::cout << (groupNo-1) << std::endl;
-	if(groupNo>1)
-	{
-		sil.computeValue(normOption,data,Row,Column,group,object,groupNo);
-		std::cout << "Silhouette computation completed!" << std::endl;
 
-		gettimeofday(&end, NULL);
-		delta = ((end.tv_sec  - start.tv_sec) * 1000000u + end.tv_usec - start.tv_usec) / 1.e6;
-		std::cout << "Silhouette takes " << delta << " s!" << std::endl;
+	if(groupNo<=1)
+		return;
+
+	/* if the dataset is not PBF, then should record distance matrix for Gamma matrix compution */
+	if(!isPBF)
+	{
+		deleteDistanceMatrix(data.rows());
+
+		if(!getDistanceMatrix(data, normOption, object))
+		{
+			std::cout << "Failure to compute distance matrix!" << std::endl;
+		}
 	}
+
+	gettimeofday(&start, NULL);
+	std::cout << "Final cluster has " << groupNo << " groups!" << std::endl;
+
+	sil.computeValue(normOption,data,Row,Column,group,object,groupNo,isPBF);
+
+	std::cout << "Silhouette computation completed!" << std::endl;
+
+	gettimeofday(&end, NULL);
+	delta = ((end.tv_sec  - start.tv_sec) * 1000000u + end.tv_usec - start.tv_usec) / 1.e6;
+
+	tr.eventList.push_back("Clustering evaluation computing takes: ");
+	tr.timeList.push_back(to_string(delta)+"s");
+
+
+	/* store the evaluation value result */
+	measure.silVec.push_back(sil.sAverage);
+	measure.gammaVec.push_back(sil.gammaStatistic);
+	measure.entropyVec.push_back(entropy);
+	measure.dbIndexVec.push_back(sil.dbIndex);
 }

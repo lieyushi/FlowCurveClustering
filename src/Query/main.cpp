@@ -46,6 +46,25 @@ void streamlineQuery(const int& argc,
 
 	int searchInteresting;
 	char isContinued;
+
+	/*  0: Euclidean Norm
+		1: Fraction Distance Metric
+		2: piece-wise angle average
+		3: Bhattacharyya metric for rotation
+		4: average rotation
+		5: signed-angle intersection
+		6: normal-direction multivariate distribution
+		7: Bhattacharyya metric with angle to a fixed direction
+		8: Piece-wise angle average \times standard deviation
+		9: normal-direction multivariate un-normalized distribution
+		10: x*y/|x||y| borrowed from machine learning
+		11: cosine similarity
+		12: Mean-of-closest point distance (MCP)
+		13: Hausdorff distance min_max(x_i,y_i)
+		14: Signature-based measure from http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=6231627
+		15: Procrustes distance take from http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=6787131
+	*/
+
 	for (int i = 2; i < 14; ++i)
 	{
 		if(i!=12)

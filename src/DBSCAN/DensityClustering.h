@@ -62,6 +62,9 @@ private:
 	int normOption;
 	DataSet ds;
 
+	/* whether it is a PBF dataset or not */
+	bool isPBF;
+
 	void setDataset(const int& argc,
 				    char **argv);	//get dataset from file
 

@@ -3,7 +3,7 @@
 
 #include "Metric.h"
 
-extern float **distanceMatrix;
+extern float** distanceMatrix;
 
 const float getBMetric_3(const VectorXf& row,
 						 const int& size,

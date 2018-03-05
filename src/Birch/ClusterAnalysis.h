@@ -18,6 +18,7 @@
 std::vector<string> activityList;
 std::vector<double> timeList;
 
+bool isPBF;
 
 template<boost::uint32_t dim>
 MetricPreparation CFTree<dim>::object = MetricPreparation();
@@ -60,6 +61,15 @@ void getUserInput(const int& argc,
 	int samplingMethod;
 	stringstream ss;
 	ss << "../dataset/" << argv[1];
+
+
+/* get the bool tag for isPBF */
+	std::cout << "It is a PBF dataset? 1.Yes, 0.No" << std::endl;
+	int PBFjudgement;
+	std::cin >> PBFjudgement;
+	assert(PBFjudgement==1||PBFjudgement==0);
+	isPBF = (PBFjudgement==1);
+
 
 	std::cout << "Please choose the sampling method? " << endl
 	          << "1.filling, 2.uniform sampling." << std::endl;
@@ -228,20 +238,24 @@ void getBirchClustering(std::vector<item_type<dim> >& items,
 	std::cin >> normOption;
 	std::cout << std::endl;
 
-	/*  
-		0: Euclidean Norm
-		1: Fraction Distance Metric
-		2: piece-wise angle average
-		3: Bhattacharyya metric for rotation
-		4: average rotation
-		5: signed-angle intersection
-		6: normal-direction multivariate distribution
-		7: Bhattacharyya metric with angle to a fixed direction
-		8: Piece-wise angle average \times standard deviation
-		9: normal-direction multivariate un-normalized distribution
-		10: x*y/|x||y| borrowed from machine learning
-		11: cosine similarity
-	*/
+
+/*  0: Euclidean Norm
+	1: Fraction Distance Metric
+	2: piece-wise angle average
+	3: Bhattacharyya metric for rotation
+	4: average rotation
+	5: signed-angle intersection
+	6: normal-direction multivariate distribution
+	7: Bhattacharyya metric with angle to a fixed direction
+	8: Piece-wise angle average \times standard deviation
+	9: normal-direction multivariate un-normalized distribution
+	10: x*y/|x||y| borrowed from machine learning
+	11: cosine similarity
+	12: Mean-of-closest point distance (MCP)
+	13: Hausdorff distance min_max(x_i,y_i)
+	14: Signature-based measure from http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=6231627
+	15: Procrustes distance take from http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=6787131
+*/
 
 	bool found = false;
 	for (int i = 0; i < 13&&!found; ++i)
@@ -348,6 +362,18 @@ void getClusterAnalysis(const vector<vector<float> >& trajectories,
 
 	numClusters = groupNo;
 
+/* compute balanced Entropy value for the clustering algorithm */
+	const int& Row = equalArray.rows();
+	float entropy = 0.0, probability;
+	for(int i=0;i<container.size();++i)
+	{
+		probability = float(container[i])/float(Row);
+		entropy+=probability*log2f(probability);
+	}
+	entropy = -entropy/log2f(numClusters);
+
+
+
 #pragma omp parallel for schedule(dynamic) num_threads(8)
 	for (int i = 0; i < item_cids.size(); ++i)
 		item_cids[i]=increasingOrder[item_cids[i]];
@@ -359,13 +385,26 @@ void getClusterAnalysis(const vector<vector<float> >& trajectories,
 	IOHandler::printClusters(trajectories,item_cids,container, 
 		 "norm"+to_string(normOption), fullName,dimension);
 
+
+	/* if the dataset is not PBF, then should record distance matrix for Gamma matrix compution */
+	if(!isPBF)
+	{
+		deleteDistanceMatrix(equalArray.rows());
+
+		if(!getDistanceMatrix(equalArray, normOption, object))
+		{
+			std::cout << "Failure to compute distance matrix!" << std::endl;
+		}
+	}
+
+
 	struct timeval start, end;
 	double timeTemp;
 
 	gettimeofday(&start, NULL);
 	Silhouette sil;
 	sil.computeValue(normOption,equalArray,equalArray.rows(),
-		equalArray.cols(),item_cids,object,numClusters);
+		equalArray.cols(),item_cids,object,numClusters,isPBF);
 	gettimeofday(&end, NULL);
 	timeTemp = ((end.tv_sec  - start.tv_sec) * 1000000u 
 			   + end.tv_usec - start.tv_usec) / 1.e6;
@@ -433,6 +472,17 @@ void getClusterAnalysis(const vector<vector<float> >& trajectories,
 
 	IOHandler::generateReadme(activityList,timeList,normOption,
 				numClusters,sil.sAverage,birch_threshold);
+
+/* print entropy value for the clustering algorithm */
+	IOHandler::writeReadme(entropy,sil);
+
+/* measure closest and furthest rotation */
+	std::vector<float> closestRot, furthestRot;
+	const float& closestAverage = getRotation(closest, closestRot);
+	const float& furthestAverage = getRotation(furthest, furthestRot);
+
+	IOHandler::writeReadme(closestAverage, furthestAverage);
+
 }
 
 

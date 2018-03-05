@@ -728,12 +728,13 @@ void IOHandler::writeReadme(const string& comment,
     readme.close();
 }
 
+
+
 void IOHandler::writeReadme(const std::vector<string>& timeName, 
 							const std::vector<double>& timeDiff,
-							const int& cluster,
-							const std::vector<float>& entropyVec)
+							const int& cluster)
 {
-	if(timeName.empty()||timeDiff.empty()||entropyVec.empty())
+	if(timeName.empty()||timeDiff.empty())
 		return;
 	std::ofstream readme("../dataset/README",ios::out | ios::app);
 	if(!readme)
@@ -750,14 +751,35 @@ void IOHandler::writeReadme(const std::vector<string>& timeName,
 	readme << std::endl;
 	readme << "Preset cluster number in K-means is: " << cluster << std::endl;
 	readme << std::endl;
-	readme << "Entropy of each norm-based K-means is: " << std::endl;
-	for (int i = 0; i < entropyVec.size(); ++i)
+    readme.close();
+}
+
+/* generate eventList and timeList for printing information */
+void IOHandler::writeReadme(const std::vector<string>& timeName,
+							const std::vector<string>& timeDiff,
+							const int& cluster)
+{
+	if(timeName.empty()||timeDiff.empty())
+		return;
+	std::ofstream readme("../dataset/README",ios::out | ios::app);
+	if(!readme)
 	{
-		readme << entropyVec[i] << " ";
+		std::cout << "Error creating readme!" << std::endl;
+		exit(1);
 	}
+	assert(timeName.size()==timeDiff.size());
+
+	for (int i = 0; i < timeName.size(); ++i)
+	{
+		readme << timeName[i] << " " << timeDiff[i] << std::endl;
+	}
+	readme << std::endl;
+	readme << "Preset cluster number in K-means is: " << cluster << std::endl;
 	readme << std::endl;
     readme.close();
 }
+
+
 
 void IOHandler::writeReadme(const std::vector<ExtractedLine>& closest, 
 							const std::vector<ExtractedLine>& furthest, 
@@ -819,6 +841,38 @@ void IOHandler::writeReadme(const std::vector<ExtractedLine>& closest,
 	readme << std::endl;
     readme.close();
 }
+
+
+/* write value of the silhouette class */
+void IOHandler::writeReadme(const float& entropy, const Silhouette& sil)
+{
+	std::ofstream readme("../dataset/README",ios::out | ios::app);
+	if(!readme)
+	{
+		std::cout << "Error creating readme!" << std::endl;
+		exit(1);
+	}
+	readme << "The average silhouette: " << sil.sAverage
+		   << ", the gamma statistic is: " << sil.gammaStatistic
+		   << ", the entropy is: " << entropy
+		   << ", the DB index is: " << sil.dbIndex
+		   << std::endl;
+}
+
+
+/* write the average rotation of closest and furthest extraction */
+void IOHandler::writeReadme(const float& closestAverage, const float& furthestAverage)
+{
+	std::ofstream readme("../dataset/README",ios::out | ios::app);
+	if(!readme)
+	{
+		std::cout << "Error creating readme!" << std::endl;
+		exit(1);
+	}
+	readme << "The average rotation of closest is: " << closestAverage
+		   << ", of furthest is: " << furthestAverage << std::endl;
+}
+
 
 
 void IOHandler::assignVec(std::vector<std::vector<float> >& closestStreamline, 

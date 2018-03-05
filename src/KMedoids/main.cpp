@@ -3,6 +3,8 @@
 
 using namespace std;
 
+bool isPBF;
+
 void featureExtraction(const int& argc,
 					   char **argv);
 
@@ -12,8 +14,9 @@ void performKMedoids(const string& fileName,
 					 const string& fullName, 
 					 const KMedoids& kmedoid,
 					 const int& normOption,
-					 float& entropy,
-					 Silhouette& sil);
+					 Silhouette& sil,
+					 EvaluationMeasure& measure,
+					 TimeRecorder& tr);
 
 void recordInitilization(const Parameter& pm,
 						 const int& sampleOption);
@@ -36,6 +39,13 @@ void featureExtraction(const int& number,
 	}
 	const string& strName = string("../dataset/")+string(argv[1]);
 	const int& dimension = atoi(argv[2]);
+
+	std::cout << "It is a PBF dataset? 1. Yes, 2. No." << std::endl;
+	int isPBFInput;
+	std::cin >> isPBFInput;
+	assert(isPBFInput==1||isPBFInput==0);
+	isPBF = (isPBFInput==1);
+
 
 	int numOfClusters, vertexCount;
 	std::cout << "Please input a cluster number (>=2):" << std::endl;
@@ -66,10 +76,10 @@ void featureExtraction(const int& number,
 	assert(sampleOption==1||sampleOption==2);
 /*-------------------------------------Finish parameter choice-------------------------*/
 
-	std::vector<string> timeName;
-	std::vector<double> timeDiff;
-	std::vector<float> entropyVec;
-	float entropy;
+	EvaluationMeasure measure;
+
+	TimeRecorder tr;
+
 
 	/* a Silhouette method to estimate the clustering effect */
 	Silhouette silhou;
@@ -85,8 +95,8 @@ void featureExtraction(const int& number,
 	gettimeofday(&end, NULL);
 	timeTemp = ((end.tv_sec  - start.tv_sec) * 1000000u 
 			   + end.tv_usec - start.tv_usec) / 1.e6;
-	timeName.push_back("I-O file reader time");
-	timeDiff.push_back(timeTemp);
+	tr.eventList.push_back("I-O file reader takes: ");
+	tr.timeList.push_back(to_string(timeTemp)+"s");
 
 	stringstream ss;
 	ss << strName << "_differentNorm_full.vtk";
@@ -102,8 +112,7 @@ void featureExtraction(const int& number,
 	else if(sampleOption==2)
 		IOHandler::sampleArray(data, dataVec, dimension, maxElements);
 
-	/*
-	    0: Euclidean Norm
+	/*  0: Euclidean Norm
 		1: Fraction Distance Metric
 		2: piece-wise angle average
 		3: Bhattacharyya metric for rotation
@@ -114,7 +123,11 @@ void featureExtraction(const int& number,
 		8: Piece-wise angle average \times standard deviation
 		9: normal-direction multivariate un-normalized distribution
 		10: x*y/|x||y| borrowed from machine learning
-		11: cosine similarity cos(x*y/|x||y|)/pi
+		11: cosine similarity
+		12: Mean-of-closest point distance (MCP)
+		13: Hausdorff distance min_max(x_i,y_i)
+		14: Signature-based measure from http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=6231627
+		15: Procrustes distance take from http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=6787131
 	*/
 
 	KMedoids kmedoid(pm, data, numOfClusters);
@@ -125,27 +138,33 @@ void featureExtraction(const int& number,
 			continue;
 		gettimeofday(&start, NULL);
 		ss << strName << "_KMeans";
-		performKMedoids(ss.str(), dataVec, dimension, 
-					   fullName, kmedoid, i, entropy, silhou);
-		entropyVec.push_back(entropy);
+		performKMedoids(ss.str(), dataVec, dimension, fullName, kmedoid, i, silhou, measure, tr);
 		ss.str("");
 		gettimeofday(&end, NULL);
-		timeTemp = ((end.tv_sec  - start.tv_sec) * 1000000u 
-					+ end.tv_usec - start.tv_usec) / 1.e6;
-		timeName.push_back("Direct K_Means operation time for norm "+to_string(i));
-		timeDiff.push_back(timeTemp);
+		timeTemp = ((end.tv_sec  - start.tv_sec) * 1000000u + end.tv_usec - start.tv_usec) / 1.e6;
+		tr.eventList.push_back("Direct K_Means operation time for norm "+to_string(i)+" takes: ");
+		tr.timeList.push_back(to_string(timeTemp)+"s");
 		if(silhou.sData.empty())
 			silhou.sAverage = 0;
-		averageS.push_back(silhou.sAverage);
 
 		silhou.reset();
 	}
 
-	IOHandler::writeReadme(timeName, timeDiff, kmedoid.getNumOfClusters(), entropyVec);
-
-	IOHandler::writeReadme("Average Silhouette value ", averageS);
+	IOHandler::writeReadme(tr.eventList, tr.timeList, kmedoid.getNumOfClusters());
 
 	recordInitilization(pm, sampleOption);
+
+	/* print silhouette values in the readme file */
+	IOHandler::writeReadme("Average Silhouette value is ", measure.silVec);
+
+	/* print gamma statistics vector in the readme */
+	IOHandler::writeReadme("Average Gamma statistics value is ", measure.gammaVec);
+
+	/* print entropy value in the readme file */
+	IOHandler::writeReadme("Average Entropy value is ", measure.entropyVec);
+
+	/* print DB index values in the readme file */
+	IOHandler::writeReadme("Average DB index is ", measure.dbIndexVec);
 }
 
 
@@ -155,11 +174,12 @@ void performKMedoids(const string& fileName,
 					 const string& fullName, 
 					 const KMedoids& kmedoid, 
 					 const int& normOption,
-					 float& entropy,
-					 Silhouette& sil)
+					 Silhouette& sil,
+					 EvaluationMeasure& measure,
+					 TimeRecorder& tr)
 {
 	FeatureLine fl(dataVec);
-	kmedoid.getMedoids(fl, normOption, entropy, sil);
+	kmedoid.getMedoids(fl, normOption, sil, measure, tr);
 
 	std::vector<std::vector<float> > closestStreamline, furthestStreamline;
 	std::vector<int> closestCluster, furthestCluster, meanCluster;
@@ -168,6 +188,24 @@ void performKMedoids(const string& fileName,
 						 closestPoint, dataVec);
 	IOHandler::assignVec(furthestStreamline, furthestCluster, fl.furthest, 
 						 furthestPoint, dataVec);
+
+
+/* get the average rotation of the extraction */
+	std::vector<float> closestRotation, furthestRotation;
+	const float& closestAverage = getRotation(closestStreamline, closestRotation);
+	const float& furthestAverage = getRotation(furthestStreamline, furthestRotation);
+
+	tr.eventList.push_back("Average rotation of closest for K-medoids clustering on norm "
+						   + to_string(normOption) + " is: ");
+	tr.timeList.push_back(to_string(closestAverage));
+
+	tr.eventList.push_back("Average rotation of furthest for K-medoids clustering on norm "
+						   + to_string(normOption) + " is: ");
+	tr.timeList.push_back(to_string(furthestAverage));
+/* finish the rotation computation */
+
+
+
 	IOHandler::assignVec(meanCluster, fl.centerMass);
 	IOHandler::printVTK(fileName+string("_norm")+to_string(normOption)+string("_mean.vtk"), 
 						fl.centerMass, 

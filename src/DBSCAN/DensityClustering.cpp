@@ -217,6 +217,14 @@ void DensityClustering::setDataset(const int& argc,
 	ds.strName = string("../dataset/")+string(argv[1]);
 	ds.dimension = atoi(argv[2]);
 
+	/* get the bool tag for isPBF */
+	std::cout << "It is a PBF dataset? 1.Yes, 0.No" << std::endl;
+	int PBFjudgement;
+	std::cin >> PBFjudgement;
+	assert(PBFjudgement==1||PBFjudgement==0);
+	isPBF = (PBFjudgement==1);
+
+
 	int sampleOption;
     std::cout << "choose a sampling method for the dataset?" << std::endl
 	    	  << "1.directly filling with last vertex; 2. uniform sampling; 3. equal-arc sampling. " << std::endl;
@@ -242,20 +250,25 @@ void DensityClustering::setNormOption()
 	std::cout << "Choose a norm from 0-11!" << std::endl;
 	std::cin >> normOption;
 	std::cout << std::endl;
-	/*  
-		0: Euclidean Norm
-		1: Fraction Distance Metric
-		2: piece-wise angle average
-		3: Bhattacharyya metric for rotation
-		4: average rotation
-		5: signed-angle intersection
-		6: normal-direction multivariate distribution
-		7: Bhattacharyya metric with angle to a fixed direction
-		8: Piece-wise angle average \times standard deviation
-		9: normal-direction multivariate un-normalized distribution
-		10: x*y/|x||y| borrowed from machine learning
-		11: cosine similarity
-	*/
+
+/*  0: Euclidean Norm
+	1: Fraction Distance Metric
+	2: piece-wise angle average
+	3: Bhattacharyya metric for rotation
+	4: average rotation
+	5: signed-angle intersection
+	6: normal-direction multivariate distribution
+	7: Bhattacharyya metric with angle to a fixed direction
+	8: Piece-wise angle average \times standard deviation
+	9: normal-direction multivariate un-normalized distribution
+	10: x*y/|x||y| borrowed from machine learning
+	11: cosine similarity
+	12: Mean-of-closest point distance (MCP)
+	13: Hausdorff distance min_max(x_i,y_i)
+	14: Signature-based measure from http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=6231627
+	15: Procrustes distance take from http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=6787131
+*/
+
 	bool found = false;
 	for (int i = 0; i < 12&&!found; ++i)
 	{
@@ -411,6 +424,17 @@ void DensityClustering::extractFeatures(const float& radius_eps,
 
 	container.insert(container.begin(),storage[0].size());
 
+/* compute balanced Entropy value for the clustering algorithm */
+	const int& Row = ds.dataMatrix.rows();
+	float entropy = 0.0, probability;
+	for(int i=0;i<container.size();++i)
+	{
+		probability = container[i]/Row;
+		entropy+=probability*log2f(probability);
+	}
+	entropy = -entropy/log2f(numClusters);
+
+
 	IOHandler::printClustersNoise(ds.dataVec,item_cids,container, 
 		 "norm"+to_string(normOption),ds.fullName,ds.dimension);
 
@@ -418,10 +442,22 @@ void DensityClustering::extractFeatures(const float& radius_eps,
 	double timeTemp;
 
 	numClusters-=1;
+
+	/* if the dataset is not PBF, then should record distance matrix for Gamma matrix compution */
+	if(!isPBF)
+	{
+		deleteDistanceMatrix(ds.dataMatrix.rows());
+
+		if(!getDistanceMatrix(ds.dataMatrix, normOption, object))
+		{
+			std::cout << "Failure to compute distance matrix!" << std::endl;
+		}
+	}
+
 	gettimeofday(&start, NULL);
 	Silhouette sil;
-	sil.computeValue(normOption,ds.dataMatrix,ds.dataMatrix.rows(),
-		ds.dataMatrix.cols(),item_cids,object,numClusters);
+	sil.computeValue(normOption,ds.dataMatrix,ds.dataMatrix.rows(),ds.dataMatrix.cols(),
+			         item_cids,object,numClusters, isPBF);
 	gettimeofday(&end, NULL);
 	timeTemp = ((end.tv_sec  - start.tv_sec) * 1000000u 
 			   + end.tv_usec - start.tv_usec) / 1.e6;
@@ -504,9 +540,6 @@ void DensityClustering::extractFeatures(const float& radius_eps,
 	activityList.push_back("numCluster is: ");
 	timeList.push_back(to_string(numClusters));
 
-	activityList.push_back("Average Silhouette is: ");
-	timeList.push_back(to_string(sil.sAverage));
-
 	activityList.push_back("Noise number is: ");
 	timeList.push_back(to_string(numNoise));
 
@@ -517,4 +550,15 @@ void DensityClustering::extractFeatures(const float& radius_eps,
 	timeList.push_back(to_string(minPts));
 
 	IOHandler::generateReadme(activityList,timeList);
+
+	IOHandler::writeReadme(entropy, sil);
+
+
+/* measure closest and furthest rotation */
+	std::vector<float> closestRot, furthestRot;
+	const float& closestAverage = getRotation(closest, closestRot);
+	const float& furthestAverage = getRotation(furthest, furthestRot);
+
+	IOHandler::writeReadme(closestAverage, furthestAverage);
+
 }

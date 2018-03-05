@@ -42,6 +42,9 @@ private:
 /* metric preparation object to be stored ahead of time */
 	MetricPreparation object;
 
+/* whether the input dataset is PBF or not */
+	bool isPBF;
+
 /* input norm option */
 	int normOption;
 

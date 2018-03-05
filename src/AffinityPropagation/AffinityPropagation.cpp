@@ -196,13 +196,25 @@ void AffinityPropagation::extractFeatures(const std::vector<int>& storage, const
 
 	IOHandler::printClusters(ds.dataVec,group,storage,"AP_norm"+to_string(normOption),ds.fullName,ds.dimension);
 
+	/* if the dataset is not PBF, then should record distance matrix for Gamma matrix compution */
+	if(!isPBF)
+	{
+		deleteDistanceMatrix(ds.dataMatrix.rows());
+
+		if(!getDistanceMatrix(ds.dataMatrix, normOption, object))
+		{
+			std::cout << "Failure to compute distance matrix!" << std::endl;
+		}
+	}
+
+
 	struct timeval start, end;
 	double timeTemp;
 
 	gettimeofday(&start, NULL);
 	Silhouette sil;
 	sil.computeValue(normOption,ds.dataMatrix,ds.dataMatrix.rows(),ds.dataMatrix.cols(),group,object,
-			         numberOfClusters, neighborVec);
+			         numberOfClusters, isPBF, neighborVec);
 	gettimeofday(&end, NULL);
 	timeTemp = ((end.tv_sec  - start.tv_sec) * 1000000u 
 			   + end.tv_usec - start.tv_usec) / 1.e6;
@@ -266,6 +278,7 @@ void AffinityPropagation::extractFeatures(const std::vector<int>& storage, const
 	stringstream ss;
 	ss << "norm_" << normOption;
 
+/* measure closest and furthest rotation */
 	std::vector<float> closestRotation, furthestRotation;
 	const float& closestAverage = getRotation(closest, closestRotation);
 	const float& furthestAverage = getRotation(furthest, furthestRotation);
@@ -286,19 +299,14 @@ void AffinityPropagation::extractFeatures(const std::vector<int>& storage, const
 	activityList.push_back("Norm option is: ");
 	timeList.push_back(to_string(normOption));
 
-	activityList.push_back("Average Silhouette is: ");
-	timeList.push_back(to_string(sil.sAverage));
-
-	activityList.push_back("Average rotation of closest is: ");
-	timeList.push_back(to_string(closestAverage));
-
-	activityList.push_back("Average rotation of furthest is: ");
-	timeList.push_back(to_string(furthestAverage));
-
-	activityList.push_back("Entropy ratio is: ");
-	timeList.push_back(to_string(EntropyRatio));
 
 	IOHandler::generateReadme(activityList,timeList);
+
+/* print entropy value for the clustering algorithm */
+	IOHandler::writeReadme(EntropyRatio, sil);
+
+	IOHandler::writeReadme(closestAverage, furthestAverage);
+
 }
 
 
@@ -315,6 +323,13 @@ void AffinityPropagation::setDataset(const int& argc, char **argv)
 	ds.strName = string("../dataset/")+string(argv[1]);
 	ds.dataName = string(argv[1]);
 	ds.dimension = atoi(argv[2]);
+
+/* get the bool tag for isPBF */
+	std::cout << "It is a PBF dataset? 1.Yes, 0.No" << std::endl;
+	int PBFjudgement;
+	std::cin >> PBFjudgement;
+	assert(PBFjudgement==1||PBFjudgement==0);
+	isPBF = (PBFjudgement==1);
 
 	IOHandler::readFile(ds.strName,ds.dataVec,ds.vertexCount,ds.dimension,ds.maxElements);
 

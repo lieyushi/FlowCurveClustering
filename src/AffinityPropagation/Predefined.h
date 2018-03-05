@@ -45,7 +45,7 @@ void mySwap(T& a, T& b)
 }
 
 
-/* my template-based parition function */
+/* my template-based partition function */
 template <class T>
 int partition(std::vector<T>& array, const int& left, const int& right, const int& pivotIndex)
 {

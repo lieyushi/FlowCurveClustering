@@ -241,12 +241,25 @@ void AHC::extractFeatures(const std::vector<int>& storage, const std::vector<std
 
 	IOHandler::printClusters(ds.dataVec,group,storage,"norm"+to_string(normOption),ds.fullName,ds.dimension);
 
+	/* if the dataset is not PBF, then should record distance matrix for Gamma matrix compution */
+	if(!isPBF)
+	{
+		deleteDistanceMatrix(ds.dataMatrix.rows());
+
+		if(!getDistanceMatrix(ds.dataMatrix, normOption, object))
+		{
+			std::cout << "Failure to compute distance matrix!" << std::endl;
+		}
+	}
+
+
 	struct timeval start, end;
 	double timeTemp;
 
 	gettimeofday(&start, NULL);
 	Silhouette sil;
-	sil.computeValue(normOption,ds.dataMatrix,ds.dataMatrix.rows(),ds.dataMatrix.cols(),group,object,numberOfClusters);
+	sil.computeValue(normOption,ds.dataMatrix,ds.dataMatrix.rows(),ds.dataMatrix.cols(),
+			         group,object,numberOfClusters, isPBF);
 	gettimeofday(&end, NULL);
 	timeTemp = ((end.tv_sec  - start.tv_sec) * 1000000u 
 			   + end.tv_usec - start.tv_usec) / 1.e6;
@@ -314,13 +327,16 @@ void AHC::extractFeatures(const std::vector<int>& storage, const std::vector<std
 	stringstream ss;
 	ss << "norm_" << normOption;
 
-	string linkage = getLinkageStr();
-	string normStr = getNormStr();
-	string entropyStr = getEntropyStr(EntropyRatio);
 
+/* measure closest and furthest rotation */
 	std::vector<float> closestRotation, furthestRotation;
 	const float& closestAverage = getRotation(closest, closestRotation);
 	const float& furthestAverage = getRotation(furthest, furthestRotation);
+
+
+	string linkage = getLinkageStr();
+	string normStr = getNormStr();
+	string entropyStr = getEntropyStr(EntropyRatio);
 
 	IOHandler::printFeature(ds.dataName+"_AHC_"+linkage+"_closest_"+ss.str()+".vtk", closest, sil.sCluster,
 			                closestRotation, ds.dimension);
@@ -345,9 +361,15 @@ void AHC::extractFeatures(const std::vector<int>& storage, const std::vector<std
 
 	IOHandler::generateReadme(activityList,timeList);
 
-	IOHandler::writeReadme("Linkage: "+linkage+", "+"norm option is "+normStr+", "+"entropy ratio is "+entropyStr);
+	IOHandler::writeReadme("Linkage: "+linkage+", "+"norm option is "+normStr+", ");
 
 	IOHandler::writeGroupSize(storage);
+
+/* print entropy value for the clustering algorithm */
+	IOHandler::writeReadme(EntropyRatio, sil);
+
+	IOHandler::writeReadme(closestAverage, furthestAverage);
+
 }
 
 /* set dataset from user command */
@@ -363,6 +385,14 @@ void AHC::setDataset(const int& argc, char **argv)
 	ds.strName = string("../dataset/")+string(argv[1]);
 	ds.dataName = string(argv[1]);
 	ds.dimension = atoi(argv[2]);
+
+/* get the bool tag for isPBF */
+	std::cout << "It is a PBF dataset? 1.Yes, 0.No" << std::endl;
+	int PBFjudgement;
+	std::cin >> PBFjudgement;
+	assert(PBFjudgement==1||PBFjudgement==0);
+	isPBF = (PBFjudgement==1);
+
 
 	int sampleOption;
     std::cout << "choose a sampling method for the dataset?" << std::endl

@@ -191,10 +191,9 @@ void SpectralClustering::extractFeatures(const std::vector<int>& storage, const 
 	gettimeofday(&start, NULL);
 	Silhouette sil;
 	sil.computeValue(normOption,ds.dataMatrix,ds.dataMatrix.rows(),ds.dataMatrix.cols(),group,object,
-			         numberOfClusters, neighborVec);
+			         numberOfClusters, false, neighborVec);
 	gettimeofday(&end, NULL);
-	timeTemp = ((end.tv_sec  - start.tv_sec) * 1000000u 
-			   + end.tv_usec - start.tv_usec) / 1.e6;
+	timeTemp = ((end.tv_sec  - start.tv_sec) * 1000000u + end.tv_usec - start.tv_usec) / 1.e6;
 	activityList.push_back("Silhouette calculation takes: ");
 	timeList.push_back(to_string(timeTemp)+" s");
 
@@ -287,19 +286,15 @@ void SpectralClustering::extractFeatures(const std::vector<int>& storage, const 
 		break;
 	}
 
-	activityList.push_back("Average Silhouette is: ");
-	timeList.push_back(to_string(sil.sAverage));
-
 	activityList.push_back("Average rotation of closest is: ");
 	timeList.push_back(to_string(closestAverage));
 
 	activityList.push_back("Average rotation of furthest is: ");
 	timeList.push_back(to_string(furthestAverage));
 
-	activityList.push_back("Entropy ratio is: ");
-	timeList.push_back(to_string(EntropyRatio));
-
 	IOHandler::generateReadme(activityList,timeList);
+
+	IOHandler::writeReadme(EntropyRatio, sil);
 }
 
 /* set dataset from user command */

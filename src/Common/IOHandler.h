@@ -16,6 +16,10 @@
 #include <eigen3/Eigen/Core>
 #include <eigen3/Eigen/SVD>
 
+
+#include "Silhouette.h"
+
+
 using namespace std;
 using namespace Eigen;
 
@@ -146,8 +150,11 @@ public:
 
 	static void writeReadme(const std::vector<string>& timeName, 
 							const std::vector<double>& timeDiff,
-							const int& cluster,
-							const std::vector<float>& entropyVec);
+							const int& cluster);
+
+	static void writeReadme(const std::vector<string>& timeName,
+					 const std::vector<string>& timeDiff,
+					 const int& cluster);
 
 	static void writeReadme(const std::vector<ExtractedLine>& closest, 
 							const std::vector<ExtractedLine>& furthest, 
@@ -156,7 +163,13 @@ public:
 	static void writeReadme(const std::vector<ExtractedLine>& closest, 
 							const std::vector<ExtractedLine>& furthest);
 
+	/* write the average rotation of closest and furthest extraction */
+	static void writeReadme(const float& closestAverage, const float& furthestAverage);
+
 	static void writeReadme(const string& comments);
+
+	/* write value of the silhouette class */
+	static void writeReadme(const float& entropy, const Silhouette& sil);
 
 	static void writeGroupSize(const std::vector<int>& storage);
 

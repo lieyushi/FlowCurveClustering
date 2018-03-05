@@ -7,6 +7,7 @@
 
 /* algorithm implemented based on https://en.wikipedia.org/wiki/OPTICS_algorithm */
 
+
 class DensityClustering
 {
 public:
@@ -26,6 +27,8 @@ private:
 	MetricPreparation object;
 	int normOption;
 	DataSet ds;
+
+	bool isPBF;
 
 	void setDataset(const int& argc,
 				    char **argv);	//get dataset from file

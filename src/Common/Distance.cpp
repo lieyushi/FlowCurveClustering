@@ -1,7 +1,7 @@
 #include "Distance.h"
 
+float** distanceMatrix = NULL;
 
-float **distanceMatrix = NULL;
 /* ------------------ Compute norm 3 for trajectories ------------------------- */
 // given a center trajectory and index of pre-stored vector 
 const float getBMetric_3(const VectorXf& row,

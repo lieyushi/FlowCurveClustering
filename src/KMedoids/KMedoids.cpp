@@ -1,5 +1,9 @@
 #include "KMedoids.h"
 
+
+extern bool isPBF;
+
+
 KMedoids::KMedoids(const Parameter& pm, 
 				   const Eigen::MatrixXf& data,
 				   const int& numOfClusters)
@@ -18,8 +22,9 @@ KMedoids::~KMedoids()
 
 void KMedoids::getMedoids(FeatureLine& fline,
 						  const int& normOption,
-						  float& entropy,
-						  Silhouette& sil) const
+						  Silhouette& sil,
+						  EvaluationMeasure& measure,
+						  TimeRecorder& tr) const
 {
 	MetricPreparation object(data.rows(), data.cols());
 	object.preprocessing(data, data.rows(), data.cols(), normOption);
@@ -107,10 +112,11 @@ void KMedoids::getMedoids(FeatureLine& fline,
 	gettimeofday(&end, NULL);
 	double delta = ((end.tv_sec  - start.tv_sec) * 1000000u + end.tv_usec - start.tv_usec) / 1.e6;
 
-	std::cout << "K-means takes " << delta << " s!" << std::endl;
+	tr.eventList.push_back("K-medoids iteration takes: ");
+	tr.timeList.push_back(to_string(delta)+"s");
 
 	std::multimap<int,int> groupMap;
-	entropy = 0.0;
+	float entropy = 0.0;
 	float probability;
 	vector<int> increasingOrder(numOfClusters);
 	for (int i = 0; i < numOfClusters; ++i)
@@ -119,10 +125,9 @@ void KMedoids::getMedoids(FeatureLine& fline,
 		if(storage[i]>0)
 		{
 			probability = float(storage[i])/float(Row);
-			entropy += probability*log(probability);
+			entropy += probability*log2f(probability);
 		}
 	}
-	entropy = -entropy;
 
 	int groupNo = 0;
 	for (std::multimap<int,int>::iterator it = groupMap.begin(); it != groupMap.end(); ++it)
@@ -132,6 +137,8 @@ void KMedoids::getMedoids(FeatureLine& fline,
 			increasingOrder[it->second] = (groupNo++);
 		}
 	}
+
+	entropy = -entropy/log2f(groupNo);
 	/* finish tagging for each group */
 
 
@@ -204,18 +211,39 @@ void KMedoids::getMedoids(FeatureLine& fline,
 
 /* Silhouette computation started */
 
+	std::cout << "The finalized cluster size is: " << groupNo << std::endl;
+	if(groupNo<=1)
+		return;
+
+	/* if the dataset is not PBF, then should record distance matrix for Gamma matrix compution */
+	if(!isPBF)
+	{
+		deleteDistanceMatrix(data.rows());
+
+		if(!getDistanceMatrix(data, normOption, object))
+		{
+			std::cout << "Failure to compute distance matrix!" << std::endl;
+		}
+	}
+
 	//groupNo record group numbers */
 	gettimeofday(&start, NULL);
-	std::cout << (groupNo-1) << std::endl;
-	if(groupNo>1)
-	{
-		sil.computeValue(normOption,data,Row,Column,fline.group,object,groupNo);
-		std::cout << "Silhouette computation completed!" << std::endl;
 
-		gettimeofday(&end, NULL);
-		delta = ((end.tv_sec  - start.tv_sec) * 1000000u + end.tv_usec - start.tv_usec) / 1.e6;
-		std::cout << "Silhouette takes " << delta << " s!" << std::endl;
-	}
+	sil.computeValue(normOption,data,Row,Column,fline.group,object,groupNo,isPBF);
+	std::cout << "Silhouette computation completed!" << std::endl;
+
+	gettimeofday(&end, NULL);
+	delta = ((end.tv_sec  - start.tv_sec) * 1000000u + end.tv_usec - start.tv_usec) / 1.e6;
+
+	tr.eventList.push_back("Evaluation analysis would take: ");
+	tr.timeList.push_back(to_string(delta)+"s");
+
+	/* store the evaluation value result */
+	measure.silVec.push_back(sil.sAverage);
+	measure.gammaVec.push_back(sil.gammaStatistic);
+	measure.entropyVec.push_back(entropy);
+	measure.dbIndexVec.push_back(sil.dbIndex);
+
 }
 
 

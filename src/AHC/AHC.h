@@ -54,6 +54,9 @@ private:
 /* input norm option */
 	int normOption;
 
+/* the tag to tell whether it's a PBF or not */
+	bool isPBF;
+
 /* group information */
 	std::vector<int> group;
 
