@@ -315,6 +315,9 @@ void AHC::extractFeatures(const std::vector<int>& storage, const std::vector<std
 	}
 	std::cout << std::endl;
 
+	/* record labeling information */
+	IOHandler::generateGroups(neighborVec);
+
 	IOHandler::printClusters(ds.dataVec,group,storage,"norm"+to_string(normOption),ds.fullName,ds.dimension);
 
 	/* if the dataset is not PBF, then should record distance matrix for Gamma matrix compution */

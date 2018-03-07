@@ -158,7 +158,7 @@ void DensityClustering::setDataset(const int& argc,
 	ds.dimension = atoi(argv[2]);
 
 	/* need to judge whether it is a PBF dataset or not */
-	std::cout << "It is a PBF dataset? 1.Yes, 2.No." << std::endl;
+	std::cout << "It is a PBF dataset? 1.Yes, 0.No." << std::endl;
 	int PBFInput;
 	std::cin >> PBFInput;
 	assert(PBFInput==1||PBFInput==0);
@@ -403,6 +403,11 @@ void DensityClustering::extractFeatures(const float& radius_eps,
 
 	const int& numNoise = storage[0].size();
 	storage.erase(storage.begin());
+
+
+	/* record labeling information */
+	IOHandler::generateGroups(storage);
+
 	/* compute the centroid coordinates of each clustered group */
 
 	gettimeofday(&start, NULL);

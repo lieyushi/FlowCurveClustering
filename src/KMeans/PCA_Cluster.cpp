@@ -210,7 +210,7 @@ void PCA_Cluster::performPC_KMeans(const MatrixXf& cArray,
 		}
 		std::cout << "K-means iteration " << ++tag << " completed, and moving is " 
 		<< moving << "!" << std::endl;
-	}while(abs(moving-before)/before >= 1.0e-2 && tag < 20 && moving>2.0);
+	}while(abs(moving-before)/before >= 1.0e-2 && tag < 20/* && moving>2.0*/);
 
 	gettimeofday(&end, NULL);
 	
@@ -520,7 +520,7 @@ void PCA_Cluster::performFullK_MeansByClusters(const Eigen::MatrixXf& data,
 		}
 		std::cout << "K-means iteration " << ++tag << " completed, and moving is " << moving 
 				  << "!" << std::endl;
-	}while(abs(moving-before)/before >= 1.0e-2 && tag < 20 && moving > 5.0);
+	}while(abs(moving-before)/before >= 1.0e-2 && tag < 20/* && moving > 5.0*/);
 	
 	gettimeofday(&end, NULL);
 	double delta = ((end.tv_sec - start.tv_sec) * 1000000u + end.tv_usec - start.tv_usec) / 1.e6;
@@ -556,6 +556,8 @@ void PCA_Cluster::performFullK_MeansByClusters(const Eigen::MatrixXf& data,
 	}
 	/* finish tagging for each group */
 
+	/* record labeling information */
+	IOHandler::generateGroups(neighborVec);
 
 	// set cluster group number and size number 
 #pragma omp parallel for schedule(dynamic) num_threads(8)

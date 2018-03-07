@@ -468,6 +468,11 @@ void DensityClustering::extractFeatures(const float& radius_eps,
 
 	const int& numNoise = storage[0].size();
 	storage.erase(storage.begin());
+
+	/* record labeling information */
+	IOHandler::generateGroups(storage);
+
+
 	/* compute the centroid coordinates of each clustered group */
 
 	gettimeofday(&start, NULL);
@@ -562,5 +567,7 @@ void DensityClustering::extractFeatures(const float& radius_eps,
 	const float& furthestAverage = getRotation(furthest, furthestRot);
 
 	IOHandler::writeReadme(closestAverage, furthestAverage);
+
+
 
 }

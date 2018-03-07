@@ -1,6 +1,6 @@
 #include "Metric.h"
 
-const int& BIN_SIZE = 20;
+const int& BIN_SIZE = 40;
 
 void computeMeanRotation(const Eigen::MatrixXf& data, 
 						 const int& Row, 

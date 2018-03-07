@@ -185,6 +185,10 @@ void SpectralClustering::extractFeatures(const std::vector<int>& storage, const 
 	float EntropyRatio;
 	getEntropyRatio(storage, EntropyRatio);
 
+	/* record labeling information */
+	IOHandler::generateGroups(neighborVec);
+
+
 	IOHandler::printClusters(ds.dataVec,group,storage,"SC_"+pprocessing+"_norm"+to_string(normOption),ds.fullName,ds.dimension);
 
 	struct timeval start, end;

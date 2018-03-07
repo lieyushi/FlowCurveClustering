@@ -383,6 +383,10 @@ void getClusterAnalysis(const vector<vector<float> >& trajectories,
 	for (int i = 0; i < item_cids.size(); ++i)
 		storage[item_cids[i]].push_back(i);
 
+	/* record labeling information */
+	IOHandler::generateGroups(storage);
+
+
 	IOHandler::printClusters(trajectories,item_cids,container, 
 		 "norm"+to_string(normOption), fullName,dimension);
 

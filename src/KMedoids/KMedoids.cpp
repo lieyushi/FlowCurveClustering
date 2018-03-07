@@ -107,7 +107,7 @@ void KMedoids::getMedoids(FeatureLine& fline,
 		}
 		std::cout << "K-means iteration " << ++tag << " completed, and moving is " << moving 
 				  << "!" << std::endl;
-	}while(abs(moving-before)/before >= 1.0e-2 && tag < 20 && moving > 5.0);
+	}while(abs(moving-before)/before >= 1.0e-2 && tag < 20/* && moving > 5.0*/);
 	
 	gettimeofday(&end, NULL);
 	double delta = ((end.tv_sec  - start.tv_sec) * 1000000u + end.tv_usec - start.tv_usec) / 1.e6;
@@ -140,6 +140,9 @@ void KMedoids::getMedoids(FeatureLine& fline,
 
 	entropy = -entropy/log2f(groupNo);
 	/* finish tagging for each group */
+
+	/* record labeling information */
+	IOHandler::generateGroups(neighborVec);
 
 
 	// set cluster group number and size number 

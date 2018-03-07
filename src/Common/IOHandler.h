@@ -267,6 +267,8 @@ public:
 	static void generateReadme(const std::vector<string>& activityList,
 							   const std::vector<string>& timeList);
 
+	/* need to store each label for elements for NID computation */
+	static void generateGroups(const std::vector<std::vector<int> >& storage);
 };
 
 

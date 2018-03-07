@@ -1455,3 +1455,33 @@ void IOHandler::writeGroupSize(const std::vector<int>& storage)
 	readme << std::endl;
     readme.close();
 }
+
+
+/* need to store each label for elements for NID computation */
+void IOHandler::generateGroups(const std::vector<std::vector<int> >& storage)
+{
+	if(storage.empty())
+		return;
+	std::ofstream readme("../dataset/Storage",ios::out);
+	if(!readme)
+	{
+		std::cout << "Error creating Storage!" << std::endl;
+		exit(1);
+	}
+
+	const int& groupSize = storage.size();
+	std::vector<int> element;
+	for(int i=0;i<groupSize;++i)
+	{
+		element = storage[i];
+		if(element.empty())
+			continue;
+		for(int j=0;j<element.size();++j)
+			readme << element[j] << " ";
+		readme << std::endl;
+	}
+	readme.close();
+}
+
+
+

@@ -41,7 +41,7 @@ void featureExtraction(const int& number,
 	const string& strName = string("../dataset/")+string(argv[1]);
 	const int& dimension = atoi(argv[2]);
 
-	std::cout << "It is a PBF dataset? 1. Yes, 2. No." << std::endl;
+	std::cout << "It is a PBF dataset? 1. Yes, 0. No." << std::endl;
 	int isPBFInput;
 	std::cin >> isPBFInput;
 	assert(isPBFInput==1||isPBFInput==0);
