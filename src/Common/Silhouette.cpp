@@ -592,11 +592,14 @@ void Silhouette::computeGammaStatistic(const Eigen::MatrixXf& distM,
 	{
 		for(int j=i+1;j<Row;++j)
 		{
+			/* update the mean u_1, u_2 */
 			u_1+=distM(i,j);
 			u_2+=idealDistM(i,j);
 
+			/* update the numerator */
 			numerator+=distM(i,j)*idealDistM(i,j);
 
+			/* update the deviation */
 			s_1+=distM(i,j)*distM(i,j);
 			s_2+=idealDistM(i,j)*idealDistM(i,j);
 		}

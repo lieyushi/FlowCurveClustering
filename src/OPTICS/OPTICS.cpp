@@ -218,6 +218,7 @@ void DensityClustering::setNormOption()
 		std::cout << "Cannot find the norm!" << std::endl;
 		exit(1);
 	}
+
 }
 
 

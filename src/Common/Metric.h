@@ -3,6 +3,9 @@
 
 #include "PreComputing.h"
 
+extern const int& BIN_SIZE;
+
+
 void computeMeanRotation(const Eigen::MatrixXf& data, 
 						 const int& Row, 
 						 const int& Column, 
@@ -45,6 +48,14 @@ void computePairWise(const Eigen::MatrixXf& data,
 					 std::vector<std::vector<float> >& pairwise,
 					 std::vector<std::vector<float> >& pairwiseNorm);
 
+/* get signature-based bin for histogram for dissimilarity computation */
+void getSignatureBin(const Eigen::MatrixXf& data,
+					 const int& Row,
+					 const int& Column,
+					 std::vector<std::vector<float> >& pairwise);
+
+
+
 struct MetricPreparation
 {
 	std::vector<float> rotation;
@@ -54,21 +65,31 @@ struct MetricPreparation
 	std::vector<std::vector<float> > pairwise;
 	std::vector<std::vector<float> > pairwiseNorm;
 
+	int row, column;
+
 	MetricPreparation(const int& Row,
 					  const int& Column)
 	{
-		rotationSequence = std::vector<std::vector<float> >(Row,std::vector<float>(2));
-		normalMultivariate = std::vector<MultiVariate>(Row, MultiVariate());
-		unitLength = std::vector<VectorXf >(Row, VectorXf(Column));
-		pairwise = std::vector<std::vector<float> >(Row, std::vector<float>(Column-3));
-		pairwiseNorm = std::vector<std::vector<float> >(Row, std::vector<float>((Column-3)/3));
+		/* don't need to allocate redundant memory since the dataset size would be huge */
+//		rotationSequence = std::vector<std::vector<float> >(Row,std::vector<float>(2));
+//		normalMultivariate = std::vector<MultiVariate>(Row, MultiVariate());
+//		unitLength = std::vector<VectorXf >(Row, VectorXf(Column));
+//		pairwise = std::vector<std::vector<float> >(Row, std::vector<float>(Column-3));
+//		pairwiseNorm = std::vector<std::vector<float> >(Row, std::vector<float>((Column-3)/3));
+
+		row = Row;
+		column = Column;
 	}
 
 	MetricPreparation()
-	{}
+	{
+		row = column = 0;
+	}
 
 	~MetricPreparation()
-	{}
+	{
+		row = column = -1;
+	}
 
 	void preprocessing(const Eigen::MatrixXf& data,
 					   const int& Row,
@@ -80,7 +101,11 @@ struct MetricPreparation
 			case 2:
 			case 5:
 			case 8:
-				computePairWise(data, Row, Column-3, pairwise, pairwiseNorm);
+				{
+					pairwise = std::vector<std::vector<float> >(Row, std::vector<float>(Column-3));
+					pairwiseNorm = std::vector<std::vector<float> >(Row, std::vector<float>((Column-3)/3));
+					computePairWise(data, Row, Column-3, pairwise, pairwiseNorm);
+				}
 				break;
 
 			case 4:
@@ -90,23 +115,45 @@ struct MetricPreparation
 
 			/*  pre-defined cache for sequence mean and standard deviation */
 			case 3:
-				getRotationSequence(data, Row, Column, rotationSequence);
+				{
+					rotationSequence = std::vector<std::vector<float> >(Row,std::vector<float>(2));
+					getRotationSequence(data, Row, Column, rotationSequence);
+				}
 				break;
 
 			case 6:
-				getNormalSequence(data, Row, Column, normalMultivariate);
+				{
+					normalMultivariate = std::vector<MultiVariate>(Row, MultiVariate());
+					getNormalSequence(data, Row, Column, normalMultivariate);
+				}
 				break;
 
 			case 7:
-				getFixedSequence(data, Row, Column, rotationSequence);
+				{
+					rotationSequence = std::vector<std::vector<float> >(Row,std::vector<float>(2));
+					getFixedSequence(data, Row, Column, rotationSequence);
+				}
 				break;
 
 			case 9:
-				getUnnormalizedSequence(data, Row, Column, normalMultivariate);
+				{
+					normalMultivariate = std::vector<MultiVariate>(Row, MultiVariate());
+					getUnnormalizedSequence(data, Row, Column, normalMultivariate);
+				}
 				break;
 
-			case 10:		
-				getUnitDirection(data, Row, Column, unitLength);
+			case 10:
+				{
+					unitLength = std::vector<VectorXf >(Row, VectorXf(Column));
+					getUnitDirection(data, Row, Column, unitLength);
+				}
+				break;
+
+			case 14:
+				{
+					pairwise = std::vector<std::vector<float> >(Row, std::vector<float>(BIN_SIZE));
+					getSignatureBin(data, Row, Column, pairwise);
+				}
 				break;
 
 			default:

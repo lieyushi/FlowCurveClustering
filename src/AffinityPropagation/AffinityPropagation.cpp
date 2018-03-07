@@ -29,9 +29,8 @@ AffinityPropagation::~AffinityPropagation()
 void AffinityPropagation::performClustering()
 {
 	//distance metric type
-	/*
-		0: Euclidean Norm
-		1: Fraction Distance Metric (could have been ignored but be different)
+	/*  0: Euclidean Norm
+		1: Fraction Distance Metric
 		2: piece-wise angle average
 		3: Bhattacharyya metric for rotation
 		4: average rotation
@@ -40,16 +39,20 @@ void AffinityPropagation::performClustering()
 		7: Bhattacharyya metric with angle to a fixed direction
 		8: Piece-wise angle average \times standard deviation
 		9: normal-direction multivariate un-normalized distribution
-		10: x*y/|x||y| borrowed from machine learning (would delete as well)
-		11: cosine similarity (would delete as well)
-		12: mean of closest point distance
-		13: Hausdorff distance
+		10: x*y/|x||y| borrowed from machine learning
+		11: cosine similarity
+		12: Mean-of-closest point distance (MCP)
+		13: Hausdorff distance min_max(x_i,y_i)
+		14: Signature-based measure from http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=6231627
+		15: Procrustes distance take from http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=6787131
 	*/
-	for(int i=0;i<=13;++i)
+	for(int i=0;i<=15;++i)
 	{
 		/* don't want to deal with many too naive metrics */
-		//if(i==10||i==11)
-		//	continue;
+		if(i!=0 && i!=1 && i!=2 && i!=4 && i!=12 && i!=14 && i!=15)
+			continue;
+
+
 		std::cout << "----------------------------------------------------" << std::endl;
 		std::cout << "Experiment on norm " << i << " starts!--------------" << std::endl;
 

@@ -142,8 +142,8 @@ void featureExtraction(const int& number,
 		11: cosine similarity
 		12: Mean-of-closest point distance (MCP)
 		13: Hausdorff distance min_max(x_i,y_i)
-		14: Signature-based measure from http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=6231627
-		15: Procrustes distance take from http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=6787131
+		14: Signature-based measure taken from http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=6231627
+		15: Procrustes distance taken from http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=6787131
 	*/
 	if(samplingMethod==2)
 		IOHandler::sampleArray(data, dataVec, dimension, maxElements);
@@ -151,8 +151,9 @@ void featureExtraction(const int& number,
 	for(int i = 0;i<16;i++)
 	{
 		/* in this paper, we only care about those seven metrics */
-		if(i!=0 && i!=1 && i!=2 && i!=4 && i!=12)
+		if(i!=0 && i!=1 && i!=2 && i!=4 && i!=12 && i!=14 && i!=15)
 			continue;
+
 		gettimeofday(&start, NULL);
 		ss << strName << "_KMeans";
 		performK_Means(ss.str(), dataVec, cluster, dimension, fullName, maxElements, data,i, measure, tr, sil);

@@ -1,5 +1,7 @@
 #include "Metric.h"
 
+const int& BIN_SIZE = 20;
+
 void computeMeanRotation(const Eigen::MatrixXf& data, 
 						 const int& Row, 
 						 const int& Column, 
@@ -97,3 +99,18 @@ void computePairWise(const Eigen::MatrixXf& data,
 		getPairWise_byEach(data.row(i), pointNum, pairwise[i], pairwiseNorm[i]);
 	}
 }
+
+
+/* get signature-based bin for histogram for dissimilarity computation */
+void getSignatureBin(const Eigen::MatrixXf& data,
+					 const int& Row,
+					 const int& Column,
+					 std::vector<std::vector<float> >& pairwise)
+{
+#pragma omp parallel for schedule(dynamic) num_threads(8)
+	for (int i=0;i<Row;++i)
+	{
+		getSignatureHist(data,BIN_SIZE,pairwise[i]);
+	}
+}
+

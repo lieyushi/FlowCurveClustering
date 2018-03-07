@@ -426,8 +426,7 @@ void AHC::setNormOption()
 	std::cout << "Input a norm option 0-13!" << std::endl;
 	std::cin >> normOption;
 	std::cout << std::endl;
-	/*  
-		0: Euclidean Norm
+	/*  0: Euclidean Norm
 		1: Fraction Distance Metric
 		2: piece-wise angle average
 		3: Bhattacharyya metric for rotation
@@ -439,11 +438,13 @@ void AHC::setNormOption()
 		9: normal-direction multivariate un-normalized distribution
 		10: x*y/|x||y| borrowed from machine learning
 		11: cosine similarity
-		12: mean of closest point distance
-		13: Hausdorff distance
+		12: Mean-of-closest point distance (MCP)
+		13: Hausdorff distance min_max(x_i,y_i)
+		14: Signature-based measure from http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=6231627
+		15: Procrustes distance take from http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=6787131
 	*/
 	bool found = false;
-	for (int i = 0; i < 14&&!found; ++i)
+	for (int i = 0; i < 16&&!found; ++i)
 	{
 		if(normOption==i)
 		{
@@ -451,6 +452,7 @@ void AHC::setNormOption()
 			break;
 		}
 	}
+
 	if(!found)
 	{
 		std::cout << "Cannot find the norm!" << std::endl;

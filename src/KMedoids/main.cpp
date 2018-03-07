@@ -5,6 +5,7 @@ using namespace std;
 
 bool isPBF;
 
+
 void featureExtraction(const int& argc,
 					   char **argv);
 
@@ -132,10 +133,11 @@ void featureExtraction(const int& number,
 
 	KMedoids kmedoid(pm, data, numOfClusters);
 
-	for(int i = 0;i<13;i++)
+	for(int i = 0;i<16;i++)
 	{
-		if(i!=12)
+		if(i!=0 && i!=1 && i!=2 && i!=4 && i!=12 && i!=14 && i!=15)
 			continue;
+
 		gettimeofday(&start, NULL);
 		ss << strName << "_KMeans";
 		performKMedoids(ss.str(), dataVec, dimension, fullName, kmedoid, i, silhou, measure, tr);

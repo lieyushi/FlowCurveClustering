@@ -251,26 +251,26 @@ void DensityClustering::setNormOption()
 	std::cin >> normOption;
 	std::cout << std::endl;
 
-/*  0: Euclidean Norm
-	1: Fraction Distance Metric
-	2: piece-wise angle average
-	3: Bhattacharyya metric for rotation
-	4: average rotation
-	5: signed-angle intersection
-	6: normal-direction multivariate distribution
-	7: Bhattacharyya metric with angle to a fixed direction
-	8: Piece-wise angle average \times standard deviation
-	9: normal-direction multivariate un-normalized distribution
-	10: x*y/|x||y| borrowed from machine learning
-	11: cosine similarity
-	12: Mean-of-closest point distance (MCP)
-	13: Hausdorff distance min_max(x_i,y_i)
-	14: Signature-based measure from http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=6231627
-	15: Procrustes distance take from http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=6787131
-*/
+	/*  0: Euclidean Norm
+		1: Fraction Distance Metric
+		2: piece-wise angle average
+		3: Bhattacharyya metric for rotation
+		4: average rotation
+		5: signed-angle intersection
+		6: normal-direction multivariate distribution
+		7: Bhattacharyya metric with angle to a fixed direction
+		8: Piece-wise angle average \times standard deviation
+		9: normal-direction multivariate un-normalized distribution
+		10: x*y/|x||y| borrowed from machine learning
+		11: cosine similarity
+		12: Mean-of-closest point distance (MCP)
+		13: Hausdorff distance min_max(x_i,y_i)
+		14: Signature-based measure from http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=6231627
+		15: Procrustes distance take from http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=6787131
+	*/
 
 	bool found = false;
-	for (int i = 0; i < 12&&!found; ++i)
+	for (int i = 0; i < 16&&!found; ++i)
 	{
 		if(normOption==i)
 		{
@@ -283,6 +283,8 @@ void DensityClustering::setNormOption()
 		std::cout << "Cannot find the norm!" << std::endl;
 		exit(1);
 	}
+
+
 }
 
 

@@ -7,6 +7,7 @@
 
 #include <queue>
 
+
 enum PointType
 {
 	CORE = 0,

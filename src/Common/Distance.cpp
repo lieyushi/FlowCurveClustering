@@ -1,5 +1,8 @@
 #include "Distance.h"
 
+
+const int& PROCRUSTES_SIZE = 7;
+
 float** distanceMatrix = NULL;
 
 /* ------------------ Compute norm 3 for trajectories ------------------------- */
@@ -817,6 +820,24 @@ const float getDisimilarity(const VectorXf& others,
 	case 12:
 		length = getMetric_MOP(others, data.row(index));
 		break;
+
+	case 13:
+		length = getMetric_Hausdorff(others, data.row(index));
+		break;
+
+	/* signature-based similarity metric with chi-squared test combined with mean-closest */
+	case 14:
+		length = getSignatureMetric(others,data.row(index),object.pairwise[index]);
+		break;
+
+	/* adapted Procrustes distance */
+	case 15:
+		length = getProcrustesMetric(others, data.row(index));
+		break;
+
+	default:
+		exit(1);
+		break;
 	}
 
 	return length;
@@ -867,6 +888,7 @@ const float getDisimilarity(const VectorXf& first,
 	case 9:
 		length = getBMetric_9(firstIndex, secondIndex,
 				    object.normalMultivariate);
+		break;
 
 	case 10:
 		length = getMetric_10(firstIndex, secondIndex, 
@@ -875,9 +897,23 @@ const float getDisimilarity(const VectorXf& first,
 
 	case 12:
 		length = getMetric_MOP(first, second);
+		break;
 
 	case 13:
 		length = getMetric_Hausdorff(first, second);
+		break;
+
+	case 14:
+		length = getSignatureMetric(first,second,object.pairwise[firstIndex],object.pairwise[secondIndex]);
+		break;
+
+	case 15:
+		length = getProcrustesMetric(first, second);
+		break;
+
+	default:
+		exit(1);
+		break;
 	}
 
 	return length;
@@ -1036,3 +1072,187 @@ const float getRotation(const std::vector<vector<float> >& streamline, std::vect
 	result/=size;
 	return result;
 }
+
+
+/* get signature-based dissimilarity metric given two elements and their histogram*/
+const float getSignatureMetric(const Eigen::VectorXf& firstArray,
+							   const Eigen::VectorXf& secondArray,
+							   const std::vector<float>& firstHist,
+							   const std::vector<float>& secondHist)
+{
+	/* would choose alpha = 0.5, and 10% of subset vertices for mean_dist */
+	const float& Alpha = 0.5;
+	const int& SUBSET = 10;
+
+	/* assert whether the size is the same */
+	assert(firstArray.size()==secondArray.size());
+	assert(firstHist.size()==secondHist.size());
+
+	const int& histSize = firstHist.size();
+	const int& vertexCount = firstArray.size()/3;
+	const int& size = vertexCount/SUBSET+1;
+
+	Eigen::VectorXf firstSubset(3*size), secondSubset(3*size);
+
+
+	/* get mean_dist between two sampled subsets */
+	int tempPos = 0;
+	for(int i=0;i<vertexCount;i+=SUBSET)
+	{
+		for(int j=0;j<3;++j)
+		{
+			firstSubset(3*tempPos+j)=firstArray(3*i+j);
+			secondSubset(3*tempPos+j)=secondArray(3*i+j);
+		}
+		++tempPos;
+	}
+
+	/* get mean_dist */
+	float result = getMetric_MOP(firstSubset, secondSubset);
+
+	float chi_test = 0.0, histDiff, histSum;
+
+	/* get chi_test for two histograms */
+	for(int i=0;i<histSize;++i)
+	{
+		histDiff = firstHist[i]-secondHist[i];
+		histSum = firstHist[i]+secondHist[i];
+		/* check numerical error */
+		if(histSum<1.0e-8)
+			continue;
+
+		chi_test+= histDiff*histDiff/histSum;
+	}
+
+	/* get combined distance */
+	result = (1-Alpha)*chi_test + Alpha*result;
+
+	return result;
+}
+
+
+/* get signature-based dissimilarity metric given centroid */
+const float getSignatureMetric(const Eigen::VectorXf& centroid,
+							   const Eigen::VectorXf& first,
+							   const std::vector<float>& firstHist)
+{
+	std::vector<float> centroidHist;
+	/* get the bin-based histogram for signature */
+	getSignatureHist(centroid, BIN_SIZE, centroidHist);
+
+	return getSignatureMetric(centroid,first,centroidHist,firstHist);
+}
+
+
+/* get adapted Procrustes distance */
+const float getProcrustesMetric(const Eigen::VectorXf& first,
+								const Eigen::VectorXf& second)
+{
+	assert(first.size()==second.size());
+
+	const int& vertexCount = first.size()/3;
+
+	const int& vertexChanged = vertexCount-2*(PROCRUSTES_SIZE/2);
+	const int& newSize = 3*vertexChanged;
+
+	/* assign the segment list */
+	Eigen::MatrixXf firstSegment(PROCRUSTES_SIZE,3), secondSegment(PROCRUSTES_SIZE,3), X0;
+
+	int location, rightIndex;
+
+	Eigen::Vector3f first_average, second_average, tempPoint;
+
+	/* A is SVD target, rotation is optimal rotation matrix, and secondPrime is P' after superimposition */
+	Eigen::MatrixXf A, rotation, secondPrime = Eigen::MatrixXf(PROCRUSTES_SIZE,3);
+
+	float optimalScaling, traceA, pointDist;
+
+	float result = 0.0;
+
+	/* for all points, assign to them a point set with size of PROCRUSTES_SIZE neighboring points */
+	for(int i=0;i<vertexChanged;++i)
+	{
+		rightIndex = i+PROCRUSTES_SIZE;
+
+		first_average = second_average = Eigen::VectorXf::Zero(3);
+
+		/* get the point set of neighboring 7 points and average */
+		for(int j=i;j<rightIndex;++j)
+		{
+			location = j-i;
+			for(int k=0;k<3;++k)
+			{
+				firstSegment(location,k)=first(3*j+k);
+				secondSegment(location,k)=second(3*j+k);
+			}
+
+			first_average+=firstSegment.row(location);
+			second_average+=secondSegment.row(location);
+		}
+
+		first_average/=PROCRUSTES_SIZE;
+		second_average/=PROCRUSTES_SIZE;
+
+		/* centralization for the point set */
+		for(int j=0;j<PROCRUSTES_SIZE;++j)
+		{
+			firstSegment.row(j) = firstSegment.row(j)-first_average.transpose();
+			secondSegment.row(j) = secondSegment.row(j)-second_average.transpose();
+		}
+
+		/* get ssqX and ssqY */
+		float ssqX = (firstSegment.cwiseProduct(firstSegment)).sum();
+		float ssqY = (secondSegment.cwiseProduct(secondSegment)).sum();
+
+		/* check whether negative or not */
+		assert(ssqX > 0 && ssqY > 0);
+
+		ssqX = sqrt(ssqX);
+		ssqY = sqrt(ssqY);
+
+		/* reserve the matrix */
+		X0 = firstSegment;
+
+		/* scaling for the point set */
+		firstSegment/=ssqX;
+		secondSegment/=ssqY;
+
+		/* get the optimal rotational matrix by othogonal Procrutes analysis */
+		A = firstSegment.transpose()*secondSegment;
+
+		/* perform SVD on A */
+		JacobiSVD<MatrixXf> svd(A, ComputeThinU | ComputeThinV);
+
+		/* get the optimal 3D rotation */
+		rotation = svd.matrixV()*(svd.matrixU().transpose());
+
+		/* get trace for singular value matrix */
+		traceA = svd.singularValues().sum();
+
+		/* get optimal scaling */
+		optimalScaling = traceA*ssqX/ssqY;
+
+		/* preset the average to the P' */
+		for(int j=0;j<PROCRUSTES_SIZE;++j)
+			secondPrime.row(j) = second_average;
+
+		/* get P' in superimposed space */
+		secondPrime = ssqX*traceA*secondSegment*A+secondPrime;
+
+		/* compute the distance and store them in the std::vector<float> */
+		pointDist = 0.0;
+		for(int j=0;j<PROCRUSTES_SIZE;++j)
+		{
+			tempPoint = X0.row(j)-secondPrime.row(j);
+			pointDist+= tempPoint.transpose()*tempPoint;
+		}
+
+		/* get the average of P(x,y')^2 */
+		result+=pointDist;
+	}
+
+	return result/vertexChanged;
+
+}
+
+

@@ -3,6 +3,9 @@
 
 #include "Metric.h"
 
+
+extern const int& PROCRUSTES_SIZE;
+
 extern float** distanceMatrix;
 
 const float getBMetric_3(const VectorXf& row,
@@ -110,6 +113,25 @@ const float getNorm(const VectorXf& r1,
 					const VectorXf& r2,
 					const int& normOption);
 
+/* get signature-based dissimilarity metric given two elements and their histogram*/
+const float getSignatureMetric(const Eigen::VectorXf& firstArray,
+							   const Eigen::VectorXf& secondArray,
+							   const std::vector<float>& firstHist,
+							   const std::vector<float>& secondHist);
+
+
+/* get signature-based dissimilarity metric given centroid */
+const float getSignatureMetric(const Eigen::VectorXf& centroid,
+							   const Eigen::VectorXf& first,
+							   const std::vector<float>& firstHist);
+
+
+/* get adapted Procrustes distance */
+const float getProcrustesMetric(const Eigen::VectorXf& first,
+								const Eigen::VectorXf& second);
+
+
+
 const float getDisimilarity(const MatrixXf& data,
 							const int& first,
 							const int& second,
@@ -128,7 +150,6 @@ const float getDisimilarity(const VectorXf& first,
 							const int& secondIndex,
 							const int& normOption,
 							const MetricPreparation& object);
-
 
 bool getDistanceMatrix(const MatrixXf& data,
 				       const int& normOption,

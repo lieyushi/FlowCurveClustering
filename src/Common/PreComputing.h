@@ -49,6 +49,11 @@ void getUnitDirection_byEach(const VectorXf& array,
 							 const int& pointNum, 
 							 VectorXf& direction);
 
+/* get the bin-based histogram for signature */
+void getSignatureHist(const Eigen::VectorXf& array,
+					  const int& binSize,
+					  std::vector<float>& histogram);
+
 
 void getPairWise_byEach(const VectorXf& data,
 						const int& size,

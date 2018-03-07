@@ -156,43 +156,11 @@ void Query::searchClosest(const int& target,
 			distance[i].index = target;
 			continue;
 		}
+
+		MetricPreparation object;
+		object.preprocessing(storage, storage.rows(), storage.cols(), normOption);
 			
-		switch(normOption)
-		{
-		case 2:
-		case 5:
-		case 8:
-		case 11:
-			dist = getNorm(storage.row(target), storage.row(i),normOption);
-			break;
-
-		case 3:
-			dist = getBMetric_3(storage.row(target), lineNumber, storage.row(i));
-			break;
-
-		case 4:
-			dist = abs(rotation[target]/lineNumber-rotation[i]/lineNumber);
-			break;
-
-		case 6:
-			dist = getBMetric_6(storage.row(target), lineNumber, storage.row(i));
-			break;
-
-		case 7:
-			dist = getBMetric_7(storage.row(target), lineNumber, storage.row(i));
-			break;
-
-		case 9:
-			dist = getBMetric_9(storage.row(target), lineNumber, storage.row(i));
-			break;
-
-		case 10:
-			dist = getMetric_10(storage.row(target), lineNumber, storage.row(i));
-			break;
-
-		case 12:
-			dist = getMetric_MOP(storage.row(target), storage.row(i));
-		}
+		dist = getDisimilarity(storage.row(target),storage.row(i),target,i,normOption,object);
 
 		distance[i].distance = -dist;
 		distance[i].index = i;

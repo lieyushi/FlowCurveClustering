@@ -238,3 +238,65 @@ void getPairWise_byEach(const VectorXf& data,
 		}
 	}
 }
+
+
+/* get the bin-based histogram for signature */
+void getSignatureHist(const Eigen::VectorXf& array,
+					  const int& binNum,
+					  std::vector<float>& histogram)
+{
+	/* if empty vector, should allocate memory ahead of time */
+	if(histogram.empty())
+		histogram = std::vector<float>(binNum);
+
+	/* get how many vertices you'll have */
+	const int& segmentNum = array.size()/3-1;
+
+	/* how many vertices on each bin on average */
+	const int& binSize = segmentNum/binNum;
+
+	/* first several has binSize+1 vertices, while the rest have binSize vertices */
+	const int& residueNum = segmentNum%binNum;
+
+	if(binSize<1)
+	{
+		std::cout << "Error for bin size calculation!" << std::endl;
+		exit(1);
+	}
+
+	int totalVertexOnBin = binSize+1, index = 0;
+	float dotValue, leftNorm, rightNorm, meanRotation = 0.0, result, rotationSum;
+	Vector3f left, right;
+	for (int i = 0; i < binNum; ++i)
+	{
+		/* would reduce that to binSize if i>=residueNum */
+		if(i==residueNum)
+			totalVertexOnBin = binSize;
+
+		/* reset the rotationSum */
+		rotationSum = 0.0;
+		for(int j=0;j<totalVertexOnBin;++j)
+		{
+			left << array(index*3+3)-array(index*3),
+					array(index*3+4)-array(index*3+1),
+					array(index*3+5)-array(index*3+2);
+			right << array(index*3+6)-array(index*3+3),
+					 array(index*3+7)-array(index*3+4),
+					 array(index*3+8)-array(index*3+5);
+			dotValue = left.dot(right);
+			leftNorm = left.norm();
+			rightNorm = right.norm();
+			if(leftNorm >= 1.0e-8 && rightNorm >=1.0e-8)
+			{
+				result = dotValue/leftNorm/rightNorm;
+				result = min(1.0,(double)result);
+				result = max(-1.0,(double)result);
+				rotationSum += acos(result);
+			}
+			++index;
+		}
+
+		histogram[i] = rotationSum;
+	}
+	assert(index==segmentNum);
+}
