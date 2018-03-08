@@ -1462,13 +1462,14 @@ void IOHandler::generateGroups(const std::vector<std::vector<int> >& storage)
 {
 	if(storage.empty())
 		return;
-	std::ofstream readme("../dataset/Storage",ios::out);
+	std::ofstream readme("../dataset/Storage",ios::out|ios::app);
 	if(!readme)
 	{
 		std::cout << "Error creating Storage!" << std::endl;
 		exit(1);
 	}
 
+	readme << std::endl;
 	const int& groupSize = storage.size();
 	std::vector<int> element;
 	for(int i=0;i<groupSize;++i)
@@ -1480,6 +1481,7 @@ void IOHandler::generateGroups(const std::vector<std::vector<int> >& storage)
 			readme << element[j] << " ";
 		readme << std::endl;
 	}
+	std::cout << std::endl;
 	readme.close();
 }
 

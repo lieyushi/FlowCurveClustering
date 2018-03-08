@@ -75,6 +75,8 @@ void Silhouette::computeValue(const Eigen::MatrixXf& array,
 		storage[group[i]].push_back(i);
 	}
 
+	/* record labeling information */
+	generateGroups(storage);
 
 	//groupNumber doesn't include noise group
 	sCluster = std::vector<float>(groupNumber, 0);

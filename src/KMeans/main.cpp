@@ -126,6 +126,8 @@ void featureExtraction(const int& number,
 	tr.eventList.push_back("PCA+K_Means operation takes: ");
 	tr.timeList.push_back(to_string(timeTemp)+"s");
 
+	sil.reset();
+
 	//IOHandler::writeReadme("PCA Silhouette of each cluster is ", silhou.sCluster);
 
 	/*  0: Euclidean Norm
@@ -151,7 +153,9 @@ void featureExtraction(const int& number,
 	for(int i = 0;i<16;i++)
 	{
 		/* in this paper, we only care about those seven metrics */
-		if(i!=0 && i!=1 && i!=2 && i!=4 && i!=12 && i!=14 && i!=15)
+		//if(i!=0 && i!=1 && i!=2 && i!=4 && i!=12 && i!=14 && i!=15)
+		//	continue;
+		if(i!=14)
 			continue;
 
 		gettimeofday(&start, NULL);

@@ -161,5 +161,8 @@ void deleteDistanceMatrix(const int& Row);
 const float getRotation(const std::vector<vector<float> >& streamline, std::vector<float>& rotation);
 
 
+/* need to store each label for elements for NID computation */
+void generateGroups(const std::vector<std::vector<int> >& storage);
+
 
 #endif
