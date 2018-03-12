@@ -126,10 +126,14 @@ const float getSignatureMetric(const Eigen::VectorXf& centroid,
 							   const std::vector<float>& firstHist);
 
 
-/* get adapted Procrustes distance */
+/* get adapted Procrustes distance. For example, if vec has 100 points, it will calculate mean of 94 point */
 const float getProcrustesMetric(const Eigen::VectorXf& first,
 								const Eigen::VectorXf& second);
 
+
+/* get adapted Procrustes distance. For example, if vec has 100 points, it will calculate mean of 14 points */
+const float getProcrustesMetricSegment(const Eigen::VectorXf& first,
+									   const Eigen::VectorXf& second);
 
 
 const float getDisimilarity(const MatrixXf& data,

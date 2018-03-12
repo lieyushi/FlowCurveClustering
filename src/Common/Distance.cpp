@@ -833,6 +833,7 @@ const float getDisimilarity(const VectorXf& others,
 	/* adapted Procrustes distance */
 	case 15:
 		length = getProcrustesMetric(others, data.row(index));
+		//length = getProcrustesMetricSegment(first,second);
 		break;
 
 	default:
@@ -909,6 +910,7 @@ const float getDisimilarity(const VectorXf& first,
 
 	case 15:
 		length = getProcrustesMetric(first, second);
+		//length = getProcrustesMetricSegment(first,second);
 		break;
 
 	default:
@@ -1256,6 +1258,115 @@ const float getProcrustesMetric(const Eigen::VectorXf& first,
 }
 
 
+/* get adapted Procrustes distance. For example, if vec has 100 points, it will calculate mean of 14 points */
+const float getProcrustesMetricSegment(const Eigen::VectorXf& first,
+									   const Eigen::VectorXf& second)
+{
+	assert(first.size()==second.size());
+
+	const int& vertexCount = first.size()/3;
+
+	const int& vertexChanged = vertexCount/PROCRUSTES_SIZE;
+	const int& newSize = 3*vertexChanged;
+
+	/* assign the segment list */
+	Eigen::MatrixXf firstSegment(PROCRUSTES_SIZE,3), secondSegment(PROCRUSTES_SIZE,3), X0;
+
+	int location, rightIndex;
+
+	Eigen::Vector3f first_average, second_average, tempPoint;
+
+	/* A is SVD target, rotation is optimal rotation matrix, and secondPrime is P' after superimposition */
+	Eigen::MatrixXf A, rotation, secondPrime = Eigen::MatrixXf(PROCRUSTES_SIZE,3);
+
+	float optimalScaling, traceA, pointDist;
+
+	float result = 0.0;
+
+	/* for all points, assign to them a point set with size of PROCRUSTES_SIZE neighboring points */
+	for(int i=0;i<vertexChanged;++i)
+	{
+		rightIndex = PROCRUSTES_SIZE*i+PROCRUSTES_SIZE;
+
+		first_average = second_average = Eigen::VectorXf::Zero(3);
+
+		/* get the point set of neighboring 7 points and average */
+		for(int j=PROCRUSTES_SIZE*i;j<rightIndex;++j)
+		{
+			location = j-i;
+			for(int k=0;k<3;++k)
+			{
+				firstSegment(location,k)=first(3*j+k);
+				secondSegment(location,k)=second(3*j+k);
+			}
+
+			first_average+=firstSegment.row(location);
+			second_average+=secondSegment.row(location);
+		}
+
+		first_average/=PROCRUSTES_SIZE;
+		second_average/=PROCRUSTES_SIZE;
+
+		/* centralization for the point set */
+		for(int j=0;j<PROCRUSTES_SIZE;++j)
+		{
+			firstSegment.row(j) = firstSegment.row(j)-first_average.transpose();
+			secondSegment.row(j) = secondSegment.row(j)-second_average.transpose();
+		}
+
+		/* get ssqX and ssqY */
+		float ssqX = (firstSegment.cwiseProduct(firstSegment)).sum();
+		float ssqY = (secondSegment.cwiseProduct(secondSegment)).sum();
+
+		/* check whether negative or not */
+		assert(ssqX > 0 && ssqY > 0);
+
+		ssqX = sqrt(ssqX);
+		ssqY = sqrt(ssqY);
+
+		/* reserve the matrix */
+		X0 = firstSegment;
+
+		/* scaling for the point set */
+		firstSegment/=ssqX;
+		secondSegment/=ssqY;
+
+		/* get the optimal rotational matrix by othogonal Procrutes analysis */
+		A = firstSegment.transpose()*secondSegment;
+
+		/* perform SVD on A */
+		JacobiSVD<MatrixXf> svd(A, ComputeThinU | ComputeThinV);
+
+		/* get the optimal 3D rotation */
+		rotation = svd.matrixV()*(svd.matrixU().transpose());
+
+		/* get trace for singular value matrix */
+		traceA = svd.singularValues().sum();
+
+		/* get optimal scaling */
+		optimalScaling = traceA*ssqX/ssqY;
+
+		/* preset the average to the P' */
+		for(int j=0;j<PROCRUSTES_SIZE;++j)
+			secondPrime.row(j) = second_average;
+
+		/* get P' in superimposed space */
+		secondPrime = ssqX*traceA*secondSegment*A+secondPrime;
+
+		/* compute the distance and store them in the std::vector<float> */
+		pointDist = 0.0;
+		for(int j=0;j<PROCRUSTES_SIZE;++j)
+		{
+			tempPoint = X0.row(j)-secondPrime.row(j);
+			pointDist+= tempPoint.transpose()*tempPoint;
+		}
+
+		/* get the average of P(x,y')^2 */
+		result+=pointDist;
+	}
+
+	return result/vertexChanged;
+}
 
 
 /* need to store each label for elements for NID computation */
