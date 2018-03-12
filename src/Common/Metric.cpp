@@ -110,7 +110,8 @@ void getSignatureBin(const Eigen::MatrixXf& data,
 #pragma omp parallel for schedule(dynamic) num_threads(8)
 	for (int i=0;i<Row;++i)
 	{
-		getSignatureHist(data,BIN_SIZE,pairwise[i]);
+		//getSignatureHist(data.row(i),BIN_SIZE,pairwise[i]);
+		getSignatureHistSampled(data.row(i),BIN_SIZE,pairwise[i]);
 	}
 }
 

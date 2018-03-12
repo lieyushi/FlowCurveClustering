@@ -109,8 +109,10 @@ struct MetricPreparation
 				break;
 
 			case 4:
-			/*  if rotation used for judge similarity difference, has to use pre-defined cache */
-				computeMeanRotation(data, Row, Column, rotation);
+				{
+					/*  if rotation used for judge similarity difference, has to use pre-defined cache */
+					computeMeanRotation(data, Row, Column, rotation);
+				}
 				break;
 
 			/*  pre-defined cache for sequence mean and standard deviation */

@@ -240,7 +240,7 @@ void getPairWise_byEach(const VectorXf& data,
 }
 
 
-/* get the bin-based histogram for signature */
+/* The difference compared to the former function is that, this will resample on high-curvature points */
 void getSignatureHist(const Eigen::VectorXf& array,
 					  const int& binNum,
 					  std::vector<float>& histogram)
@@ -300,3 +300,102 @@ void getSignatureHist(const Eigen::VectorXf& array,
 	}
 	assert(index==segmentNum);
 }
+
+
+/* get the bin-based histogram for signature, the difference is that we should try to get maximal binNum-1 points*/
+void getSignatureHistSampled(const Eigen::VectorXf& array,
+					  	  	 const int& binNum,
+							 std::vector<float>& histogram)
+{
+	/* if empty vector, should allocate memory ahead of time */
+	if(histogram.empty())
+		histogram = std::vector<float>(binNum);
+
+	/* get how many vertices you'll have */
+	const int& segmentNum = array.size()/3-1;
+
+	/* preset a priority_queue to get the sampled points in maximal curvatures */
+	priority_queue<CurvatureObject, std::vector<CurvatureObject>, CompareFunc> pQueue;
+
+	std::vector<float> curvatureVec(segmentNum);
+
+	Eigen::Vector3f firstSeg, secondSeg;
+
+	/* discrete curvature */
+	float curva;
+
+	int vecIndex = 0;
+	for(int i=0;i<segmentNum;++i)
+	{
+		for(int j=0;j<3;++j)
+		{
+			firstSeg(j)=array(3*i+j);
+			secondSeg(j)=array(3*i+3+j);
+		}
+		curva = firstSeg.dot(secondSeg)/firstSeg.norm()/secondSeg.norm();
+
+		/* clip curvature into range [-1.0, 1.0] */
+		curva = std::min(float(1.0), curva);
+		curva = std::max(float(-1.0), curva);
+
+		curva = acos(curva);
+
+		/* store in the vector */
+		curvatureVec[vecIndex++]=curva;
+
+		/* push it into the priority queue */
+		pQueue.push(CurvatureObject(curva, i));
+
+	}
+
+	/* get the first binNum-1 object */
+	CurvatureObject top;
+
+	/* use ordered_set to sort the index */
+	std::vector<int> indexVec;
+
+	int indexNum = 0;
+	const int& requiredNum = binNum-1;
+	while(indexNum<requiredNum && !pQueue.empty())
+	{
+		top = pQueue.top();
+		indexVec.push_back(top.index);
+		pQueue.pop();
+		++indexNum;
+	}
+
+	assert(indexVec.size()==requiredNum);
+
+	/* sort the vec */
+	std::sort(indexVec.begin(), indexVec.end());
+
+	/* start sampling to make a curvature histogram */
+	float curvatureSum = 0.0;
+
+	/* get accumulative curvature */
+	int left = 0, right;
+	for(int i=0;i<requiredNum;++i)
+	{
+		right = indexVec[i];
+
+		/* sum up the curvature of left and right */
+		curvatureSum = 0.0;
+		for(int j=left;j<=right;++j)
+		{
+			curvatureSum+=curvatureVec[j];
+		}
+
+		histogram[i] = curvatureSum;
+
+		left = right+1;
+	}
+
+	/* add last element which is from left to last vertex */
+	curvatureSum = 0.0;
+	for(int i=left;i<segmentNum;++i)
+		curvatureSum+=curvatureVec[i];
+	histogram[requiredNum] = curvatureSum;
+}
+
+
+

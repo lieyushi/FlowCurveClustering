@@ -12,6 +12,9 @@
 #include <map>
 #include <algorithm>
 #include <sys/time.h>
+#include <set>
+#include <queue>
+
 using namespace std;
 using namespace Eigen;
 
@@ -25,6 +28,30 @@ struct MultiVariate
 	~MultiVariate()
 	{}
 };
+
+
+struct CurvatureObject
+{
+	float curvature;
+	int index;
+
+	CurvatureObject(const float& curvature, const int& i): curvature(curvature), index(i)
+	{}
+
+	CurvatureObject()
+	{}
+};
+
+
+class CompareFunc
+{
+public:
+	bool operator()(const CurvatureObject& first, const CurvatureObject& second)
+	{
+		return first.curvature < second.curvature;
+	}
+};
+
 
 void getSequence(const VectorXf& array, 
 				 const int& size, 
@@ -53,6 +80,12 @@ void getUnitDirection_byEach(const VectorXf& array,
 void getSignatureHist(const Eigen::VectorXf& array,
 					  const int& binSize,
 					  std::vector<float>& histogram);
+
+
+/* get the bin-based histogram for signature */
+void getSignatureHistSampled(const Eigen::VectorXf& array,
+					  	  	 const int& binSize,
+							 std::vector<float>& histogram);
 
 
 void getPairWise_byEach(const VectorXf& data,

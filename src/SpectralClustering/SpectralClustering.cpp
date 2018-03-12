@@ -49,7 +49,7 @@ void SpectralClustering::performClustering(const int& presetCluster)
 	for(int i=0;i<=15;++i)
 	{
 		/* don't want to deal with many too naive metrics */
-		if(i!=0 && i!=1 && i!=2 && i!=4 && i!=12 && i!=14 && i!=15)
+		if(/*i!=0 && i!=1 && i!=2 && */i!=4 && i!=12 && i!=14 && i!=15)
 			continue;
 
 		std::cout << "----------------------------------------------------" << std::endl;
@@ -671,7 +671,7 @@ void SpectralClustering::performKMeans(const Eigen::MatrixXf& eigenVec,
 		}
 		std::cout << "K-means iteration " << ++tag << " completed, and moving is "
 		<< moving << "!" << std::endl;
-	}while(abs(moving-before)/before >= 1.0e-3 && tag < 50/* && moving>2.0*/);
+	}while(abs(moving-before)/before >= 1.0e-3 && tag < 50 && moving>0.01);
 
 	gettimeofday(&end, NULL);
 	float timeTemp = ((end.tv_sec-start.tv_sec)*1000000u+end.tv_usec-start.tv_usec)/1.e6;
