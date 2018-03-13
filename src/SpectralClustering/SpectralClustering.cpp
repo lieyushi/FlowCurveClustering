@@ -518,12 +518,15 @@ void SpectralClustering::getEigenClustering(const Eigen::MatrixXf& laplacianMatr
 	activityList.push_back("Eigen decomposition takes: ");
 	timeList.push_back(to_string(timeTemp)+" s");
 
-	Eigen::MatrixXf eigenVec(numberOfClusters, ds.dataMatrix.rows());
+	//const int& eigenRows = numberOfClusters;
+	const int& eigenRows = 5;
+
+	Eigen::MatrixXf eigenVec(eigenRows, ds.dataMatrix.rows());
 
 	const int& Row = laplacianMatrix.rows();
 
 	/* from paper we know it should get largest eigenvalues, and from eigen library we know it's latter */
-	for(int i=Row-1;i>Row-numberOfClusters-1;--i)
+	for(int i=Row-1;i>Row-eigenRows-1;--i)
 		eigenVec.row(Row-1-i) = eigensolver.eigenvectors().col(i).transpose();
 	eigenVec.transposeInPlace();
 
