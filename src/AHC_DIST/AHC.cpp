@@ -506,7 +506,7 @@ void AHC::setNormOption()
 		15: Procrustes distance take from http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=6787131
 	*/
 	bool found = false;
-	for (int i = 0; i < 13&&!found; ++i)
+	for (int i = 0; i < 16&&!found; ++i)
 	{
 		if(normOption==i)
 		{

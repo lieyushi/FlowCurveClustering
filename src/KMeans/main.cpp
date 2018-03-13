@@ -153,10 +153,10 @@ void featureExtraction(const int& number,
 	for(int i = 0;i<16;i++)
 	{
 		/* in this paper, we only care about those seven metrics */
-		//if(i!=0 && i!=1 && i!=2 && i!=4 && i!=12 && i!=14 && i!=15)
-		//	continue;
-		if(i!=14)
+		if(i!=0 && i!=1 && i!=2 && i!=4 && i!=12 && i!=14 && i!=15)
 			continue;
+		//if(i!=14)
+		//	continue;
 
 		gettimeofday(&start, NULL);
 		ss << strName << "_KMeans";

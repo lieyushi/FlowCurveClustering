@@ -49,7 +49,7 @@ void SpectralClustering::performClustering(const int& presetCluster)
 	for(int i=0;i<=15;++i)
 	{
 		/* don't want to deal with many too naive metrics */
-		if(/*i!=0 && i!=1 && i!=2 && */i!=4 && i!=12 && i!=14 && i!=15)
+		if(i!=0 && i!=1 && i!=2 && i!=4 && i!=12 && i!=14 && i!=15)
 			continue;
 
 		std::cout << "----------------------------------------------------" << std::endl;
