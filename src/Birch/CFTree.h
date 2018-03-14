@@ -199,8 +199,10 @@ public:
     	rLeft /= lhs.n;
     	rRight /= rhs.n;
 
-    	return getDisimilarity(rLeft,rRight,lhs.id,
-    						rhs.id,normOption,object);
+    	if(distanceMatrix)
+    		return distanceMatrix[lhs.id][rhs.id];
+    	else
+    		return getDisimilarity(rLeft,rRight,lhs.id,rhs.id,normOption,object);
     }
 
 	static float_type _Diameter(const CFEntry<dim>& e)
@@ -768,8 +770,8 @@ public:
 
     //template<typename _iter>
     //template<cfentry_vec_type::iterator _iter>
-   // void redist(std::vector<item_type<750u> >::iterator begin, std::vector<item_type<750u> >::iterator end, /*cfentry_vec_type*/std::vector<CFEntry<750u> >& entries, std::vector<int>& out_cid)
-	void redist(std::vector<item_type<750u> >::iterator begin, std::vector<item_type<750u> >::iterator end, /*cfentry_vec_type*/std::vector<CFEntry<750u> >& entries, std::vector<int>& out_cid)
+   // void redist(std::vector<item_type<1800u> >::iterator begin, std::vector<item_type<1800u> >::iterator end, /*cfentry_vec_type*/std::vector<CFEntry<1800u> >& entries, std::vector<int>& out_cid)
+	void redist(std::vector<item_type<1800u> >::iterator begin, std::vector<item_type<1800u> >::iterator end, /*cfentry_vec_type*/std::vector<CFEntry<1800u> >& entries, std::vector<int>& out_cid)
     {
         using namespace boost::numeric::ublas;
 
@@ -800,7 +802,7 @@ public:
 
         out_cid.clear();
         out_cid.reserve(end - begin);
-        for (std::vector<item_type<750u> >::iterator it = begin; it != end; it++) {
+        for (std::vector<item_type<1800u> >::iterator it = begin; it != end; it++) {
             ublas_vec_type v(dim);
             std::copy(&(*it)[0], &(*it)[0] + dim, v.begin());
             out_cid.push_back(_redist(v, subclusters, dist_mat));

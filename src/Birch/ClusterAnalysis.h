@@ -29,7 +29,7 @@ int CFTree<dim>::normOption = -1;
 template<boost::uint32_t dim>
 int CFTree<dim>::totalNodes = 0;
 
-typedef CFTree<750u> cftree_type;
+typedef CFTree<1800u> cftree_type;
 
 cftree_type::float_type birch_threshold;
 
@@ -162,7 +162,12 @@ const float getMaxDist(const Eigen::MatrixXf& equalArray,
 		{
 			if(i==j)
 				continue;
-			float dist = getDisimilarity(equalArray.row(i),
+
+			float dist;
+			if(distanceMatrix)
+				dist = distanceMatrix[i][j];
+			else
+				dist = getDisimilarity(equalArray.row(i),
 						 equalArray.row(j),i,j,normOption,object);
 			if(dist>result)
 				result=dist;
@@ -196,7 +201,7 @@ void getBirchClusterTrial(const MetricPreparation& object,
 
 	// phase 3: clustering sub-clusters using the existing clustering algorithm
 	//cftree_type::cfentry_vec_type entries;
-	std::vector<CFEntry<750u> > entries;
+	std::vector<CFEntry<1800u> > entries;
 	
 	item_cids.clear();
 
@@ -276,6 +281,17 @@ void getBirchClustering(std::vector<item_type<dim> >& items,
 	object = MetricPreparation(equalArray.rows(), equalArray.cols());
 	object.preprocessing(equalArray, equalArray.rows(), equalArray.cols(), normOption);
 
+	/* if the dataset is not PBF, then should record distance matrix for Gamma matrix compution */
+	if(!isPBF)
+	{
+		deleteDistanceMatrix(equalArray.rows());
+
+		if(!getDistanceMatrix(equalArray, normOption, object))
+		{
+			std::cout << "Failure to compute distance matrix!" << std::endl;
+		}
+	}
+
 	const float distThreshold = getMaxDist(equalArray, object, normOption);
 
 	std::cout << "Enter approximate number of clusters: " << std::endl;
@@ -293,7 +309,7 @@ void getBirchClustering(std::vector<item_type<dim> >& items,
 	gettimeofday(&start, NULL);
 
 	int iteration = 0;
-	while(true)
+	while(true&&iteration<15)
 	{
 		std::cout << "Iteration for birch clustering: " << ++iteration
 				  << std::endl;
@@ -389,19 +405,6 @@ void getClusterAnalysis(const vector<vector<float> >& trajectories,
 
 	IOHandler::printClusters(trajectories,item_cids,container, 
 		 "norm"+to_string(normOption), fullName,dimension);
-
-
-	/* if the dataset is not PBF, then should record distance matrix for Gamma matrix compution */
-	if(!isPBF)
-	{
-		deleteDistanceMatrix(equalArray.rows());
-
-		if(!getDistanceMatrix(equalArray, normOption, object))
-		{
-			std::cout << "Failure to compute distance matrix!" << std::endl;
-		}
-	}
-
 
 	struct timeval start, end;
 	double timeTemp;

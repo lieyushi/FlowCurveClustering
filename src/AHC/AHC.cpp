@@ -10,8 +10,18 @@ AHC::AHC()
 AHC::AHC(const int& argc, char **argv)
 {
 	setDataset(argc, argv);
-	setNormOption();
+}
 
+/* destructor */
+AHC::~AHC()
+{
+	deleteDistanceMatrix(ds.dataMatrix.rows());
+}
+
+
+/* perform clustering on normOption */
+void AHC::performClustering_by_norm()
+{
 	/* very hard to decide whether needed to perform such pre-processing */
 	object = MetricPreparation(ds.dataMatrix.rows(), ds.dataMatrix.cols());
 	object.preprocessing(ds.dataMatrix, ds.dataMatrix.rows(), ds.dataMatrix.cols(), normOption);
@@ -27,21 +37,12 @@ AHC::AHC(const int& argc, char **argv)
 	}
 
 	gettimeofday(&end, NULL);
-	timeTemp = ((end.tv_sec  - start.tv_sec) * 1000000u 
+	timeTemp = ((end.tv_sec  - start.tv_sec) * 1000000u
 			   + end.tv_usec - start.tv_usec) / 1.e6;
-	activityList.push_back("Distance matrix computing takes: ");
+	activityList.push_back("Distance matrix computing for norm "+to_string(normOption)+" takes: ");
 	timeList.push_back(to_string(timeTemp)+" s");
-}
 
-/* destructor */
-AHC::~AHC()
-{
-	deleteDistanceMatrix(ds.dataMatrix.rows());
-}
 
-/* perform clustering function */
-void AHC::performClustering()
-{
 	std::unordered_map<int, Ensemble> nodeMap;
 	std::vector<DistNode> dNodeVec;
 	std::vector<Ensemble> nodeVec;
@@ -66,6 +67,40 @@ void AHC::performClustering()
 	nodeVec.clear();
 
 	extractFeatures(storage, neighborVec, centroid);
+}
+
+
+/* perform clustering function */
+void AHC::performClustering()
+{
+	/*  0: Euclidean Norm
+		1: Fraction Distance Metric
+		2: piece-wise angle average
+		3: Bhattacharyya metric for rotation
+		4: average rotation
+		5: signed-angle intersection
+		6: normal-direction multivariate distribution
+		7: Bhattacharyya metric with angle to a fixed direction
+		8: Piece-wise angle average \times standard deviation
+		9: normal-direction multivariate un-normalized distribution
+		10: x*y/|x||y| borrowed from machine learning
+		11: cosine similarity
+		12: Mean-of-closest point distance (MCP)
+		13: Hausdorff distance min_max(x_i,y_i)
+		14: Signature-based measure from http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=6231627
+		15: Procrustes distance take from http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=6787131
+	*/
+	for(normOption=0;normOption<16;++normOption)
+	{
+		if(normOption!=0 && normOption!=1 && normOption!=2 && normOption!=4 && normOption!=12
+		   && normOption!=14 && normOption!=15)
+			continue;
+
+		timeList.clear();
+		activityList.clear();
+
+		performClustering_by_norm();
+	}
 }
 
 
@@ -180,7 +215,8 @@ void AHC::hierarchicalMerging(std::unordered_map<int, Ensemble>& nodeMap, std::v
 	gettimeofday(&end, NULL);
 	timeTemp = ((end.tv_sec  - start.tv_sec) * 1000000u + end.tv_usec - start.tv_usec) / 1.e6;
 
-	activityList.push_back("Hirarchical clustering for "+to_string(numberOfClusters)+" groups takes: ");
+	activityList.push_back("Hirarchical clustering of norm "+to_string(normOption)+" for "+
+			               to_string(numberOfClusters)+" groups takes: ");
 	timeList.push_back(to_string(timeTemp)+" s");
 	/* task completed, would delete memory contents */
 	dNodeVec.clear();
@@ -267,7 +303,7 @@ void AHC::extractFeatures(const std::vector<int>& storage, const std::vector<std
 	gettimeofday(&end, NULL);
 	timeTemp = ((end.tv_sec  - start.tv_sec) * 1000000u 
 			   + end.tv_usec - start.tv_usec) / 1.e6;
-	activityList.push_back("Silhouette calculation takes: ");
+	activityList.push_back("Silhouette calculation for norm " +to_string(normOption)+" takes: ");
 	timeList.push_back(to_string(timeTemp)+" s");
 
 	/* compute the centroid coordinates of each clustered group */
@@ -323,7 +359,7 @@ void AHC::extractFeatures(const std::vector<int>& storage, const std::vector<std
 	gettimeofday(&end, NULL);
 	timeTemp = ((end.tv_sec  - start.tv_sec) * 1000000u 
 			   + end.tv_usec - start.tv_usec) / 1.e6;
-	activityList.push_back("Feature extraction takes: ");
+	activityList.push_back("Feature extraction for norm "+to_string(normOption)+ " takes: ");
 	timeList.push_back(to_string(timeTemp)+" s");
 
 	std::cout << "Finishing extracting features!" << std::endl;	
@@ -420,50 +456,8 @@ void AHC::setDataset(const int& argc, char **argv)
 	std::cout << "Input linkage option: 0.single linkage, 1.complete linkage, 2.average linkage" << std::endl;
 	std::cin >> linkageOption;
 	assert(linkageOption==0||linkageOption==1||linkageOption==2);
-}
 
-
-
-/* set norm option, must be within 0-12 */
-void AHC::setNormOption()
-{
-	std::cout << "Input a norm option 0-13!" << std::endl;
-	std::cin >> normOption;
-	std::cout << std::endl;
-	/*  0: Euclidean Norm
-		1: Fraction Distance Metric
-		2: piece-wise angle average
-		3: Bhattacharyya metric for rotation
-		4: average rotation
-		5: signed-angle intersection
-		6: normal-direction multivariate distribution
-		7: Bhattacharyya metric with angle to a fixed direction
-		8: Piece-wise angle average \times standard deviation
-		9: normal-direction multivariate un-normalized distribution
-		10: x*y/|x||y| borrowed from machine learning
-		11: cosine similarity
-		12: Mean-of-closest point distance (MCP)
-		13: Hausdorff distance min_max(x_i,y_i)
-		14: Signature-based measure from http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=6231627
-		15: Procrustes distance take from http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=6787131
-	*/
-	bool found = false;
-	for (int i = 0; i < 16&&!found; ++i)
-	{
-		if(normOption==i)
-		{
-			found = true;
-			break;
-		}
-	}
-
-	if(!found)
-	{
-		std::cout << "Cannot find the norm!" << std::endl;
-		exit(1);
-	}
-
-/* input target cluster number */
+	/* input target cluster number */
 	const int& Row = ds.dataMatrix.rows();
 	std::cout << "---------------------------------------" << std::endl;
 	std::cout << "Input cluster number among [0, " << Row << "]: ";

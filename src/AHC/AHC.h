@@ -82,9 +82,6 @@ private:
 /* set dataset from user command */
 	void setDataset(const int& argc, char **argv);
 
-/* set norm option, must be within 0-12 */
-	void setNormOption();
-
 /* compute distance between two clusters based on likage type */
 	const float getDistAtNodes(const vector<int>& firstList, const vector<int>& secondList, const int& Linkage);
 
@@ -110,6 +107,9 @@ private:
 
 /* set a vector for min-heap */
 	void setValue(std::vector<DistNode>& dNodeVec);
+
+/* perform clustering on normOption */
+	void performClustering_by_norm();
 
 };
 

@@ -15,6 +15,17 @@ DensityClustering::DensityClustering(const int& argc,
 	object = MetricPreparation(ds.dataMatrix.rows(), ds.dataMatrix.cols());
 	object.preprocessing(ds.dataMatrix, ds.dataMatrix.rows(), ds.dataMatrix.cols(), normOption);
 	
+	/* if the dataset is not PBF, then should record distance matrix for Gamma matrix compution */
+	if(!isPBF)
+	{
+		deleteDistanceMatrix(ds.dataMatrix.rows());
+
+		if(!getDistanceMatrix(ds.dataMatrix, normOption, object))
+		{
+			std::cout << "Failure to compute distance matrix!" << std::endl;
+		}
+	}
+
 	nodeVec = vector<PointNode>(ds.dataMatrix.rows(),PointNode());
 }
 
@@ -103,7 +114,11 @@ void DensityClustering::update(const int& index, const vector<int>& neighbor,
 	{
 		if(!nodeVec[neighbor[i]].visited)
 		{
-			float dist_toCenter = getDisimilarity(ds.dataMatrix.row(neighbor[i]),
+			float dist_toCenter;
+			if(distanceMatrix)
+				dist_toCenter = distanceMatrix[neighbor[i]][index];
+			else
+				dist_toCenter = getDisimilarity(ds.dataMatrix.row(neighbor[i]),
 				  ds.dataMatrix.row(index), neighbor[i], index, normOption, object);
 			const float& biggerDist = std::max(coredist, dist_toCenter);
 			if(nodeVec[neighbor[i]].reachabilityDist==-1.0)
@@ -135,8 +150,10 @@ const vector<int> DensityClustering::regionQuery(const int& index,
 	{
 		if(i==index)
 			continue;
-		tempDist=getDisimilarity(ds.dataMatrix.row(index),
-				 ds.dataMatrix.row(i),index,i,normOption, object);
+		if(distanceMatrix)
+			tempDist = distanceMatrix[index][i];
+		else
+			tempDist=getDisimilarity(ds.dataMatrix.row(index),ds.dataMatrix.row(i),index,i,normOption, object);
 		if(tempDist<=radius_eps)
 			neighborArray.push_back(i);
 	}
@@ -239,8 +256,11 @@ void DensityClustering::getDistRange(float& minDist,
 			{
 				if(i==j)
 					continue;
-				float dist = getDisimilarity(ds.dataMatrix.row(i),
-					  ds.dataMatrix.row(j),i,j,normOption,object);
+				float dist;
+				if(distanceMatrix)
+					dist = distanceMatrix[i][j];
+				else
+					dist = getDisimilarity(ds.dataMatrix.row(i),ds.dataMatrix.row(j),i,j,normOption,object);
 			#pragma omp critical 
 				{
 					if(dist<minDist)
@@ -374,19 +394,6 @@ void DensityClustering::extractFeatures(const float& radius_eps,
 
 	numClusters-=1;
 
-
-	/* if the dataset is not PBF, then should record distance matrix for Gamma matrix compution */
-	if(!isPBF)
-	{
-		deleteDistanceMatrix(ds.dataMatrix.rows());
-
-		if(!getDistanceMatrix(ds.dataMatrix, normOption, object))
-		{
-			std::cout << "Failure to compute distance matrix!" << std::endl;
-		}
-	}
-
-
 	gettimeofday(&start, NULL);
 	Silhouette sil;
 	sil.computeValue(normOption,ds.dataMatrix,ds.dataMatrix.rows(),ds.dataMatrix.cols(),
@@ -512,8 +519,11 @@ void DensityClustering::computeCoredDistance(const float& radius_eps,
 		{
 			if(j==i)
 				continue;
-			float tempDist = getDisimilarity(ds.dataMatrix.row(i),ds.dataMatrix.row(j),
-							 i, j, normOption, object);
+			float tempDist;
+			if(distanceMatrix)
+				tempDist = distanceMatrix[i][j];
+			else
+				tempDist = getDisimilarity(ds.dataMatrix.row(i),ds.dataMatrix.row(j),i, j, normOption, object);
 			if(tempDist<=radius_eps)
 			{
 				nodeVec[i].neighbor.push_back(j);
@@ -562,8 +572,12 @@ const float DensityClustering::getReachability(const int& first,
 	const int& size = nodeVec[target].neighbor.size();
 	if(size<minPts)
 		return -1.0;
-	const float& dist = getDisimilarity(ds.dataMatrix.row(first),ds.dataMatrix.row(target),
-							 first, target, normOption, object);
+	float dist;
+
+	if(distanceMatrix)
+		dist = distanceMatrix[first][target];
+	else
+		dist = getDisimilarity(ds.dataMatrix.row(first),ds.dataMatrix.row(target),first, target, normOption, object);
 	return std::max(nodeVec[target].core_distance, dist);
 }
 

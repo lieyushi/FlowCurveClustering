@@ -15,9 +15,15 @@ DensityClustering::DensityClustering(const int& argc,
 	object = MetricPreparation(ds.dataMatrix.rows(), ds.dataMatrix.cols());
 	object.preprocessing(ds.dataMatrix, ds.dataMatrix.rows(), ds.dataMatrix.cols(), normOption);
 	
-	if(!getDistanceMatrix(ds.dataMatrix, normOption, object))
+	/* if the dataset is not PBF, then should record distance matrix for Gamma matrix compution */
+	if(!isPBF)
 	{
-		std::cout << "Failure to compute distance matrix!" << std::endl;
+		deleteDistanceMatrix(ds.dataMatrix.rows());
+
+		if(!getDistanceMatrix(ds.dataMatrix, normOption, object))
+		{
+			std::cout << "Failure to compute distance matrix!" << std::endl;
+		}
 	}
 
 	nodeVec = vector<PointNode>(ds.dataMatrix.rows(),PointNode());
@@ -444,17 +450,6 @@ void DensityClustering::extractFeatures(const float& radius_eps,
 	double timeTemp;
 
 	numClusters-=1;
-
-	/* if the dataset is not PBF, then should record distance matrix for Gamma matrix compution */
-	if(!isPBF)
-	{
-		deleteDistanceMatrix(ds.dataMatrix.rows());
-
-		if(!getDistanceMatrix(ds.dataMatrix, normOption, object))
-		{
-			std::cout << "Failure to compute distance matrix!" << std::endl;
-		}
-	}
 
 	gettimeofday(&start, NULL);
 	Silhouette sil;
