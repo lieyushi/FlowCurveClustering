@@ -20,8 +20,16 @@ Implemented clustering techniques include
 
 	Spectral Clustering (1. k-means, 2. eigenvector rotation from self-tuning spectral clustering)
 
-	The distance metric is provided from my paper (http://www2.cs.uh.edu/~chengu/Publications/3DFlowVis/curveClustering.pdf). Would incorporate more eixsting metrics.
+	Affinity propagation (very time comsuming, could only implement by O(n^3) but optimally could be O(kn^2 log{n}))
 
+	The distance metric is provided from my paper (http://www2.cs.uh.edu/~chengu/Publications/3DFlowVis/curveClustering.pdf). Would incorporate more eixsting metrics. Finalized clustering metric number is 16.
+
+-------------------------------------------------
+Before running?
+
+	1. Should adjust the BIN_SIZE in src/Common/Metric.cpp/Line 3 which is related to Chi-test distance computation
+	2. Could adjust k (size of compressed eigen-vector) in src/SpectralClustering/SpectralClustering.cpp/Line 522
+	3. Should adjust item_type<600u> in src/BIRCH/main.cpp, src/BIRCH/ClusterAnalysis.h, to maxDimension of input dataset
 
 -------------------------------------------------
 How to run?

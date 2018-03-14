@@ -29,7 +29,7 @@ int CFTree<dim>::normOption = -1;
 template<boost::uint32_t dim>
 int CFTree<dim>::totalNodes = 0;
 
-typedef CFTree<1800u> cftree_type;
+typedef CFTree<600u> cftree_type;
 
 cftree_type::float_type birch_threshold;
 
@@ -201,7 +201,7 @@ void getBirchClusterTrial(const MetricPreparation& object,
 
 	// phase 3: clustering sub-clusters using the existing clustering algorithm
 	//cftree_type::cfentry_vec_type entries;
-	std::vector<CFEntry<1800u> > entries;
+	std::vector<CFEntry<600u> > entries;
 	
 	item_cids.clear();
 
