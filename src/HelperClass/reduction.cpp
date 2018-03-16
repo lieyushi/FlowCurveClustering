@@ -18,10 +18,17 @@ void writeFile(const char* fileName,
 			   const std::vector<std::vector<float> >& dataVec);
 
 
-int main()
+int main(int argc, char* argv[])
 {
+	if(argc!=3)
+	{
+		std::cout << "Error for argument input! Should be ./main originalFile newFile " << std::endl;
+		exit(1);
+	}
+
+
 	std::vector<std::vector<float> > dataVec;
-	const char* fileName = "hurricane";
+	const char* fileName =  argv[1];
 
 	std::cout << "input the number among which one is chosen for streamlines? " << std::endl;
 	int lineNumber;
@@ -32,7 +39,7 @@ int main()
 	std::cin >> vertexNumber;
 
 	readFile(fileName, dataVec, lineNumber, vertexNumber);
-	writeFile("Hurricane", dataVec);
+	writeFile(argv[2], dataVec);
 	return 0;
 }
 
