@@ -240,7 +240,7 @@ void getBirchClustering(std::vector<item_type<dim> >& items,
 {
 
 	std::cout << std::endl;
-	std::cout << "Choose a norm from 0-11!" << std::endl;
+	std::cout << "Choose a norm from 0-15!" << std::endl;
 	std::cin >> normOption;
 	std::cout << std::endl;
 
