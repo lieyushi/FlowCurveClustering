@@ -302,7 +302,12 @@ void getBirchClustering(std::vector<item_type<dim> >& items,
 
 	std::cout << "Sampled max distance is: " << distThreshold << std::endl;
 
-	float left = 0, right = 0.5, middle;
+	float left = 0, right, middle;
+
+	if(normOption==15)
+		right = 0.04;
+	else
+		right = 0.1;
 
 	struct timeval start, end;
 	double timeTemp;
