@@ -314,7 +314,7 @@ void getBirchClustering(std::vector<item_type<dim> >& items,
 	gettimeofday(&start, NULL);
 
 	int iteration = 0;
-	while(true&&iteration<15)
+	while(true&&iteration<10)
 	{
 		std::cout << "Iteration for birch clustering: " << ++iteration
 				  << std::endl;
