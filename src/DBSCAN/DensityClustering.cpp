@@ -398,6 +398,7 @@ void DensityClustering::extractFeatures(const float& radius_eps,
 	for (int i = 0; i < numClusters; ++i)
 		groupMap.insert(std::pair<int,int>(container[i],i));
 
+
 	std::fill(container.begin(), container.end(), 0);
 	int groupNo = 0;
 	for (std::multimap<int,int>::iterator it=groupMap.begin();it!=groupMap.end();++it)
@@ -437,11 +438,10 @@ void DensityClustering::extractFeatures(const float& radius_eps,
 	float entropy = 0.0, probability;
 	for(int i=0;i<container.size();++i)
 	{
-		probability = container[i]/Row;
+		probability = float(container[i])/float(Row);
 		entropy+=probability*log2f(probability);
 	}
 	entropy = -entropy/log2f(numClusters);
-
 
 	IOHandler::printClustersNoise(ds.dataVec,item_cids,container, 
 		 "norm"+to_string(normOption),ds.fullName,ds.dimension);

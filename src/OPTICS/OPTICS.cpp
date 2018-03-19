@@ -378,9 +378,9 @@ void DensityClustering::extractFeatures(const float& radius_eps,
 
 	const int& Row = ds.dataMatrix.rows();
 	float entropy = 0.0, probability;
-	for(int i=0;i<container.size();++i)
+	for(int i=0;i<storage.size();++i)
 	{
-		probability = float(container[i])/float(Row);
+		probability = float(storage[i].size())/float(Row);
 		entropy+=probability*log2f(probability);
 	}
 	entropy = -entropy/log2f(numClusters);
