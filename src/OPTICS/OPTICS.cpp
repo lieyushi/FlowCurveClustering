@@ -201,7 +201,7 @@ void DensityClustering::setDataset(const int& argc,
 
 void DensityClustering::setNormOption()
 {
-	std::cout << "Choose a norm from 0-12!" << std::endl;
+	std::cout << "Choose a norm from 0-15!" << std::endl;
 	std::cin >> normOption;
 	std::cout << std::endl;
 	/*  0: Euclidean Norm
