@@ -600,32 +600,39 @@ const float DensityClustering::getReachability(const int& first,
 /* how to get group information based on reachability-plot */
 void DensityClustering::getGroup(const float& radius_eps)
 {
-	/* group tag information */
-	int tag = 0;
 	std::cout << "----Parameter regime----" << std::endl;
-	std::cout << "Input threshold for OPTICS reachability-plot: ";
-	float threshold;
-	std::cin >> threshold;
-	threshold*=radius_eps;
-	std::cout << threshold << std::endl;
-	bool findSummit = false;
-	for(int i=0;i<orderedList.size();++i)
+	int continueOption;
+	do
 	{
-		if(nodeVec[orderedList[i]].reachabilityDist>=threshold)
+		/* group tag information */
+		int tag = 0;
+		std::cout << "Input threshold for OPTICS reachability-plot: ";
+		float threshold;
+		std::cin >> threshold;
+		threshold*=radius_eps;
+		std::cout << threshold << std::endl;
+		bool findSummit = false;
+		for(int i=0;i<orderedList.size();++i)
 		{
-			findSummit = true;
-		}
-		else
-		{
-			if(findSummit)
+			if(nodeVec[orderedList[i]].reachabilityDist>=threshold)
 			{
-				findSummit = false;
-				++tag;
+				findSummit = true;
 			}
-			nodeVec[orderedList[i]].group = tag;
+			else
+			{
+				if(findSummit)
+				{
+					findSummit = false;
+					++tag;
+				}
+				nodeVec[orderedList[i]].group = tag;
+			}
 		}
-	}
-
+		std::cout << "Finally it forms " << (tag+1) << " clusters!" << std::endl;
+		std::cout << "Want to continue with parameter? 1. Yes, 0. No." << std::endl;
+		std::cin >> continueOption;
+		assert(continueOption==1||continueOption==0);
+	}while(continueOption==1);
 	writeReachability();
 }
 
