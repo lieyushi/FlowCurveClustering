@@ -38,18 +38,34 @@ DensityClustering::~DensityClustering()
 
 void DensityClustering::performClustering()
 {
-	float minDist, maxDist;
-	getDistRange(minDist, maxDist);
-	std::cout << "Distance range is [" << minDist << ", "
-			  << maxDist << "]." << std::endl;
-	minPts = setMinPts();
-	multiTimes = setTimesMin(minDist, maxDist);
+	float radius_eps;
+
+	int minPts = setMinPts();
+
+	std::cout << "Choose eps selection method. 1. user input of multiplication, 2. minPt-th dist." << std::endl;
+	int epsOption;
+	std::cin >> epsOption;
+	assert(epsOption==1||epsOption==2);
+
+	if(epsOption==1)
+	{
+		float minDist, maxDist;
+		getDistRange(minDist, maxDist);
+		std::cout << "Distance range is [" << minDist << ", "
+				  << maxDist << "]." << std::endl;
+		multiTimes = setTimesMin(minDist, maxDist);
+
+		radius_eps = maxDist*multiTimes;
+	}
+	else if(epsOption==2)
+	{
+		radius_eps = getMinPt_thDist(minPts);
+	}
 
 	struct timeval start, end;
 	double timeTemp;
 	gettimeofday(&start, NULL);
 
-	float radius_eps = maxDist*multiTimes;
 	OPTICS(radius_eps, minPts);
 
 	gettimeofday(&end, NULL);
@@ -70,7 +86,6 @@ void DensityClustering::OPTICS(const float& radius_eps,
 
 	for(int i=0;i<ds.dataMatrix.rows();++i)
 	{
-		std::cout << i << std::endl;
 		if(nodeVec[i].visited)
 			continue;
 		const vector<int>& neighbor = nodeVec[i].neighbor;
@@ -278,7 +293,7 @@ const int DensityClustering::setMinPts()
 {
 	std::cout << std::endl;
 	std::cout << "Input the minPts for OPTICS in [0" << ", "
-			  << ds.dataMatrix.rows() << "]:" << std::endl;
+			  << ds.dataMatrix.rows() << "], 6 is recommended:" << std::endl;
 	int minPts;
 	std::cin >> minPts;
 	if(minPts<=0 || minPts>=ds.dataMatrix.rows())
@@ -378,9 +393,9 @@ void DensityClustering::extractFeatures(const float& radius_eps,
 
 	const int& Row = ds.dataMatrix.rows();
 	float entropy = 0.0, probability;
-	for(int i=0;i<storage.size();++i)
+	for(int i=0;i<container.size();++i)
 	{
-		probability = float(storage[i].size())/float(Row);
+		probability = float(container[i])/float(Row);
 		entropy+=probability*log2f(probability);
 	}
 	entropy = -entropy/log2f(numClusters);
@@ -630,4 +645,63 @@ void DensityClustering::writeReachability()
 	}
 	ofile << std::endl;
 	ofile.close();
+}
+
+
+/* set the eps as averaged minPt-th dist */
+const float DensityClustering::getMinPt_thDist(const int& minPts)
+{
+	float result = 0.0;
+	const int& rowSize = ds.dataMatrix.rows();
+	const int& seletedRow = 0.2*rowSize;
+#pragma omp parallel num_threads(8)
+	{
+	#pragma omp for nowait
+		for (int i = 0; i < seletedRow; ++i)
+		{
+			/* a linear k*n implementation by directly using a vector for linear mapping */
+			/*
+			std::vector<float> minDistVec(minPts, FLT_MAX);
+			float tempDist;
+			for (int j=0;j<rowSize;++j)
+			{
+				if(i==j)
+					continue;
+				if(distanceMatrix)
+					tempDist = distanceMatrix[i][j];
+				else
+					tempDist=getDisimilarity(ds.dataMatrix.row(i), ds.dataMatrix.row(j),i,j,normOption, object);
+
+				if(tempDist<minDistVec[minPts-1])
+					minDistVec[minPts-1]=tempDist;
+				for(int l=minPts-1;l>=1;--l)
+				{
+					if(minDistVec[l]>minDistVec[l-1])
+						std::swap(minDistVec[l], minDistVec[l-1]);
+				}
+			}*/
+
+			/* use a priority_queue<float> with n*logk time complexity */
+			std::priority_queue<float> minDistArray;
+			float tempDist;
+			for (int j=0;j<rowSize;++j)
+			{
+				if(i==j)
+					continue;
+				if(distanceMatrix)
+					tempDist = distanceMatrix[i][j];
+				else
+					tempDist=getDisimilarity(ds.dataMatrix.row(i), ds.dataMatrix.row(j),i,j,normOption, object);
+
+				minDistArray.push(tempDist);
+				if(minDistArray.size()>minPts)
+					minDistArray.pop();
+
+			}
+
+		#pragma omp critical
+			result += minDistArray.top();
+		}
+	}
+	return result/seletedRow;
 }

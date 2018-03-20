@@ -71,6 +71,8 @@ private:
 	void writeReachability();
 
 
+	/* set the eps as averaged minPt-th dist */
+	const float getMinPt_thDist(const int& minPts);
 };
 
 #endif
