@@ -444,24 +444,49 @@ void AffinityPropagation::getMatrixS(Eigen::MatrixXf& matrixS)
 
 	assert(count==distVecSize);
 
-	/* get median value to be assigned for S(i,i) */
-	float medianValue, leftMedian, rightMedian;
+	/* select how to initilize matrixS elements */
+	std::cout << "Please select a MatrixS initialization? 1.median value, 2.minimal value." << std::endl;
+	int initialOption;
+	std::cin >> initialOption;
+	assert(initialOption==1||initialOption==2);
 
-	/* odd size, just pick mid index */
-	if(distVecSize%2==1)
-		medianValue = select(distVec, 0, distVecSize-1, distVecSize/2);
-	/* even size, choose average of left and right */
-	else if(distVecSize%2==0)
+	float initialValue;
+
+	if(initialOption==1)
 	{
-		leftMedian = select(distVec, 0, distVecSize-1, (distVecSize-1)/2);
-		rightMedian = select(distVec, 0, distVecSize-1, distVecSize/2);
-		medianValue = (leftMedian+rightMedian)/2.0;
+		/* get median value to be assigned for S(i,i) */
+		float medianValue, leftMedian, rightMedian;
+
+		/* odd size, just pick mid index */
+		if(distVecSize%2==1)
+			medianValue = select(distVec, 0, distVecSize-1, distVecSize/2);
+		/* even size, choose average of left and right */
+		else if(distVecSize%2==0)
+		{
+			leftMedian = select(distVec, 0, distVecSize-1, (distVecSize-1)/2);
+			rightMedian = select(distVec, 0, distVecSize-1, distVecSize/2);
+			medianValue = (leftMedian+rightMedian)/2.0;
+		}
+
+		initialValue = medianValue;
+	}
+	else if(initialValue==2)
+	{
+		initialValue = FLT_MAX;
+
+		/* find the minimum similarity value */
+	#pragma omp parallel for reduction(min:initialValue) num_threads(8)
+		for (int i = 0; i < distVecSize; ++i)
+		{
+			if(initialValue>distVec[i])
+				initialValue = distVec[i];
+		}
 	}
 
 	/* assign medianValue to diagonal matrix element */
 #pragma omp parallel for schedule(dynamic) num_threads(8)
 	for(int i=0;i<rows;++i)
-		matrixS(i,i) = medianValue;
+		matrixS(i,i) = initialValue;
 
 	std::cout << "Finish initializing matrix S..." << std::endl;
 
