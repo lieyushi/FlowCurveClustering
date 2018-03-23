@@ -526,7 +526,7 @@ void AffinityPropagation::updateResponsibility(Eigen::MatrixXf& matrixR, const E
 			{
 				if(kk==k)
 					continue;
-				maxValue = std::max(maxValue, matrixR(i,kk)+matrixA(i,kk));
+				maxValue = std::max(maxValue, matrixS(i,kk)+matrixA(i,kk));
 			}
 			/* in wikipage it's update by R[i,k] = S[i][k]-maxValue, but here use a Laplace smoothor for convergence */
 			matrixR(i,k) = (1-LAMBDA)*(matrixS(i,k)-maxValue)+LAMBDA*matrixR(i,k);
