@@ -42,10 +42,10 @@ void DensityClustering::performClustering()
 
 	int minPts = setMinPts();
 
-	std::cout << "Choose eps selection method. 1. user input of multiplication, 2. minPt-th dist." << std::endl;
-	int epsOption;
+	int epsOption = 2;
+	/*std::cout << "Choose eps selection method. 1. user input of multiplication, 2. minPt-th dist." << std::endl;
 	std::cin >> epsOption;
-	assert(epsOption==1||epsOption==2);
+	assert(epsOption==1||epsOption==2);*/
 
 	if(epsOption==1)
 	{
@@ -291,11 +291,13 @@ void DensityClustering::getDistRange(float& minDist,
 
 const int DensityClustering::setMinPts()
 {
-	std::cout << std::endl;
+	/*std::cout << std::endl;
 	std::cout << "Input the minPts for OPTICS in [0" << ", "
 			  << ds.dataMatrix.rows() << "], 6 is recommended:" << std::endl;
-	int minPts;
-	std::cin >> minPts;
+			  */
+	int minPts = 6;
+	//std::cin >> minPts;
+
 	if(minPts<=0 || minPts>=ds.dataMatrix.rows())
 	{
 		std::cout << "Error for out-of-range minPts!" << std::endl;

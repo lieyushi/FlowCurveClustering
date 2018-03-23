@@ -445,10 +445,13 @@ void AffinityPropagation::getMatrixS(Eigen::MatrixXf& matrixS)
 	assert(count==distVecSize);
 
 	/* select how to initilize matrixS elements */
-	std::cout << "Please select a MatrixS initialization? 1.median value, 2.minimal value." << std::endl;
+
+	/*std::cout << "Please select a MatrixS initialization? 1.median value, 2.minimal value." << std::endl;
 	int initialOption;
 	std::cin >> initialOption;
-	assert(initialOption==1||initialOption==2);
+	assert(initialOption==1||initialOption==2);*/
+
+	int initialOption = 2;
 
 	float initialValue;
 
