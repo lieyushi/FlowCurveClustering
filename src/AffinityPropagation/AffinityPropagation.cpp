@@ -608,7 +608,7 @@ void AffinityPropagation::getGroupAssignment(const Eigen::MatrixXf& matrixR, con
 				index = element;
 			}
 		}
-		group[i]=element;
+		group[i]=index;
 	}
 
 	/* output group information and cluster size */
