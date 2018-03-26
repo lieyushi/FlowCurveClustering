@@ -475,13 +475,13 @@ void AffinityPropagation::getMatrixS(Eigen::MatrixXf& matrixS)
 	}
 	else if(initialValue==2)
 	{
-		initialValue = FLT_MAX;
+		initialValue = (float)(-FLT_MAX);
 
 		/* find the minimum similarity value */
 	#pragma omp parallel for reduction(min:initialValue) num_threads(8)
 		for (int i = 0; i < distVecSize; ++i)
 		{
-			if(initialValue>distVec[i])
+			if(initialValue<distVec[i])
 				initialValue = distVec[i];
 		}
 	}
