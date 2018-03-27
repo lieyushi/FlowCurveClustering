@@ -718,6 +718,12 @@ void SpectralClustering::getEigvecRotation(std::vector<int>& storage, std::vecto
 			mMaxQuality = e->getQuality();
 		}
 
+		if(isnan(e->getQuality())||isinf(e->getQuality()))
+		{
+			std::cout << "Meet with nan or inf! Stop! " << std::endl;
+			return;
+		}
+
 		std::cout << " max quality is " << mMaxQuality << ", Evrot has quality " << e->getQuality() << std::endl;
 		//save cluster data for max cluster or if we're near the max cluster (so prefer more clusters)
 		if ((e->getQuality() > mMaxQuality) || (mMaxQuality - e->getQuality() <= 0.001))
