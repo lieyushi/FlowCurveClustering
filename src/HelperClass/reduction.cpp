@@ -67,7 +67,7 @@ void readFile(const char* fileName,
 	while(getline(fin, line) /* && currentNumber < MAXNUMBER*/)
 	{
 		//currentDimensions = 0;
-		if(lineTag==1)
+		if(lineTag!=0)
 		{
 			lineTag = (lineTag+1)%lineNumber;
 			continue;
@@ -126,6 +126,7 @@ void readFile(const char* fileName,
 	fin.close();
 
 	std::cout << "Finished reading file!" << std::endl;
+	std::cout << "It has " << dataVec.size() << " streamlines!" << std::endl;
 }
 
 void writeFile(const char* fileName, 
