@@ -2,6 +2,8 @@
 
 const int& BIN_SIZE = 15;
 
+const int& BUNDLE_SIZE = 10;
+
 void computeMeanRotation(const Eigen::MatrixXf& data, 
 						 const int& Row, 
 						 const int& Column, 
@@ -114,4 +116,20 @@ void getSignatureBin(const Eigen::MatrixXf& data,
 		getSignatureHistSampled(data.row(i),BIN_SIZE,pairwise[i]);
 	}
 }
+
+
+/* get streamline linear entropy and angular entropy in http://vis.cs.ucdavis.edu/papers/pg2011paper.pdf */
+void getBundleEntropy(const Eigen::MatrixXf& data,
+		 	 	 	  const int& Row,
+					  const int& Column,
+					  std::vector<std::vector<float> >& pairwise)
+{
+#pragma omp parallel for schedule(dynamic) num_threads(8)
+	for (int i=0;i<Row;++i)
+	{
+		getLinearAngularEntropy(data.row(i),BUNDLE_SIZE,pairwise[i]);
+	}
+}
+
+
 

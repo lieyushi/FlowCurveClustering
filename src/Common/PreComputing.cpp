@@ -312,7 +312,7 @@ void getSignatureHistSampled(const Eigen::VectorXf& array,
 		histogram = std::vector<float>(binNum);
 
 	/* get how many vertices you'll have */
-	const int& segmentNum = array.size()/3-1;
+	const int& segmentNum = array.size()/3-2;
 
 	/* preset a priority_queue to get the sampled points in maximal curvatures */
 	priority_queue<CurvatureObject, std::vector<CurvatureObject>, CompareFunc> pQueue;
@@ -329,8 +329,8 @@ void getSignatureHistSampled(const Eigen::VectorXf& array,
 	{
 		for(int j=0;j<3;++j)
 		{
-			firstSeg(j)=array(3*i+j);
-			secondSeg(j)=array(3*i+3+j);
+			firstSeg(j)=array(3*i+3+j)-array(3*i+j);
+			secondSeg(j)=array(3*i+6+j)-array(3*i+3+j);
 		}
 		curva = firstSeg.dot(secondSeg)/firstSeg.norm()/secondSeg.norm();
 
@@ -397,5 +397,118 @@ void getSignatureHistSampled(const Eigen::VectorXf& array,
 	histogram[requiredNum] = curvatureSum;
 }
 
+
+/* get linear and angular entropy */
+void getLinearAngularEntropy(const Eigen::VectorXf& array,
+ 	  	 	 	 	 	 	 const int& bundleSize,
+							 std::vector<float>& histogram)
+{
+	/* if empty vector, should allocate memory ahead of time */
+	if(histogram.empty())
+		histogram = std::vector<float>(2);
+
+	/* get how many vertices you'll have */
+	const int& segmentNum = array.size()/3-1;
+
+	const int& curvatureNum = segmentNum-1;
+
+	/* should partition the whole streamlines into bunleSize segments, and compute the entropy */
+
+	std::vector<float> segmentVec(segmentNum), curvatureVec(curvatureNum);
+
+	Eigen::Vector3f firstSeg, secondSeg;
+
+	/* discrete curvature */
+	float curva;
+
+	float lengthSum = 0.0, curveSum = 0.0;
+	int vecIndex = 0;
+	for(int i=0;i<curvatureNum;++i)
+	{
+		for(int j=0;j<3;++j)
+		{
+			firstSeg(j)=array(3*i+3+j)-array(3*i+j);
+			secondSeg(j)=array(3*i+6+j)-array(3*i+3+j);
+		}
+		curva = firstSeg.dot(secondSeg)/firstSeg.norm()/secondSeg.norm();
+
+		/* clip curvature into range [-1.0, 1.0] */
+		curva = std::min(float(1.0), curva);
+		curva = std::max(float(-1.0), curva);
+
+		curva = acos(curva);
+
+		/* store in the vector */
+		curvatureVec[i]=curva;
+		curveSum+=curva;
+
+		/* store path */
+		segmentVec[i] = firstSeg.norm();
+		lengthSum+=segmentVec[i];
+	}
+
+	int i = curvatureNum;
+	for(int j=0;j<3;++j)
+	{
+		firstSeg(j)=array(3*i+3+j)-array(3*i+j);
+	}
+	segmentVec[i] = firstSeg.norm();
+	lengthSum+=segmentVec[i];
+
+	/* get ratio for the vec */
+	const int& segmentQuotient = segmentNum/bundleSize;
+	const int& segmentResidue = segmentNum%bundleSize;
+
+	const int& curvatureQuotient = curvatureNum/bundleSize;
+	const int& curvatureResidue = curvatureNum%bundleSize;
+
+	/* get the vec for bundleSize */
+	std::vector<float> lengthVec(bundleSize), curveVec(bundleSize);
+
+	float tempLength, tempCurve, linearEntropy = 0.0, angularEntropy = 0.0, prob;
+	int left, right;
+	for(int k = 0;k<bundleSize-1;++k)
+	{
+		tempLength = 0.0, tempCurve = 0.0;
+		left = k*segmentQuotient, right = (k+1)*segmentQuotient;
+		for(int i = left;i<right;++i)
+			tempLength+=segmentVec[i];
+
+		prob = tempLength/lengthSum;
+		linearEntropy += prob*log2f(prob);
+
+		left = k*curvatureQuotient, right = (k+1)*curvatureQuotient;
+		for(int i=left;i<right;++i)
+			tempCurve+=curvatureVec[i];
+
+		prob = tempCurve/curveSum;
+		angularEntropy += prob*log2f(prob);
+	}
+
+	left = (bundleSize-1)*segmentQuotient, right = segmentNum;
+	tempLength = 0.0;
+	for(int i=left;i<right;++i)
+	{
+		tempLength+=segmentVec[i];
+	}
+	prob = tempLength/lengthSum;
+	linearEntropy += prob*log2f(prob);
+
+
+	left = (bundleSize-1)*curvatureQuotient, right = curvatureNum;
+	tempCurve = 0.0;
+	for(int i=left;i<right;++i)
+	{
+		tempCurve+=curvatureVec[i];
+	}
+	prob = tempCurve/curveSum;
+	angularEntropy += prob*log2f(prob);
+
+	linearEntropy = -linearEntropy/log2f(float(bundleSize));
+	angularEntropy = -angularEntropy/log2f(float(bundleSize));
+
+	histogram[0] = linearEntropy;
+	histogram[1] = angularEntropy;
+}
 
 

@@ -136,6 +136,15 @@ const float getProcrustesMetricSegment(const Eigen::VectorXf& first,
 									   const Eigen::VectorXf& second);
 
 
+/* get illustrative visualization metric for paper An Illustrative Visualization Framework for 3D Vector Fields */
+const float getEntropyMetric(const std::vector<float>& firstEntropy,
+		                     const std::vector<float>& secondEntropy);
+
+/* get illustrative visualization metric for paper An Illustrative Visualization Framework for 3D Vector Fields */
+const float getEntropyMetric(const std::vector<float>& firstEntropy,
+		                     const Eigen::VectorXf& array);
+
+
 const float getDisimilarity(const MatrixXf& data,
 							const int& first,
 							const int& second,

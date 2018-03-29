@@ -87,6 +87,11 @@ void getSignatureHistSampled(const Eigen::VectorXf& array,
 					  	  	 const int& binSize,
 							 std::vector<float>& histogram);
 
+/* get linear and angular entropy */
+void getLinearAngularEntropy(const Eigen::VectorXf& array,
+ 	  	 	 	 	 	 	 const int& bundleSize,
+							 std::vector<float>& histogram);
+
 
 void getPairWise_byEach(const VectorXf& data,
 						const int& size,

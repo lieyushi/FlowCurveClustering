@@ -5,6 +5,7 @@
 
 extern const int& BIN_SIZE;
 
+extern const int& BUNDLE_SIZE;
 
 void computeMeanRotation(const Eigen::MatrixXf& data, 
 						 const int& Row, 
@@ -54,6 +55,12 @@ void getSignatureBin(const Eigen::MatrixXf& data,
 					 const int& Column,
 					 std::vector<std::vector<float> >& pairwise);
 
+
+/* get streamline linear entropy and angular entropy in http://vis.cs.ucdavis.edu/papers/pg2011paper.pdf */
+void getBundleEntropy(const Eigen::MatrixXf& data,
+		 	 	 	  const int& Row,
+					  const int& Column,
+					  std::vector<std::vector<float> >& pairwise);
 
 
 struct MetricPreparation
@@ -157,6 +164,12 @@ struct MetricPreparation
 					getSignatureBin(data, Row, Column, pairwise);
 				}
 				break;
+
+			case 16:
+				{
+					pairwise = std::vector<std::vector<float> >(Row, std::vector<float>(2));
+					getBundleEntropy(data, Row, Column, pairwise);
+				}
 
 			default:
 				break;

@@ -146,14 +146,15 @@ void featureExtraction(const int& number,
 		13: Hausdorff distance min_max(x_i,y_i)
 		14: Signature-based measure taken from http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=6231627
 		15: Procrustes distance taken from http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=6787131
+		16: entropy-based distance metric taken from http://vis.cs.ucdavis.edu/papers/pg2011paper.pdf
 	*/
 	if(samplingMethod==2)
 		IOHandler::sampleArray(data, dataVec, dimension, maxElements);
 
-	for(int i = 0;i<16;i++)
+	for(int i = 0;i<17;i++)
 	{
 		/* in this paper, we only care about those seven metrics */
-		if(i!=0 && i!=1 && i!=2 && i!=4 && i!=12 && i!=14 && i!=15)
+		if(i!=0 && i!=1 && i!=2 && i!=4 && i!=12 &&  i!=14  && i!=15 &&i!=16)
 			continue;
 		//if(i!=14)
 		//	continue;

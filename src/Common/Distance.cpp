@@ -836,6 +836,10 @@ const float getDisimilarity(const VectorXf& others,
 		//length = getProcrustesMetricSegment(first,second);
 		break;
 
+	case 16:
+		length = getEntropyMetric(object.pairwise[index], others);
+		break;
+
 	default:
 		exit(1);
 		break;
@@ -912,6 +916,11 @@ const float getDisimilarity(const VectorXf& first,
 		length = getProcrustesMetric(first, second);
 		//length = getProcrustesMetricSegment(first,second);
 		break;
+
+	case 16:
+		length = getEntropyMetric(object.pairwise[firstIndex], object.pairwise[secondIndex]);
+		break;
+
 
 	default:
 		exit(1);
@@ -1395,6 +1404,34 @@ void generateGroups(const std::vector<std::vector<int> >& storage)
 	}
 	std::cout << std::endl;
 	readme.close();
+}
+
+
+/* get illustrative visualization metric for paper An Illustrative Visualization Framework for 3D Vector Fields */
+const float getEntropyMetric(const std::vector<float>& firstEntropy,
+		                     const std::vector<float>& secondEntropy)
+{
+	assert(firstEntropy.size()==2);
+	assert(secondEntropy.size()==2);
+
+	float first = firstEntropy[0]-secondEntropy[0];
+	float second = firstEntropy[1]-secondEntropy[1];
+
+	return sqrt(first*first+second*second);
+}
+
+/* get illustrative visualization metric for paper An Illustrative Visualization Framework for 3D Vector Fields */
+const float getEntropyMetric(const std::vector<float>& firstEntropy,
+		                     const Eigen::VectorXf& array)
+{
+	assert(firstEntropy.size()==2);
+
+	std::vector<float> secondEntropy;
+
+	getLinearAngularEntropy(array, BUNDLE_SIZE, secondEntropy);
+
+	return getEntropyMetric(firstEntropy, secondEntropy);
+
 }
 
 
