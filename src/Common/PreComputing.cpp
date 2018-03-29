@@ -430,6 +430,14 @@ void getLinearAngularEntropy(const Eigen::VectorXf& array,
 			firstSeg(j)=array(3*i+3+j)-array(3*i+j);
 			secondSeg(j)=array(3*i+6+j)-array(3*i+3+j);
 		}
+
+		if(firstSeg.norm()<1.0e-6 || secondSeg.norm()<1.0e-6)
+		{
+			segmentVec[i] = 0.0;
+			curvatureVec[i]= 0.0;
+			continue;
+		}
+
 		curva = firstSeg.dot(secondSeg)/firstSeg.norm()/secondSeg.norm();
 
 		/* clip curvature into range [-1.0, 1.0] */
@@ -455,60 +463,90 @@ void getLinearAngularEntropy(const Eigen::VectorXf& array,
 	segmentVec[i] = firstSeg.norm();
 	lengthSum+=segmentVec[i];
 
-	/* get ratio for the vec */
-	const int& segmentQuotient = segmentNum/bundleSize;
-	const int& segmentResidue = segmentNum%bundleSize;
 
-	const int& curvatureQuotient = curvatureNum/bundleSize;
-	const int& curvatureResidue = curvatureNum%bundleSize;
-
-	/* get the vec for bundleSize */
-	std::vector<float> lengthVec(bundleSize), curveVec(bundleSize);
-
-	float tempLength, tempCurve, linearEntropy = 0.0, angularEntropy = 0.0, prob;
-	int left, right;
-	for(int k = 0;k<bundleSize-1;++k)
+	/* should deal with exceptional case if lengthSum == 0 or curveSum == 0 */
+	if(lengthSum<1.0e-6)
 	{
-		tempLength = 0.0, tempCurve = 0.0;
-		left = k*segmentQuotient, right = (k+1)*segmentQuotient;
-		for(int i = left;i<right;++i)
-			tempLength+=segmentVec[i];
+		histogram[0] = 1.0;
+	}
+	else
+	{
+		/* get ratio for the vec */
+		const int& segmentQuotient = segmentNum/bundleSize;
+		const int& segmentResidue = segmentNum%bundleSize;
 
-		prob = tempLength/lengthSum;
+		/* get the vec for bundleSize */
+		std::vector<float> lengthVec(bundleSize);
+
+		float tempLength, linearEntropy = 0.0, prob;
+		int left, right;
+		for(int k = 0;k<bundleSize-1;++k)
+		{
+			tempLength = 0.0;
+			left = k*segmentQuotient, right = (k+1)*segmentQuotient;
+			for(int i = left;i<right;++i)
+				tempLength+=segmentVec[i];
+
+			prob = tempLength/lengthSum;
+
+			if(prob>1.0e-6)
+				linearEntropy += prob*log2f(prob);
+		}
+
+		left = (bundleSize-1)*segmentQuotient, right = segmentNum;
+		tempLength = 0.0;
+		for(int i=left;i<right;++i)
+		{
+			tempLength+=segmentVec[i];
+		}
+		if(prob>1.0e-6)
+			prob = tempLength/lengthSum;
 		linearEntropy += prob*log2f(prob);
 
-		left = k*curvatureQuotient, right = (k+1)*curvatureQuotient;
+		linearEntropy = -linearEntropy/log2f(float(bundleSize));
+		histogram[0] = linearEntropy;
+	}
+
+	/* deal with curveSum == 1.0 */
+	if(curveSum<1.0e-6)
+	{
+		histogram[1] = 1.0;
+	}
+	else
+	{
+		const int& curvatureQuotient = curvatureNum/bundleSize;
+		const int& curvatureResidue = curvatureNum%bundleSize;
+
+		/* get the vec for bundleSize */
+		std::vector<float> curveVec(bundleSize);
+
+		float tempCurve, angularEntropy = 0.0, prob;
+		int left, right;
+		for(int k = 0;k<bundleSize-1;++k)
+		{
+			tempCurve = 0.0;
+			left = k*curvatureQuotient, right = (k+1)*curvatureQuotient;
+			for(int i=left;i<right;++i)
+				tempCurve+=curvatureVec[i];
+
+			prob = tempCurve/curveSum;
+			if(prob>1.0e-6)
+				angularEntropy += prob*log2f(prob);
+		}
+
+		left = (bundleSize-1)*curvatureQuotient, right = curvatureNum;
+		tempCurve = 0.0;
 		for(int i=left;i<right;++i)
+		{
 			tempCurve+=curvatureVec[i];
-
+		}
 		prob = tempCurve/curveSum;
-		angularEntropy += prob*log2f(prob);
+		if(prob>1.0e-6)
+			angularEntropy += prob*log2f(prob);
+
+		angularEntropy = -angularEntropy/log2f(float(bundleSize));
+		histogram[1] = angularEntropy;
 	}
-
-	left = (bundleSize-1)*segmentQuotient, right = segmentNum;
-	tempLength = 0.0;
-	for(int i=left;i<right;++i)
-	{
-		tempLength+=segmentVec[i];
-	}
-	prob = tempLength/lengthSum;
-	linearEntropy += prob*log2f(prob);
-
-
-	left = (bundleSize-1)*curvatureQuotient, right = curvatureNum;
-	tempCurve = 0.0;
-	for(int i=left;i<right;++i)
-	{
-		tempCurve+=curvatureVec[i];
-	}
-	prob = tempCurve/curveSum;
-	angularEntropy += prob*log2f(prob);
-
-	linearEntropy = -linearEntropy/log2f(float(bundleSize));
-	angularEntropy = -angularEntropy/log2f(float(bundleSize));
-
-	histogram[0] = linearEntropy;
-	histogram[1] = angularEntropy;
 }
 
 
