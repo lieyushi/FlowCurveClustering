@@ -16,7 +16,6 @@ void PCA_Cluster::performPCA_Clustering(const Eigen::MatrixXf& data,
 									    std::vector<int>& totalNum, 
 									    std::vector<ExtractedLine>& closest,
 									    std::vector<ExtractedLine>& furthest,
-										EvaluationMeasure& measure,
 										TimeRecorder& tr,
 										Silhouette& sil)
 {
@@ -28,7 +27,7 @@ void PCA_Cluster::performPCA_Clustering(const Eigen::MatrixXf& data,
 
 	performSVD(cArray, data, Row, Column, PC_Number, SingVec, meanTrajectory, tr);
 	performPC_KMeans(cArray, Row, Column, PC_Number, SingVec, meanTrajectory, 
-					 massCenter, CLUSTER, group, totalNum, closest, furthest, data, measure, tr, sil);
+					 massCenter, CLUSTER, group, totalNum, closest, furthest, data, tr, sil);
 }
 
 
@@ -111,7 +110,6 @@ void PCA_Cluster::performPC_KMeans(const MatrixXf& cArray,
 				 				   std::vector<ExtractedLine>& closest,
 				 				   std::vector<ExtractedLine>& furthest, 
 				 				   const Eigen::MatrixXf& data,
-								   EvaluationMeasure& measure,
 								   TimeRecorder& tr,
 								   Silhouette& sil)
 {
@@ -328,13 +326,8 @@ void PCA_Cluster::performPC_KMeans(const MatrixXf& cArray,
 	tr.eventList.push_back("Clustering evaluation computing takes: ");
 	tr.timeList.push_back(to_string(delta)+"s");
 
-
-	/* store the evaluation value result */
-	measure.silVec.push_back(sil.sAverage);
-	measure.gammaVec.push_back(sil.gammaStatistic);
-	measure.entropyVec.push_back(entropy);
-	measure.dbIndexVec.push_back(sil.dbIndex);
-
+	/* write value of the silhouette class */
+	IOHandler::writeReadme(entropy, sil);
 }
 
 
@@ -361,13 +354,12 @@ void PCA_Cluster::performDirectK_Means(const Eigen::MatrixXf& data,
 									   std::vector<ExtractedLine>& closest,
 									   std::vector<ExtractedLine>& furthest, 
 									   const int& normOption,
-									   EvaluationMeasure& measure,
 									   TimeRecorder& tr,
 									   Silhouette& sil)
 {
 
 	performFullK_MeansByClusters(data, Row, Column, massCenter, CLUSTER, group, 
-								 totalNum, closest, furthest, normOption, measure, tr, sil);
+								 totalNum, closest, furthest, normOption, tr, sil);
 }
 
 
@@ -380,7 +372,6 @@ void PCA_Cluster::performPCA_Clustering(const Eigen::MatrixXf& data,
 										std::vector<ExtractedLine>& closest, 
 										std::vector<ExtractedLine>& furthest, 
 										const int& Cluster,
-										EvaluationMeasure& measure,
 										TimeRecorder& tr,
 										Silhouette& sil)
 {
@@ -390,7 +381,7 @@ void PCA_Cluster::performPCA_Clustering(const Eigen::MatrixXf& data,
 
 	performSVD(cArray, data, Row, Column, PC_Number, SingVec, meanTrajectory, tr);
 	performPC_KMeans(cArray, Row, Column, PC_Number, SingVec, meanTrajectory, 
-					 massCenter, Cluster, group, totalNum, closest, furthest, data, measure, tr, sil);
+					 massCenter, Cluster, group, totalNum, closest, furthest, data, tr, sil);
 }
 
 
@@ -404,12 +395,11 @@ void PCA_Cluster::performDirectK_Means(const Eigen::MatrixXf& data,
 									   std::vector<ExtractedLine>& furthest, 
 									   const int& Cluster, 
 									   const int& normOption,
-									   EvaluationMeasure& measure,
 									   TimeRecorder& tr,
 									   Silhouette& sil)
 {
 	performFullK_MeansByClusters(data, Row, Column, massCenter, Cluster, group, 
-								 totalNum, closest, furthest, normOption, measure, tr, sil);
+								 totalNum, closest, furthest, normOption, tr, sil);
 }
 
 
@@ -423,7 +413,6 @@ void PCA_Cluster::performFullK_MeansByClusters(const Eigen::MatrixXf& data,
 											   std::vector<ExtractedLine>& closest, 
 											   std::vector<ExtractedLine>& furthest, 
 											   const int& normOption,
-											   EvaluationMeasure& measure,
 											   TimeRecorder& tr,
 											   Silhouette& sil)
 {	
@@ -657,10 +646,6 @@ void PCA_Cluster::performFullK_MeansByClusters(const Eigen::MatrixXf& data,
 	tr.eventList.push_back("Clustering evaluation computing takes: ");
 	tr.timeList.push_back(to_string(delta)+"s");
 
-
-	/* store the evaluation value result */
-	measure.silVec.push_back(sil.sAverage);
-	measure.gammaVec.push_back(sil.gammaStatistic);
-	measure.entropyVec.push_back(entropy);
-	measure.dbIndexVec.push_back(sil.dbIndex);
+	/* write value of the silhouette class */
+	IOHandler::writeReadme(entropy, sil);
 }

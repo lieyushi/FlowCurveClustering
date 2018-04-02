@@ -20,16 +20,6 @@ struct Ensemble
 };
 
 
-/* evaluation measure class which contains silhouette, gamma statistics, entropy and DB Index */
-struct EvaluationMeasure
-{
-	std::vector<float> silVec;
-	std::vector<float> gammaVec;
-	std::vector<float> entropyVec;
-	std::vector<float> dbIndexVec;
-};
-
-
 /* record event list and time list */
 struct TimeRecorder
 {
@@ -51,7 +41,6 @@ public:
 		 							  std::vector<int>& totalNum, 
 		 							  std::vector<ExtractedLine>& closest,
 		 							  std::vector<ExtractedLine>& furthest,
-									  EvaluationMeasure& measure,
 									  TimeRecorder& tr,
 									  Silhouette& sil);
 
@@ -63,8 +52,7 @@ public:
 									  std::vector<int>& totalNum, 
 									  std::vector<ExtractedLine>& closest, 
 									  std::vector<ExtractedLine>& furthest, 
-									  const int& Cluster, 
-									  EvaluationMeasure& measure,
+									  const int& Cluster,
 									  TimeRecorder& tr,
 									  Silhouette& sil);
 
@@ -77,7 +65,6 @@ public:
 									 std::vector<ExtractedLine>& closest,
 									 std::vector<ExtractedLine>& furthest, 
 									 const int& normOption,
-									 EvaluationMeasure& measure,
 									 TimeRecorder& tr,
 									 Silhouette& sil);
 
@@ -91,7 +78,6 @@ public:
 									 std::vector<ExtractedLine>& furthest, 
 									 const int& Cluster, 
 									 const int& normOption,
-									 EvaluationMeasure& measure,
 									 TimeRecorder& tr,
 									 Silhouette& sil);
 
@@ -119,7 +105,6 @@ private:
 								 std::vector<ExtractedLine>& closest, 
 								 std::vector<ExtractedLine>& furthest, 
 								 const Eigen::MatrixXf& data,
-								 EvaluationMeasure& measure,
 								 TimeRecorder& tr,
 								 Silhouette& sil);
 
@@ -142,7 +127,6 @@ private:
 						   					 std::vector<ExtractedLine>& closest, 
 						   					 std::vector<ExtractedLine>& furthest, 
 						   					 const int& normOption,
-											 EvaluationMeasure& measure,
 											 TimeRecorder& tr,
 											 Silhouette& sil);
 

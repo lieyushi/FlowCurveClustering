@@ -13,7 +13,6 @@ void performPCA_Cluster(const string& fileName,
 						const string& fullName, 
 						const int& maxElements, 
 						const Eigen::MatrixXf& data,
-						EvaluationMeasure& measure,
 						TimeRecorder& tr,
 						Silhouette& sil);
 
@@ -25,7 +24,6 @@ void performK_Means(const string& fileName,
 					const int& maxElements, 
 					const Eigen::MatrixXf& data,
 					const int& normOption,
-					EvaluationMeasure& measure,
 					TimeRecorder& tr,
 					Silhouette& sil);
 
@@ -83,9 +81,6 @@ void featureExtraction(const int& number,
 
     TimeRecorder tr;
 
-	/* an evaluationMeasure object to record silhouette, gamma statistics, balanced entropy and DB index */
-	EvaluationMeasure measure;
-
 	Silhouette sil;
 
 	struct timeval start, end;
@@ -95,7 +90,6 @@ void featureExtraction(const int& number,
 	gettimeofday(&start, NULL);
 	std::vector< std::vector<float> > dataVec;
 	IOHandler::readFile(strName, dataVec, vertexCount, dimension, maxElements);
-	//IOHandler::readFile(pbfPath, dataVec, vertexCount, dimension, 128000, 1500);
 	gettimeofday(&end, NULL);
 	timeTemp = ((end.tv_sec  - start.tv_sec) * 1000000u 
 			   + end.tv_usec - start.tv_usec) / 1.e6;
@@ -116,8 +110,7 @@ void featureExtraction(const int& number,
 	
 	ss << strName << "_PCAClustering";
 	gettimeofday(&start, NULL);
-	//ss << "TACs_PCAClustering";
-	performPCA_Cluster(ss.str(), dataVec, cluster, dimension,fullName, maxElements, data, measure, tr, sil);
+	//performPCA_Cluster(ss.str(), dataVec, cluster, dimension,fullName, maxElements, data, tr, sil);
 	ss.str("");
 	ss.clear();
 	gettimeofday(&end, NULL);
@@ -154,14 +147,12 @@ void featureExtraction(const int& number,
 	for(int i = 0;i<17;i++)
 	{
 		/* in this paper, we only care about those seven metrics */
-		if(i!=0 && i!=1 && i!=2 && i!=4 && i!=12 &&  i!=14  && i!=15 &&i!=16)
+		if(/*i!=0 && i!=1 && i!=2 && i!=4 && i!=12 &&  i!=14  && i!=15 &&*/i!=16)
 			continue;
-		//if(i!=14)
-		//	continue;
 
 		gettimeofday(&start, NULL);
 		ss << strName << "_KMeans";
-		performK_Means(ss.str(), dataVec, cluster, dimension, fullName, maxElements, data,i, measure, tr, sil);
+		performK_Means(ss.str(), dataVec, cluster, dimension, fullName, maxElements, data,i, tr, sil);
 
 		ss.str("");
 		gettimeofday(&end, NULL);
@@ -174,18 +165,6 @@ void featureExtraction(const int& number,
 	}
 
 	IOHandler::writeReadme(tr.eventList, tr.timeList, cluster);
-
-	/* print silhouette values in the readme file */
-	IOHandler::writeReadme("Average Silhouette value is ", measure.silVec);
-
-	/* print gamma statistics vector in the readme */
-	IOHandler::writeReadme("Average Gamma statistics value is ", measure.gammaVec);
-
-	/* print entropy value in the readme file */
-	IOHandler::writeReadme("Average Entropy value is ", measure.entropyVec);
-
-	/* print DB index values in the readme file */
-	IOHandler::writeReadme("Average DB index is ", measure.dbIndexVec);
 }
 
 
@@ -196,7 +175,6 @@ void performPCA_Cluster(const string& fileName,
 						const string& fullName, 
 						const int& maxElements, 
 						const Eigen::MatrixXf& data,
-						EvaluationMeasure& measure,
 						TimeRecorder& tr,
 						Silhouette& sil)
 {
@@ -208,7 +186,7 @@ void performPCA_Cluster(const string& fileName,
 	std::vector<int> totalNum(dataVec.size());
 
 	PCA_Cluster::performPCA_Clustering(data, dataVec.size(), maxElements, centerMass,
-			           group, totalNum, closest, furthest, cluster, measure, tr, sil);
+			           group, totalNum, closest, furthest, cluster, tr, sil);
 
 	std::vector<std::vector<float> > closestStreamline;
 	std::vector<std::vector<float> > furthestStreamline;
@@ -267,7 +245,6 @@ void performK_Means(const string& fileName,
 					const int& maxElements, 
 					const Eigen::MatrixXf& data, 
 					const int& normOption,
-					EvaluationMeasure& measure,
 					TimeRecorder& tr,
 					Silhouette& sil)
 {
@@ -278,7 +255,7 @@ void performK_Means(const string& fileName,
 	std::vector<int> totalNum(dataVec.size());
 	PCA_Cluster::performDirectK_Means(data, dataVec.size(), maxElements, 
 									  centerMass, group, totalNum, 
-									  closest, furthest, cluster, normOption, measure, tr, sil);
+									  closest, furthest, cluster, normOption, tr, sil);
 
 	std::vector<std::vector<float> > closestStreamline, furthestStreamline;
 	std::vector<int> closestCluster, furthestCluster, meanCluster;
