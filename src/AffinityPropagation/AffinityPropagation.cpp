@@ -45,6 +45,7 @@ void AffinityPropagation::performClustering()
 		13: Hausdorff distance min_max(x_i,y_i)
 		14: Signature-based measure from http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=6231627
 		15: Procrustes distance take from http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=6787131
+		16: entropy-based distance metric taken from http://vis.cs.ucdavis.edu/papers/pg2011paper.pdf
 	*/
 	for(int i=0;i<=15;++i)
 	{
@@ -435,8 +436,10 @@ void AffinityPropagation::getMatrixS(Eigen::MatrixXf& matrixS)
 				tempDist = getDisimilarity(ds.dataMatrix, i, j, normOption, object);
 
 			/* conventionally we assign -d*d as non-diagonal entries for matrix S */
-			matrixS(i,j) = -tempDist*tempDist;
-			matrixS(i,j) = matrixS(j,i);
+			//matrixS(i,j) = -tempDist*tempDist;
+
+			matrixS(i,j) = -tempDist;
+			matrixS(j,i) = matrixS(i,j);
 
 			distVec[count++] = matrixS(i,j);
 		}
@@ -446,15 +449,19 @@ void AffinityPropagation::getMatrixS(Eigen::MatrixXf& matrixS)
 
 	/* select how to initilize matrixS elements */
 
-	/*std::cout << "Please select a MatrixS initialization? 1.median value, 2.minimal value." << std::endl;
+	int initialOption;
+
+	/*
+	std::cout << "Please select a MatrixS initialization? 1.median value, 2.minimal value." << std::endl;
 	int initialOption;
 	std::cin >> initialOption;
 	assert(initialOption==1||initialOption==2);*/
 
-	int initialOption = 2;
+	initialOption = 2;
 
 	float initialValue;
 
+	/* use quickSelect to get the median value of the array */
 	if(initialOption==1)
 	{
 		/* get median value to be assigned for S(i,i) */
@@ -473,15 +480,17 @@ void AffinityPropagation::getMatrixS(Eigen::MatrixXf& matrixS)
 
 		initialValue = medianValue;
 	}
-	else if(initialValue==2)
+
+	/* else, directly choose the minimal value */
+	else if(initialOption==2)
 	{
-		initialValue = (float)(-FLT_MAX);
+		initialValue = (float)(FLT_MAX);
 
 		/* find the minimum similarity value */
 	#pragma omp parallel for reduction(min:initialValue) num_threads(8)
 		for (int i = 0; i < distVecSize; ++i)
 		{
-			if(initialValue<distVec[i])
+			if(initialValue>distVec[i])
 				initialValue = distVec[i];
 		}
 	}

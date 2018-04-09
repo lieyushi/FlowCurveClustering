@@ -31,6 +31,6 @@ void setPara(Para& p)
 	p.extractOption = 1;
 
 	/* max iteration for AP clustering */
-	p.maxIteration = 10;
+	p.maxIteration = 40;
 
 }
