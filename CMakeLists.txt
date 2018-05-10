@@ -16,7 +16,8 @@ else()
 endif()
 
 # add "-O2" for library eigen optimization for matrix computation.
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp -O2")
+# "-O2" is C++ optimization flags (bigO 2)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp -O3")
 
 include_directories(
     /usr/include/
