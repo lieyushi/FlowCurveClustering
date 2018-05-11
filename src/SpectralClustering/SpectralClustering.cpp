@@ -518,8 +518,8 @@ void SpectralClustering::getEigenClustering(const Eigen::MatrixXf& laplacianMatr
 	activityList.push_back("Eigen decomposition takes: ");
 	timeList.push_back(to_string(timeTemp)+" s");
 
-	//const int& eigenRows = numberOfClusters;
-	const int& eigenRows = 5;
+	const int& eigenRows = numberOfClusters;
+	//const int& eigenRows = 5;
 
 	Eigen::MatrixXf eigenVec(eigenRows, ds.dataMatrix.rows());
 
