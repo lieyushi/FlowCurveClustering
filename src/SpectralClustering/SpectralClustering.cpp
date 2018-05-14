@@ -331,9 +331,6 @@ void SpectralClustering::getSigmaList()
 {
 	const int& Row = ds.dataMatrix.rows();
 	sigmaVec = std::vector<float>(Row);
-#ifndef SCALING
-	#define SCALING 5
-#endif
 
 	if(isDistSorted)
 	{
