@@ -313,7 +313,7 @@ void KMedoids::computeMedoids(MatrixXf& centerTemp,
 					index = j;
 				}
 			}
-			centerTemp.row(i)=data.row(i); 
+			centerTemp.row(i)=data.row(clusMember[index]);
 		}
 	}
 
