@@ -107,6 +107,7 @@ void Silhouette::computeValue(const Eigen::MatrixXf& array,
 }
 
 
+/* this is for generate value computation for normOption */
 void Silhouette::computeValue(const int& normOption,
 							  const MatrixXf& array,
 							  const int& Row,
@@ -137,7 +138,7 @@ void Silhouette::computeValue(const int& normOption,
 	computeSilhouette(array, group, storage, object, normOption);
 
 	/* compute DB index */
-	computeDBIndex(array, group, storage);
+	computeDBIndex(array, group, storage, object, normOption);
 
 	/* compute Gamma statistic for distM and idealDistM */
 	if(!isPBF)
@@ -514,7 +515,7 @@ void Silhouette::computeSilhouette(const Eigen::MatrixXf& array,
 
 
 
-/* compute DB index */
+/* compute DB index, default is using Euclidean distance */
 void Silhouette::computeDBIndex(const Eigen::MatrixXf& array,
 								const std::vector<int>& group,
 								const std::vector<std::vector<int> >& storage)
@@ -545,10 +546,12 @@ void Silhouette::computeDBIndex(const Eigen::MatrixXf& array,
 		/* get the centroid coordinates */
 		centroid.row(i) = tempCentroid/clusterSize;
 
-		float inClusterSum = 0.0;
+		float inClusterSum = 0.0, temp_dist;
 		for(int j=0;j<clusterSize;++j)
+		{
+			//inClusterSum+=getDisimilarity(centroid.row(i),array,clusterVec[j],normOption,object);
 			inClusterSum+=(array.row(clusterVec[j])-centroid.row(i)).norm();
-
+		}
 		averageDist(i) = inClusterSum/clusterSize;
 	}
 
@@ -574,6 +577,76 @@ void Silhouette::computeDBIndex(const Eigen::MatrixXf& array,
 	}
 	dbIndex/=groupNumber;
 }
+
+
+/* compute DB index with normOption as input */
+void Silhouette::computeDBIndex(const Eigen::MatrixXf& array,
+								const std::vector<int>& group,
+								const std::vector<std::vector<int> >& storage,
+								const MetricPreparation& object,
+								const int& normOption)
+{
+	dbIndex = 0.0;
+
+	const int& groupNumber = storage.size();
+
+	const int& Column = array.cols();
+
+	/* calculated the projected-space cenroid */
+	Eigen::MatrixXf centroid(groupNumber, Column);
+
+	/* average distance of all elements in cluster to its centroid */
+	Eigen::VectorXf averageDist(groupNumber);
+
+#pragma omp parallel for schedule(dynamic) num_threads(8)
+	for(int i=0;i<groupNumber;++i)
+	{
+		Eigen::VectorXf tempCentroid = Eigen::VectorXf::Zero(Column);
+
+		const std::vector<int>& clusterVec = storage[i];
+		const int& clusterSize = clusterVec.size();
+
+		for(int j=0;j<clusterSize;++j)
+			tempCentroid+=array.row(clusterVec[j]);
+
+		/* get the centroid coordinates */
+		centroid.row(i) = tempCentroid/clusterSize;
+
+		float inClusterSum = 0.0, temp_dist;
+		for(int j=0;j<clusterSize;++j)
+		{
+			inClusterSum+=getDisimilarity(centroid.row(i),array,clusterVec[j],normOption,object);
+		}
+		averageDist(i) = inClusterSum/clusterSize;
+	}
+
+#pragma omp parallel num_threads(8)
+	{
+	#pragma omp for nowait
+		for (int i = 0; i < groupNumber; ++i)
+		{
+			float maxValue = (float)INT_MIN, ratioDist, centDist;
+			for (int j=0;j<groupNumber;++j)
+			{
+				if(i==j)
+					continue;
+				centDist = getDisimilarity(centroid.row(i), centroid.row(j), normOption, object);
+
+				//ratioDist = (averageDist(i)+averageDist(j))/(centroid.row(i)-centroid.row(j)).norm();
+				ratioDist = (averageDist(i)+averageDist(j))/centDist;
+
+				if(maxValue<ratioDist)
+					maxValue=ratioDist;
+			}
+
+		#pragma omp critical
+			dbIndex += maxValue;
+		}
+	}
+	dbIndex/=groupNumber;
+}
+
+
 
 
 /* compute Gamma statistics between two matrices, distance matrix and ideal distance matrix */

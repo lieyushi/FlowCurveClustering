@@ -129,6 +129,14 @@ private:
 						const std::vector<std::vector<int> >& storage);
 
 
+	/* compute DB index with normOption as input */
+	void computeDBIndex(const Eigen::MatrixXf& array,
+						const std::vector<int>& group,
+						const std::vector<std::vector<int> >& storage,
+						const MetricPreparation& object,
+						const int& normOption);
+
+
 	/* for computing gamma statistics for PCA only which requires two input */
 	void computeGammaStatistic(const Eigen::MatrixXf& distM,
 							   const Eigen::MatrixXf& idealDistM);

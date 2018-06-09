@@ -126,6 +126,11 @@ const float getSignatureMetric(const Eigen::VectorXf& centroid,
 							   const std::vector<float>& firstHist);
 
 
+/* get signature-based dissimilarity metric given two centroids */
+const float getSignatureMetric(const Eigen::VectorXf& first,
+							   const Eigen::VectorXf& second);
+
+
 /* get adapted Procrustes distance. For example, if vec has 100 points, it will calculate mean of 94 point */
 const float getProcrustesMetric(const Eigen::VectorXf& first,
 								const Eigen::VectorXf& second);
@@ -143,6 +148,11 @@ const float getEntropyMetric(const std::vector<float>& firstEntropy,
 /* get illustrative visualization metric for paper An Illustrative Visualization Framework for 3D Vector Fields */
 const float getEntropyMetric(const std::vector<float>& firstEntropy,
 		                     const Eigen::VectorXf& array);
+
+/* get illustrative visualization metric for paper An Illustrative Visualization Framework for 3D Vector Fields,
+ * given two coordinate vectors */
+const float getEntropyMetric(const Eigen::VectorXf& first,
+		                     const Eigen::VectorXf& second);
 
 
 const float getDisimilarity(const MatrixXf& data,
@@ -167,6 +177,11 @@ const float getDisimilarity(const VectorXf& first,
 bool getDistanceMatrix(const MatrixXf& data,
 				       const int& normOption,
 					   const MetricPreparation& object);
+
+const float getDisimilarity(const VectorXf& first,
+							const VectorXf& second,
+							const int& normOption,
+							const MetricPreparation& object);
 
 void deleteDistanceMatrix(const int& Row);
 

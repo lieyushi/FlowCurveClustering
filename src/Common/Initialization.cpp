@@ -34,9 +34,13 @@ void Initialization::generateFromSamples(MatrixXf& clusterCenter,
 								    	 const int& Cluster)
 {
 	clusterCenter = MatrixXf(Cluster,column);
-	int number[Cluster];
+	std::vector<int> number(Cluster);
 	srand(time(0));
+
 	const int& MaxNum = cArray.rows();
+
+	std::cout << MaxNum << std::endl;
+
 	number[0] = rand()%MaxNum;
 	int randNum, chosen = 1;
 	bool found;
@@ -56,7 +60,7 @@ void Initialization::generateFromSamples(MatrixXf& clusterCenter,
 			}
 		}while(found!=false);
 		number[i] = randNum;
-		chosen++;
+		++chosen;
 	}
 	assert(chosen==Cluster);
 	assert(column==cArray.cols());

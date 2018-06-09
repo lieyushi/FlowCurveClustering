@@ -1,5 +1,6 @@
 #include "PreComputing.h"
 
+
 void getSequence(const VectorXf& array, 
 				 const int& size, 
 				 std::vector<float>& rowSequence)
@@ -31,6 +32,7 @@ void getSequence(const VectorXf& array,
 		stdDevia = 1.0e-8;
 	rowSequence[1] = sqrt(stdDevia);
 }
+
 
 const float getRotation(const VectorXf& array, 
 						const int& size)

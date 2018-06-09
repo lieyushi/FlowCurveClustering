@@ -832,8 +832,8 @@ const float getDisimilarity(const VectorXf& others,
 
 	/* adapted Procrustes distance */
 	case 15:
-		length = getProcrustesMetric(others, data.row(index));
-		//length = getProcrustesMetricSegment(first,second);
+		//length = getProcrustesMetric(others, data.row(index));
+		length = getProcrustesMetricSegment(others, data.row(index));
 		break;
 
 	case 16:
@@ -913,8 +913,8 @@ const float getDisimilarity(const VectorXf& first,
 		break;
 
 	case 15:
-		length = getProcrustesMetric(first, second);
-		//length = getProcrustesMetricSegment(first,second);
+		//length = getProcrustesMetric(first, second);
+		length = getProcrustesMetricSegment(first,second);
 		break;
 
 	case 16:
@@ -929,6 +929,82 @@ const float getDisimilarity(const VectorXf& first,
 
 	return length;
 }
+
+
+
+const float getDisimilarity(const VectorXf& first,
+							const VectorXf& second,
+							const int& normOption,
+							const MetricPreparation& object)
+{
+	float length;
+	switch(normOption)
+	{
+	case 0:
+	case 1:
+	case 2:
+	case 5:
+	case 8:
+	case 11:
+		length = getNorm(first, second, normOption);
+		break;
+
+	case 3:
+		length = getBMetric_3(first, first.size()/3-2, second);
+		break;
+
+	case 4:
+		length = abs(getRotation(first, first.size()/3-2)-getRotation(second, second.size()/3-2));
+		break;
+
+	case 6:
+		length = getBMetric_6(first, first.size()/3-1,second);
+		break;
+
+	case 7:
+		length = getBMetric_7(first, first.size()/3-1, second);
+		break;
+
+	case 9:
+		length = getBMetric_9(first, first.size()/3-1, second);
+		break;
+
+	case 10:
+		length = getBMetric_9(first, first.size()/3, second);
+		break;
+
+	case 12:
+		length = getMetric_MOP(first, second);
+		break;
+
+	case 13:
+		length = getMetric_Hausdorff(first, second);
+		break;
+
+	/* signature-based similarity metric with chi-squared test combined with mean-closest */
+	case 14:
+		length = getSignatureMetric(first, second);
+		break;
+
+	/* adapted Procrustes distance */
+	case 15:
+		//length = getProcrustesMetric(first, second);
+		length = getProcrustesMetricSegment(first,second);
+		break;
+
+	case 16:
+		length = getEntropyMetric(first, second);
+		break;
+
+	default:
+		exit(1);
+		break;
+	}
+
+	return length;
+
+}
+
 
 
 const float getMetric_MOP(const VectorXf& first, const VectorXf& second)
@@ -1155,7 +1231,20 @@ const float getSignatureMetric(const Eigen::VectorXf& centroid,
 }
 
 
-/* get adapted Procrustes distance */
+/* get signature-based dissimilarity metric given two centroids */
+const float getSignatureMetric(const Eigen::VectorXf& first,
+							   const Eigen::VectorXf& second)
+{
+	std::vector<float> firstHist, secondHist;
+	/* get the bin-based histogram for signature */
+	getSignatureHist(first, BIN_SIZE, firstHist);
+	getSignatureHist(second, BIN_SIZE, secondHist);
+
+	return getSignatureMetric(first,second,firstHist,secondHist);
+}
+
+
+/* get adapted Procrustes distance. For example, if vec has 100 points, it will calculate mean of 94 points */
 const float getProcrustesMetric(const Eigen::VectorXf& first,
 								const Eigen::VectorXf& second)
 {
@@ -1420,7 +1509,8 @@ const float getEntropyMetric(const std::vector<float>& firstEntropy,
 	return sqrt(first*first+second*second);
 }
 
-/* get illustrative visualization metric for paper An Illustrative Visualization Framework for 3D Vector Fields */
+/* get illustrative visualization metric for paper An Illustrative Visualization Framework for 3D Vector Fields,
+ * given one entropy values and another as coordinate vector */
 const float getEntropyMetric(const std::vector<float>& firstEntropy,
 		                     const Eigen::VectorXf& array)
 {
@@ -1435,3 +1525,17 @@ const float getEntropyMetric(const std::vector<float>& firstEntropy,
 }
 
 
+/* get illustrative visualization metric for paper An Illustrative Visualization Framework for 3D Vector Fields,
+ * given two coordinate vectors */
+const float getEntropyMetric(const Eigen::VectorXf& first,
+		                     const Eigen::VectorXf& second)
+{
+
+	std::vector<float> firstEntropy, secondEntropy;
+
+	getLinearAngularEntropy(first, BUNDLE_SIZE, firstEntropy);
+	getLinearAngularEntropy(second, BUNDLE_SIZE, secondEntropy);
+
+	return getEntropyMetric(firstEntropy, secondEntropy);
+
+}
