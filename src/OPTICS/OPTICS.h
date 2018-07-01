@@ -2,6 +2,7 @@
 #define _OPTICS_H_
 
 #include "Predefined.h"
+#include "ValidityMeasurement.h"
 #include <string>
 #include <queue>
 

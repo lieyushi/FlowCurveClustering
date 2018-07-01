@@ -14,6 +14,8 @@ set( component_SOURCES
 	 PreComputing.cpp
 	 Silhouette.h
 	 Silhouette.cpp
+	 ValidityMeasurement.h
+	 ValidityMeasurement.cpp
    ) # Add the source-files for the component here
 
 include(CheckCXXCompilerFlag)

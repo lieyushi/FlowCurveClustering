@@ -6,6 +6,7 @@
 #include "IOHandler.h"
 #include "Initialization.h"
 #include "Silhouette.h"
+#include "ValidityMeasurement.h"
 
 struct Parameter
 {

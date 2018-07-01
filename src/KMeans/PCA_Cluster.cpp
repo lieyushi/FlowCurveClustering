@@ -208,7 +208,7 @@ void PCA_Cluster::performPC_KMeans(const MatrixXf& cArray,
 		}
 		std::cout << "K-means iteration " << ++tag << " completed, and moving is " 
 		<< moving << "!" << std::endl;
-	}while(abs(moving-before)/before >= 1.0e-2 && tag < 20/* && moving>2.0*/);
+	}while(abs(moving-before)/before >= 1.0e-2 && tag < 20 && moving>0.01);
 
 	gettimeofday(&end, NULL);
 	
@@ -325,6 +325,11 @@ void PCA_Cluster::performPC_KMeans(const MatrixXf& cArray,
 
 	tr.eventList.push_back("Clustering evaluation computing takes: ");
 	tr.timeList.push_back(to_string(delta)+"s");
+
+	ValidityMeasurement vm;
+	vm.computeValue(cArray, group);
+	tr.eventList.push_back("PCA Validity measure is: ");
+	tr.timeList.push_back(to_string(vm.f_c));
 
 	/* write value of the silhouette class */
 	IOHandler::writeReadme(entropy, sil);
@@ -509,7 +514,7 @@ void PCA_Cluster::performFullK_MeansByClusters(const Eigen::MatrixXf& data,
 		}
 		std::cout << "K-means iteration " << ++tag << " completed, and moving is " << moving 
 				  << "!" << std::endl;
-	}while(abs(moving-before)/before >= 1.0e-2 && tag < 20/* && moving > 5.0*/);
+	}while(abs(moving-before)/before >= 1.0e-2 && tag < 20 && moving > 0.01);
 	
 	gettimeofday(&end, NULL);
 	double delta = ((end.tv_sec - start.tv_sec) * 1000000u + end.tv_usec - start.tv_usec) / 1.e6;
@@ -645,6 +650,11 @@ void PCA_Cluster::performFullK_MeansByClusters(const Eigen::MatrixXf& data,
 
 	tr.eventList.push_back("Clustering evaluation computing takes: ");
 	tr.timeList.push_back(to_string(delta)+"s");
+
+	ValidityMeasurement vm;
+	vm.computeValue(normOption, data, group, object, isPBF);
+	tr.eventList.push_back("K-means Validity measure is: ");
+	tr.timeList.push_back(to_string(vm.f_c));
 
 	/* write value of the silhouette class */
 	IOHandler::writeReadme(entropy, sil);

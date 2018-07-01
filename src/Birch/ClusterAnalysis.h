@@ -5,6 +5,7 @@
 #include "IOHandler.h"
 #include "Silhouette.h"
 //#include "item_type.h"
+#include "ValidityMeasurement.h"
 #include <string>
 #include <sstream>
 #include <fstream>
@@ -424,6 +425,10 @@ void getClusterAnalysis(const vector<vector<float> >& trajectories,
 	activityList.push_back("Silhouette calculation takes: ");
 	timeList.push_back(timeTemp);
 
+	ValidityMeasurement vm;
+	vm.computeValue(normOption, equalArray, item_cids, object, isPBF);
+	activityList.push_back("Validity measure is: ");
+	timeList.push_back(vm.f_c);
 
 	/* compute the centroid coordinates of each clustered group */
 	Eigen::MatrixXf centroid = MatrixXf::Zero(numClusters,equalArray.cols());

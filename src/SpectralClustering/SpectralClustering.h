@@ -10,6 +10,7 @@
 
 #include "Predefined.h"
 #include "Evrot.h"
+#include "ValidityMeasurement.h"
 #include <unordered_set>
 #include <map>
 #include <queue>

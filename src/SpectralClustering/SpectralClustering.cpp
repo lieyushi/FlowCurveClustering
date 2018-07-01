@@ -248,12 +248,16 @@ void SpectralClustering::extractFeatures(const std::vector<int>& storage, const 
 		}
 	}
 
-
 	gettimeofday(&end, NULL);
 	timeTemp = ((end.tv_sec  - start.tv_sec) * 1000000u 
 			   + end.tv_usec - start.tv_usec) / 1.e6;
 	activityList.push_back("Feature extraction takes: ");
 	timeList.push_back(to_string(timeTemp)+" s");
+
+	ValidityMeasurement vm;
+	vm.computeValue(normOption, ds.dataMatrix, group, object, false);
+	activityList.push_back("SC Validity measure is: ");
+	timeList.push_back(to_string(vm.f_c));
 
 	std::cout << "Finishing extracting features!" << std::endl;	
 

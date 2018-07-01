@@ -466,6 +466,11 @@ void DensityClustering::extractFeatures(const float& radius_eps,
 	activityList.push_back("Feature extraction takes: ");
 	timeList.push_back(to_string(timeTemp) + " s");
 
+	ValidityMeasurement vm;
+	vm.computeValue(normOption, ds.dataMatrix, item_cids, object, isPBF);
+	activityList.push_back("Validity measure is: ");
+	timeList.push_back(to_string(vm.f_c));
+
 	std::cout << "Finishing extracting features!" << std::endl;
 	IOHandler::printFeature("norm" + to_string(normOption) + "_closest.vtk",
 			closest, sil.sCluster, ds.dimension);

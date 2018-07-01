@@ -281,6 +281,11 @@ void AffinityPropagation::extractFeatures(const std::vector<int>& storage, const
 	activityList.push_back("Feature extraction takes: ");
 	timeList.push_back(to_string(timeTemp)+" s");
 
+	ValidityMeasurement vm;
+	vm.computeValue(normOption, ds.dataMatrix, group, object, isPBF);
+	activityList.push_back("Validity measure is: ");
+	timeList.push_back(to_string(vm.f_c));
+
 	std::cout << "Finishing extracting features!" << std::endl;	
 
 	stringstream ss;

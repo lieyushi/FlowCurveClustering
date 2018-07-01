@@ -13,6 +13,7 @@
 #define _AHC_H_
 
 #include "Predefined.h"
+#include "ValidityMeasurement.h"
 #include <unordered_set>
 #include <map>
 #include <string>

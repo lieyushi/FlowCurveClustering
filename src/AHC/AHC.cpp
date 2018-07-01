@@ -89,6 +89,7 @@ void AHC::performClustering()
 		13: Hausdorff distance min_max(x_i,y_i)
 		14: Signature-based measure from http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=6231627
 		15: Procrustes distance take from http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=6787131
+		16: entropy-based distance metric taken from http://vis.cs.ucdavis.edu/papers/pg2011paper.pdf
 	*/
 	for(normOption=0;normOption<16;++normOption)
 	{
@@ -361,6 +362,11 @@ void AHC::extractFeatures(const std::vector<int>& storage, const std::vector<std
 			   + end.tv_usec - start.tv_usec) / 1.e6;
 	activityList.push_back("Feature extraction for norm "+to_string(normOption)+ " takes: ");
 	timeList.push_back(to_string(timeTemp)+" s");
+
+	ValidityMeasurement vm;
+	vm.computeValue(normOption, ds.dataMatrix, group, object, isPBF);
+	activityList.push_back("AHC Validity measure is: ");
+	timeList.push_back(to_string(vm.f_c));
 
 	std::cout << "Finishing extracting features!" << std::endl;	
 
