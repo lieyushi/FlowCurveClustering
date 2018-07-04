@@ -328,8 +328,7 @@ void PCA_Cluster::performPC_KMeans(const MatrixXf& cArray,
 
 	ValidityMeasurement vm;
 	vm.computeValue(cArray, group);
-	tr.eventList.push_back("PCA Validity measure is: ");
-	tr.timeList.push_back(to_string(vm.f_c));
+	IOHandler::writeReadMe(vm.f_c, "", "PCA", "validity measurement");
 
 	/* write value of the silhouette class */
 	IOHandler::writeReadme(entropy, sil);
@@ -653,8 +652,7 @@ void PCA_Cluster::performFullK_MeansByClusters(const Eigen::MatrixXf& data,
 
 	ValidityMeasurement vm;
 	vm.computeValue(normOption, data, group, object, isPBF);
-	tr.eventList.push_back("K-means Validity measure is: ");
-	tr.timeList.push_back(to_string(vm.f_c));
+	IOHandler::writeReadMe(vm.f_c, "", "k-means", "validity measurement");
 
 	/* write value of the silhouette class */
 	IOHandler::writeReadme(entropy, sil);

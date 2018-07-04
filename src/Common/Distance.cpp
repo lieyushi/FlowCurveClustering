@@ -1391,7 +1391,7 @@ const float getProcrustesMetricSegment(const Eigen::VectorXf& first,
 		/* get the point set of neighboring 7 points and average */
 		for(int j=PROCRUSTES_SIZE*i;j<rightIndex;++j)
 		{
-			location = j-i;
+			location = j-PROCRUSTES_SIZE*i;
 			for(int k=0;k<3;++k)
 			{
 				firstSegment(location,k)=first(3*j+k);

@@ -163,13 +163,17 @@ public:
 	static void writeReadme(const std::vector<ExtractedLine>& closest, 
 							const std::vector<ExtractedLine>& furthest);
 
-	/* write the average rotation of closest and furthest extraction */
+/* write the average rotation of closest and furthest extraction */
 	static void writeReadme(const float& closestAverage, const float& furthestAverage);
 
 	static void writeReadme(const string& comments);
 
-	/* write value of the silhouette class */
+/* write value of the silhouette class */
 	static void writeReadme(const float& entropy, const Silhouette& sil);
+
+/* print information into README */
+	static void writeReadMe(const float& value, const string& dataSet, const string& clustering,
+							const string& value_name);
 
 	static void writeGroupSize(const std::vector<int>& storage);
 

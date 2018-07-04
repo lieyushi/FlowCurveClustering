@@ -1515,3 +1515,20 @@ void IOHandler::generateGroups(const std::vector<std::vector<int> >& storage, co
 	readme.close();
 }
 
+
+/* print information into README */
+void IOHandler::writeReadMe(const float& value, const string& dataSet, const string& clustering,
+							const string& value_name)
+{
+	std::ofstream out_file("../dataset/README", ios::out|ios::app);
+	if (!out_file)
+	{
+		std::cout << "Error for creating README!" << std::endl;
+		exit(1);
+	}
+
+	out_file << "The " << value_name << " of " << clustering << " on dataset "
+			 << dataSet << " is " << value << std::endl;
+	out_file << std::endl;
+	out_file.close();
+}
