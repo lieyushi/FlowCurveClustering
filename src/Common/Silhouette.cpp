@@ -88,17 +88,22 @@ void Silhouette::computeValue(const Eigen::MatrixXf& array,
 		getMatrixM(array,group,storage,distM,idealDistM);
 	}
 
+	std::cout << "Compute silhouette..." << std::endl;
 	/* compute silhouette value */
 	computeSilhouette(array, group, isPBF, storage, distM);
 
+	std::cout << "silhouette is " << sAverage << std::endl;
+
+	std::cout << "Compute DB index..." << std::endl;
 	/* compute DB index */
 	computeDBIndex(array, group, storage);
-
+	std::cout << "DB index is " << dbIndex << std::endl;
 	/* compute Gamma statistic for distM and idealDistM */
 	if(!isPBF)
 	{
+		std::cout << "Compute gamma statistics..." << std::endl;
 		computeGammaStatistic(distM,idealDistM);
-
+		std::cout << "Gamma statistics is " << gammaStatistic << std::endl;
 		/* garbage collection for eigen::matrix */
 		distM.resize(0,0);
 		idealDistM.resize(0,0);
@@ -125,8 +130,6 @@ void Silhouette::computeValue(const int& normOption,
 
 	//groupNumber doesn't include noise group
 	sCluster = std::vector<float>(groupNumber, 0);
-
-
 	/* if the silhouett computing is not for PBF dataset, then would use distanceMatrix */
 	Eigen::MatrixXf idealDistM;
 	if(!isPBF)
@@ -134,17 +137,22 @@ void Silhouette::computeValue(const int& normOption,
 		getMatrixM(array,group,storage,idealDistM);
 	}
 
+	std::cout << "Compute silhouette..." << std::endl;
 	/* compute silhouette value */
 	computeSilhouette(array, group, storage, object, normOption);
+	std::cout << "Silhouette is " << sAverage << std::endl;
 
+	std::cout << "Compute DB index..." << std::endl;
 	/* compute DB index */
 	computeDBIndex(array, group, storage, object, normOption);
+	std::cout << "DB index is " << dbIndex << std::endl;
 
 	/* compute Gamma statistic for distM and idealDistM */
 	if(!isPBF)
 	{
+		std::cout << "Compute gamma statistics..." << std::endl;
 		computeGammaStatistic(idealDistM);
-
+		std::cout << "Gamma statistics is " << gammaStatistic << std::endl;
 		/* garbage collection for eigen::matrix */
 		idealDistM.resize(0,0);
 	}
@@ -255,7 +263,7 @@ void Silhouette::getMatrixM(const Eigen::MatrixXf& cArray,
 	idealDistM = Eigen::MatrixXf::Constant(Row,Row,1.0);
 
 	/* of course here is not related to distanceMatrix which is a global variable */
-#pragma omp parallel for schedule(dynamic) num_threads(8)
+#pragma omp parallel for schedule(static) num_threads(8)
 	for(int i=0;i<Row;++i)
 	{
 		for(int j=0;j<Row;++j)
@@ -268,7 +276,7 @@ void Silhouette::getMatrixM(const Eigen::MatrixXf& cArray,
 	}
 
 	const int& groupNumber = storage.size();
-#pragma omp parallel for schedule(dynamic) num_threads(8)
+#pragma omp parallel for schedule(static) num_threads(8)
 	for(int i=0;i<groupNumber;++i)
 	{
 		/* if i and j in same cluster, then set it to be zero */
@@ -299,7 +307,7 @@ void Silhouette::getMatrixM(const Eigen::MatrixXf& cArray,
 
 	/* find the ideal matrix inside which the idealDistM(i,j)==0 only if i and j in same cluster */
 	const int& groupNumber = storage.size();
-#pragma omp parallel for schedule(dynamic) num_threads(8)
+#pragma omp parallel for schedule(static) num_threads(8)
 	for(int i=0;i<groupNumber;++i)
 	{
 		/* if i and j in same cluster, then set it to be zero */
@@ -444,7 +452,7 @@ void Silhouette::computeSilhouette(const Eigen::MatrixXf& array,
 	}
 	sAverage = sSummation/group.size();
 
-#pragma omp parallel for schedule(dynamic) num_threads(8)
+#pragma omp parallel for schedule(static) num_threads(8)
 	for (int i = 0; i < sCluster.size(); ++i)
 	{
 		float& eachCluster = sCluster[i];
@@ -499,7 +507,7 @@ void Silhouette::computeSilhouette(const Eigen::MatrixXf& array,
 	}
 	sAverage = sSummation/(group.size());
 
-#pragma omp parallel for schedule(dynamic) num_threads(8)
+#pragma omp parallel for schedule(static) num_threads(8)
 	for (int i = 0; i < sCluster.size(); ++i)
 	{
 		float& eachCluster = sCluster[i];
@@ -532,7 +540,7 @@ void Silhouette::computeDBIndex(const Eigen::MatrixXf& array,
 	/* average distance of all elements in cluster to its centroid */
 	Eigen::VectorXf averageDist(groupNumber);
 
-#pragma omp parallel for schedule(dynamic) num_threads(8)
+#pragma omp parallel for schedule(static) num_threads(8)
 	for(int i=0;i<groupNumber;++i)
 	{
 		Eigen::VectorXf tempCentroid = Eigen::VectorXf::Zero(Column);
@@ -598,7 +606,7 @@ void Silhouette::computeDBIndex(const Eigen::MatrixXf& array,
 	/* average distance of all elements in cluster to its centroid */
 	Eigen::VectorXf averageDist(groupNumber);
 
-#pragma omp parallel for schedule(dynamic) num_threads(8)
+#pragma omp parallel for schedule(static) num_threads(8)
 	for(int i=0;i<groupNumber;++i)
 	{
 		Eigen::VectorXf tempCentroid = Eigen::VectorXf::Zero(Column);

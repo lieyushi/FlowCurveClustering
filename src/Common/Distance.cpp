@@ -2,8 +2,7 @@
 
 
 const int& PROCRUSTES_SIZE = 7;
-
-float** distanceMatrix = NULL;
+float **distanceMatrix = NULL;
 
 /* ------------------ Compute norm 3 for trajectories ------------------------- */
 // given a center trajectory and index of pre-stored vector 
@@ -1082,31 +1081,32 @@ bool getDistanceMatrix(const MatrixXf& data,
 				       const int& normOption,
 					   const MetricPreparation& object)
 {
-	try
-	{
-		const int& Row = data.rows();
-		distanceMatrix = new float*[Row];
-	#pragma omp parallel for schedule(dynamic) num_threads(8)
-		for (int i = 0; i < Row; ++i)
-		{
-			distanceMatrix[i] = new float[Row];
-			for (int j = 0; j < Row; ++j)
-			{
-				/* don't wish to waste computation on diagonal element */
-				if(i==j)
-					distanceMatrix[i][j] = 0.0;
-				else
-					distanceMatrix[i][j] = getDisimilarity(data.row(i), data.row(j), i, j, normOption, object);
-			}
-		}
+	const int& Row = data.rows();
+	distanceMatrix = new float*[Row];
 
-		std::cout << "Finished computing distance matrix!" << std::endl;
-		return true;
-	}
-	catch(std::bad_alloc& exc)
+#pragma omp parallel for schedule(static) num_threads(8)
+	for (int i = 0; i < Row; ++i)
 	{
-		return false;
+		distanceMatrix[i] = new float[Row];
+		for (int j = 0; j < Row; ++j)
+		{
+			/* don't wish to waste computation on diagonal element */
+			if(i==j)
+				distanceMatrix[i][j] = 0.0;
+			else
+				distanceMatrix[i][j] = getDisimilarity(data, i, j, normOption, object);
+		}
 	}
+	std::cout << "Distance between 0 and 1 is " << distanceMatrix[0][1] << std::endl;
+	std::cout << "Distance between 0 and 1 is " << distanceMatrix[1][0] << std::endl;
+	std::cout << getDisimilarity(data, 0, 1, normOption, object) << std::endl;
+	std::cout << getDisimilarity(data, 1, 0, normOption, object) << std::endl;
+	std::cout << "Finished computing distance matrix!" << std::endl;
+	if(distanceMatrix)
+		return true;
+	else
+		return false;
+
 }
 
 
@@ -1114,7 +1114,7 @@ void deleteDistanceMatrix(const int& Row)
 {
 	if(distanceMatrix)
 	{
-	#pragma omp parallel for schedule(dynamic) num_threads(8)	
+	#pragma omp parallel for schedule(static) num_threads(8)
 		for (int i = 0; i < Row; ++i)
 		{
 			if(distanceMatrix[i])

@@ -55,7 +55,7 @@ void KMedoids::getMedoids(FeatureLine& fline,
 		centerTemp = clusterCenter;
 
 	/* clear streamline indices for each cluster */
-	#pragma omp parallel for schedule(dynamic) num_threads(8)
+	#pragma omp parallel for schedule(static) num_threads(8)
 		for (int i = 0; i < numOfClusters; ++i)
 		{
 			neighborVec[i].clear();
@@ -146,7 +146,7 @@ void KMedoids::getMedoids(FeatureLine& fline,
 
 
 	// set cluster group number and size number 
-#pragma omp parallel for schedule(dynamic) num_threads(8)
+#pragma omp parallel for schedule(static) num_threads(8)
 	for (int i = 0; i < Row; ++i)
 	{
 		fline.group[i] = increasingOrder[recorder[i]];
@@ -290,7 +290,7 @@ void KMedoids::computeMedoids(MatrixXf& centerTemp,
 	if(isSample)//centroid is from samples with minimal L1 summation
 				//use Voronoi iteration https://en.wikipedia.org/wiki/K-medoids
 	{
-	#pragma omp parallel for schedule(dynamic) num_threads(8)
+	#pragma omp parallel for schedule(static) num_threads(8)
 		for(int i=0;i<neighborVec.size();++i)
 		{
 			const vector<int>& clusMember = neighborVec[i];
@@ -326,7 +326,7 @@ void KMedoids::computeMedoids(MatrixXf& centerTemp,
 		//reference at https://en.wikipedia.org/wiki/Geometric_median
 	{
 		MatrixXf originCenter = centerTemp;
-	#pragma omp parallel for schedule(dynamic) num_threads(8)
+	#pragma omp parallel for schedule(static) num_threads(8)
 		for(int i=0;i<numOfClusters;++i)
 		{
 			const vector<int>& clusMember = neighborVec[i];

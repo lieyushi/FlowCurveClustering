@@ -139,7 +139,7 @@ static void load_items( const Eigen::MatrixXf& matrixData,
 						std::vector<item_type<dim> >& items)
 {
     items.resize(matrixData.rows());
-#pragma omp parallel for schedule(dynamic) num_threads(8)
+#pragma omp parallel for schedule(static) num_threads(8)
     for (int i = 0; i < items.size(); ++i)
     {
     	const Eigen::VectorXf& eachRow = matrixData.row(i);
@@ -397,7 +397,7 @@ void getClusterAnalysis(const vector<vector<float> >& trajectories,
 
 
 
-#pragma omp parallel for schedule(dynamic) num_threads(8)
+#pragma omp parallel for schedule(static) num_threads(8)
 	for (int i = 0; i < item_cids.size(); ++i)
 		item_cids[i]=increasingOrder[item_cids[i]];
 
@@ -433,7 +433,7 @@ void getClusterAnalysis(const vector<vector<float> >& trajectories,
 	/* compute the centroid coordinates of each clustered group */
 	Eigen::MatrixXf centroid = MatrixXf::Zero(numClusters,equalArray.cols());
 	vector<vector<float> > cenVec(numClusters);
-#pragma omp parallel for schedule(dynamic) num_threads(8)
+#pragma omp parallel for schedule(static) num_threads(8)
 	for (int i=0;i<numClusters;++i)
 	{
 		const std::vector<int>& groupRow = storage[i];
@@ -449,7 +449,7 @@ void getClusterAnalysis(const vector<vector<float> >& trajectories,
 	vector<vector<float> > closest(numClusters);
 	vector<vector<float> > furthest(numClusters);
 
-#pragma omp parallel for schedule(dynamic) num_threads(8)
+#pragma omp parallel for schedule(static) num_threads(8)
 	for (int i=0;i<numClusters;++i)
 	{
 		float minDist = FLT_MAX;

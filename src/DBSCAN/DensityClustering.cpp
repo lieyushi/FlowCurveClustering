@@ -364,7 +364,7 @@ void DensityClustering::extractFeatures(const float& radius_eps,
 
 	numClusters = groupNo + 1; /* plus -1 as group */
 
-#pragma omp parallel for schedule(dynamic) num_threads(8)
+#pragma omp parallel for schedule(static) num_threads(8)
 	for (int i = 0; i < nodeVec.size(); ++i) {
 		if (nodeVec[i].group != -1)
 			nodeVec[i].group = increasingOrder[nodeVec[i].group];
@@ -422,7 +422,7 @@ void DensityClustering::extractFeatures(const float& radius_eps,
 	Eigen::MatrixXf centroid = MatrixXf::Zero(numClusters,
 			ds.dataMatrix.cols());
 	vector<vector<float> > cenVec(numClusters);
-#pragma omp parallel for schedule(dynamic) num_threads(8)
+#pragma omp parallel for schedule(static) num_threads(8)
 	for (int i = 0; i < numClusters; ++i) {
 		const std::vector<int>& groupRow = storage[i];
 		for (int j = 0; j < groupRow.size(); ++j) {
@@ -437,7 +437,7 @@ void DensityClustering::extractFeatures(const float& radius_eps,
 	vector<vector<float> > closest(numClusters);
 	vector<vector<float> > furthest(numClusters);
 
-#pragma omp parallel for schedule(dynamic) num_threads(8)
+#pragma omp parallel for schedule(static) num_threads(8)
 	for (int i = 0; i < numClusters; ++i) {
 		float minDist = FLT_MAX;
 		float maxDist = -10;

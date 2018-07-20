@@ -146,7 +146,7 @@ void AffinityPropagation::setLabel(vector<vector<int> >& neighborVec, vector<int
 	std::vector<Ensemble> nodeVec(storage.size());
 
 	std::cout << "Cluster label setting begins with " << nodeVec.size() << " clusters..." << std::endl;
-#pragma omp parallel for schedule(dynamic) num_threads(8)
+#pragma omp parallel for schedule(static) num_threads(8)
 	for(int i=0;i<nodeVec.size();++i)
 	{
 		nodeVec[i].size = storage[i];
@@ -161,7 +161,7 @@ void AffinityPropagation::setLabel(vector<vector<int> >& neighborVec, vector<int
 	storage = std::vector<int>(nodeVec.size());
 	centroid = Eigen::MatrixXf(nodeVec.size(), ds.dataMatrix.cols());
 
-#pragma omp parallel for schedule(dynamic) num_threads(8)
+#pragma omp parallel for schedule(static) num_threads(8)
 	for(int i=0;i<nodeVec.size();++i)
 	{
 		neighborVec[i] = nodeVec[i].element;
@@ -238,7 +238,7 @@ void AffinityPropagation::extractFeatures(const std::vector<int>& storage, const
 
 	/* extract the closest and furthest streamlines to centroid */
 
-#pragma omp parallel for schedule(dynamic) num_threads(8)
+#pragma omp parallel for schedule(static) num_threads(8)
 	for (int i=0;i<numberOfClusters;++i)
 	{
 		float minDist = FLT_MAX;
@@ -265,7 +265,7 @@ void AffinityPropagation::extractFeatures(const std::vector<int>& storage, const
 	}
 
 	std::vector<std::vector<float> > center_vec(numberOfClusters, vector<float>(Column));
-#pragma omp parallel for schedule(dynamic) num_threads(8)
+#pragma omp parallel for schedule(static) num_threads(8)
 	for (int i = 0; i < center_vec.size(); ++i)
 	{
 		for (int j = 0; j < Column; ++j)
@@ -501,7 +501,7 @@ void AffinityPropagation::getMatrixS(Eigen::MatrixXf& matrixS)
 	}
 
 	/* assign medianValue to diagonal matrix element */
-#pragma omp parallel for schedule(dynamic) num_threads(8)
+#pragma omp parallel for schedule(static) num_threads(8)
 	for(int i=0;i<rows;++i)
 		matrixS(i,i) = initialValue;
 
@@ -529,7 +529,7 @@ void AffinityPropagation::updateResponsibility(Eigen::MatrixXf& matrixR, const E
 											  const Eigen::MatrixXf& matrixS)
 {
 	const int& rows = matrixR.rows();
-#pragma omp parallel for schedule(dynamic) num_threads(8)
+#pragma omp parallel for schedule(static) num_threads(8)
 	for(int i=0;i<rows;++i)
 	{
 		for(int k=0;k<rows;++k)
@@ -554,7 +554,7 @@ void AffinityPropagation::updateResponsibility(Eigen::MatrixXf& matrixR, const E
 void AffinityPropagation::updateAvailability(Eigen::MatrixXf& matrixA, const Eigen::MatrixXf& matrixR)
 {
 	const int& rows = matrixR.rows();
-#pragma omp parallel for schedule(dynamic) num_threads(8)
+#pragma omp parallel for schedule(static) num_threads(8)
 	for(int i=0;i<rows;++i)
 	{
 		for(int k=0;k<rows;++k)
@@ -608,7 +608,7 @@ void AffinityPropagation::getGroupAssignment(const Eigen::MatrixXf& matrixR, con
 
 	const int& centerSize = centerVec.size();
 	/* get group tag information for each candidate streamline */
-#pragma omp parallel for schedule(dynamic) num_threads(8)
+#pragma omp parallel for schedule(static) num_threads(8)
 	for(int i=0;i<rows;++i)
 	{
 		int index, element;

@@ -316,7 +316,7 @@ void AHC::extractFeatures(const std::vector<int>& storage, const std::vector<std
 
 	/* extract the closest and furthest streamlines to centroid */
 
-#pragma omp parallel for schedule(dynamic) num_threads(8)
+#pragma omp parallel for schedule(static) num_threads(8)
 	for (int i=0;i<numberOfClusters;++i)
 	{
 		float minDist = FLT_MAX;
@@ -343,7 +343,7 @@ void AHC::extractFeatures(const std::vector<int>& storage, const std::vector<std
 	}
 
 	std::vector<std::vector<float> > center_vec(numberOfClusters, vector<float>(Column));
-#pragma omp parallel for schedule(dynamic) num_threads(8)
+#pragma omp parallel for schedule(static) num_threads(8)
 	for (int i = 0; i < center_vec.size(); ++i)
 	{
 		for (int j = 0; j < Column; ++j)

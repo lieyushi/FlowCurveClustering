@@ -107,11 +107,10 @@ void featureExtraction(const int& number,
 	/* PCA computation is always using brute-force filling arrays by last point */
 	IOHandler::expandArray(data, dataVec, dimension, maxElements);
 
-	std::cout << "PCA-based clustering starts..." << std::endl;
+	
 	ss << strName << "_PCAClustering";
 	gettimeofday(&start, NULL);
-	performPCA_Cluster(ss.str(), dataVec, cluster, dimension, fullName, maxElements, data, tr, sil);
-	std::cout << "Max element is " << maxElements << std::endl;
+	//performPCA_Cluster(ss.str(), dataVec, cluster, dimension,fullName, maxElements, data, tr, sil);
 	ss.str("");
 	ss.clear();
 	gettimeofday(&end, NULL);
@@ -121,6 +120,8 @@ void featureExtraction(const int& number,
 	tr.timeList.push_back(to_string(timeTemp)+"s");
 
 	sil.reset();
+
+	//IOHandler::writeReadme("PCA Silhouette of each cluster is ", silhou.sCluster);
 
 	/*  0: Euclidean Norm
 		1: Fraction Distance Metric
@@ -146,10 +147,9 @@ void featureExtraction(const int& number,
 	for(int i = 0;i<17;i++)
 	{
 		/* in this paper, we only care about those seven metrics */
-		if(i!=0&& i!=1 && i!=2 && i!=4 && i!=12 && i!=14 && i!=15 && i!=16)
+		if(/*i!=0 && i!=1 && i!=2 && i!=4 && i!=12 &&  i!=14  && i!=15 &&*/i!=16)
 			continue;
 
-		std::cout << "Kmeans on norm " << i << " starts..." << std::endl;
 		gettimeofday(&start, NULL);
 		ss << strName << "_KMeans";
 		performK_Means(ss.str(), dataVec, cluster, dimension, fullName, maxElements, data,i, tr, sil);

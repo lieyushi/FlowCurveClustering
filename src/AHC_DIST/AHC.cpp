@@ -164,7 +164,7 @@ void AHC::hierarchicalMerging(std::vector<Ensemble>& nodeVec) {
 //could have used vector, but since there're too many operations inside so should use set
 	nodeVec = std::vector<Ensemble>(Row);
 //create node in forest structure
-#pragma omp parallel for schedule(dynamic) num_threads(8)
+#pragma omp parallel for schedule(static) num_threads(8)
 	for (int i = 0; i < nodeVec.size(); ++i) {
 		nodeVec[i].index = i;
 		nodeVec[i].element.push_back(i);
@@ -345,7 +345,7 @@ void AHC::extractFeatures(const std::vector<int>& storage,
 
 	/* extract the closest and furthest streamlines to centroid */
 
-#pragma omp parallel for schedule(dynamic) num_threads(8)
+#pragma omp parallel for schedule(static) num_threads(8)
 	for (int i = 0; i < numberOfClusters; ++i) {
 		float minDist = FLT_MAX;
 		float maxDist = -10;
@@ -370,7 +370,7 @@ void AHC::extractFeatures(const std::vector<int>& storage,
 
 	std::vector<std::vector<float> > center_vec(numberOfClusters,
 			vector<float>(Column));
-#pragma omp parallel for schedule(dynamic) num_threads(8)
+#pragma omp parallel for schedule(static) num_threads(8)
 	for (int i = 0; i < center_vec.size(); ++i) {
 		for (int j = 0; j < Column; ++j) {
 			center_vec[i][j] = centroid(i, j);

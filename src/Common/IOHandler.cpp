@@ -103,7 +103,7 @@ void IOHandler::readFile(const string& fileName,
 {
 	vertexCount = trajectoryNum*(Frame-1);
 	dataVec = std::vector< std::vector<float> >(trajectoryNum, std::vector<float> ((Frame-1)*dimension));
-#pragma omp parallel for schedule(dynamic) num_threads(8)
+#pragma omp parallel for schedule(static) num_threads(8)
 	/* from 1 to Frame-1 then pay attention to i index */
 	for (int i = 1; i < Frame; ++i)
 	{
@@ -382,7 +382,7 @@ void IOHandler::expandArray(MatrixXf& data,
 							const int& maxElements)
 {
 	data = Eigen::MatrixXf(dataVec.size(), maxElements);
-#pragma omp parallel for schedule(dynamic) num_threads(8)
+#pragma omp parallel for schedule(static) num_threads(8)
 	for (int i = 0; i < dataVec.size(); ++i)
 	{
 		const std::vector<float>& eachVec = dataVec[i];
@@ -411,7 +411,7 @@ void IOHandler::uniformArcSampling(MatrixXf& data,
 	/* assign memory for required matrix */
 	const int& totalSize = 3*maxElements;
 	data = Eigen::MatrixXf(numOfRows, totalSize);
-#pragma omp parallel for schedule(dynamic) num_threads(8)
+#pragma omp parallel for schedule(static) num_threads(8)
 	/* compute total length of streamline and record each cumulative length information */
 	for(int i=0;i<numOfRows;++i)
 	{
@@ -489,7 +489,7 @@ void IOHandler::sampleArray(MatrixXf& data,
 	std::cout << maxElements << std::endl;*/
 	//temp.row(i) = Eigen::VectorXf::Map(&each[0], 10); //must match the column size
 	data = Eigen::MatrixXf(dataVec.size(), maxElements);
-#pragma omp parallel for schedule(dynamic) num_threads(8)
+#pragma omp parallel for schedule(static) num_threads(8)
 	for (int i = 0; i < dataVec.size(); ++i)
 	{
 		const std::vector<float>& eachVec = dataVec[i]; //cached vector<float>
@@ -550,7 +550,7 @@ void IOHandler::formArray(float ***data,
 						  const int& dimension)
 {
 	*data = new float*[dataVec.size()];
-#pragma omp parallel for schedule(dynamic) num_threads(8)
+#pragma omp parallel for schedule(static) num_threads(8)
 	for (int i = 0; i < dataVec.size(); ++i)
 	{
 		const int& arraySize = dataVec[i].size();
@@ -683,7 +683,7 @@ void IOHandler::deleteArray(float **data,
 {
 	if(data==NULL)
 		return;
-#pragma omp parallel for schedule(dynamic) num_threads(8)
+#pragma omp parallel for schedule(static) num_threads(8)
 	for (int i = 0; i < row; ++i)
 	{
 		delete[] data[i];
@@ -899,7 +899,7 @@ void IOHandler::assignVec(std::vector<int>& cluster,
 						  const std::vector<MeanLine>& centerMass)
 {
 	cluster = std::vector<int>(centerMass.size());
-#pragma omp parallel for schedule(dynamic) num_threads(8)
+#pragma omp parallel for schedule(static) num_threads(8)
 	for (int i = 0; i < cluster.size(); ++i)
 	{
 		cluster[i] = centerMass[i].cluster;
@@ -1054,7 +1054,7 @@ void IOHandler::expandArray(std::vector<std::vector<float> >& equalArray,
 {
 	equalArray = std::vector<std::vector<float> >(trajectories.size(),
 				 std::vector<float>(maxElement));
-#pragma omp parallel for schedule(dynamic) num_threads(8)
+#pragma omp parallel for schedule(static) num_threads(8)
 	for (int i = 0; i < trajectories.size(); ++i)
 	{
 		std::vector<float>& tempRow = equalArray[i];

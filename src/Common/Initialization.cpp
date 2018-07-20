@@ -13,14 +13,14 @@ void Initialization::generateRandomPos(MatrixXf& clusterCenter,
 
 	MatrixXf diagonalRange = MatrixXf::Zero(column,column);
 
-#pragma omp parallel for schedule(dynamic) num_threads(8)
+#pragma omp parallel for schedule(static) num_threads(8)
 	for (int i = 0; i < column; ++i)
 	{
 		diagonalRange(i,i) = diffRange(i);
 	}
 	clusterCenter = (clusterCenter+MatrixXf::Constant(Cluster,column,1.0))/2.0;
 
-#pragma omp parallel for schedule(dynamic) num_threads(8)
+#pragma omp parallel for schedule(static) num_threads(8)
 	for (int i = 0; i < Cluster; ++i)
 	{
 		clusterCenter.row(i) = clusterCenter.row(i)*diagonalRange+range.row(1);
@@ -65,7 +65,7 @@ void Initialization::generateFromSamples(MatrixXf& clusterCenter,
 	assert(chosen==Cluster);
 	assert(column==cArray.cols());
 
-#pragma omp parallel for schedule(dynamic) num_threads(8)
+#pragma omp parallel for schedule(static) num_threads(8)
 	for (int i = 0; i < Cluster; ++i)
 	{
 		clusterCenter.row(i) = cArray.row(number[i]);
@@ -125,7 +125,7 @@ void Initialization::generateFarSamples(MatrixXf& clusterCenter,
 		chosen++;
 	}
 
-#pragma omp parallel for schedule(dynamic) num_threads(8)
+#pragma omp parallel for schedule(static) num_threads(8)
 	for (int i = 0; i < Cluster; ++i)
 	{
 		clusterCenter.row(i) = cArray.row(number[i]);

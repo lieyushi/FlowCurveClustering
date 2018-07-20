@@ -43,12 +43,12 @@ void PCA_Cluster::performSVD(MatrixXf& cArray,
 {
 	Eigen::MatrixXf temp = data;
 
-#pragma omp parallel for schedule(static) num_threads(8)
+#pragma omp parallel for schedule(dynamic) num_threads(8)
 	for (int i = 0; i < Column; ++i)
 	{
 		meanTrajectory(i) = temp.transpose().row(i).mean();
 	}
-#pragma omp parallel for schedule(static) num_threads(8)
+#pragma omp parallel for schedule(dynamic) num_threads(8)
 	for (int i = 0; i < Row; ++i)
 	{
 		temp.row(i) = temp.row(i)-meanTrajectory.transpose();
@@ -84,7 +84,7 @@ void PCA_Cluster::performSVD(MatrixXf& cArray,
 	}
 
 	cArray = MatrixXf(Row, PC_Number);
-#pragma omp parallel for schedule(static) num_threads(8)
+#pragma omp parallel for schedule(dynamic) num_threads(8)
 	for (int i = 0; i < PC_Number; ++i)
 	{
 		cArray.transpose().row(i) = coefficient.transpose().row(i);
@@ -134,6 +134,8 @@ void PCA_Cluster::performPC_KMeans(const MatrixXf& cArray,
 		break;
 	}
 
+	std::cout << "Initialization completed!" << std::endl;
+
 	float moving=1000, tempMoving, before;
 	int storage[Cluster];
 
@@ -156,7 +158,7 @@ void PCA_Cluster::performPC_KMeans(const MatrixXf& cArray,
 		memset(storage,0,sizeof(int)*Cluster);
 		centerTemp = MatrixXf::Zero(Cluster, PC_Number);
 
-	#pragma omp parallel for schedule(static) num_threads(8)
+	#pragma omp parallel for schedule(dynamic) num_threads(8)
 		for (int i = 0; i < Cluster; ++i)
 		{
 			neighborVec[i].clear();
@@ -206,7 +208,7 @@ void PCA_Cluster::performPC_KMeans(const MatrixXf& cArray,
 		}
 		std::cout << "K-means iteration " << ++tag << " completed, and moving is " 
 		<< moving << "!" << std::endl;
-	}while(abs(moving-before)/before >= 1.0e-2 && tag < 20 && moving>0.01);
+	}while(abs(moving-before)/before >= 1.0e-2 && tag < 20/* && moving>2.0*/);
 
 	gettimeofday(&end, NULL);
 	
@@ -245,7 +247,7 @@ void PCA_Cluster::performPC_KMeans(const MatrixXf& cArray,
 	entropy = -entropy/log2f(groupNo);
 
 
-#pragma omp parallel for schedule(static) num_threads(8)
+#pragma omp parallel for schedule(dynamic) num_threads(8)	
 	for (int i = 0; i < Row; ++i)
 	{
 		group[i] = increasingOrder[recorder[i]];
@@ -284,9 +286,10 @@ void PCA_Cluster::performPC_KMeans(const MatrixXf& cArray,
 			furthest.push_back(ExtractedLine(fartestIndex,increasingOrder[i]));
 		}
 	}
+
 	MatrixXf pcSing(PC_Number,Column);
 
-#pragma omp parallel for schedule(static) num_threads(8)
+#pragma omp parallel for schedule(dynamic) num_threads(8)
 	for (int i = 0; i < PC_Number; ++i)
 	{
 		pcSing.row(i) = SingVec.row(i);
@@ -308,10 +311,14 @@ void PCA_Cluster::performPC_KMeans(const MatrixXf& cArray,
 		}
 	}
 
+	std::cout << "Mean position re-mapped to trajectory space completed!" << std::endl;
+
 /* Silhouette effect */
 	gettimeofday(&start, NULL);
 
 	sil.computeValue(cArray,group,groupNo,isPBF);
+
+	std::cout << "Silhouette computation completed!" << std::endl;
 
 	gettimeofday(&end, NULL);
 	delta = ((end.tv_sec  - start.tv_sec) * 1000000u + end.tv_usec - start.tv_usec) / 1.e6;
@@ -319,13 +326,8 @@ void PCA_Cluster::performPC_KMeans(const MatrixXf& cArray,
 	tr.eventList.push_back("Clustering evaluation computing takes: ");
 	tr.timeList.push_back(to_string(delta)+"s");
 
-	ValidityMeasurement vm;
-	vm.computeValue(cArray, group);
-	IOHandler::writeReadMe(vm.f_c, "", "PCA", "validity measurement");
-
 	/* write value of the silhouette class */
 	IOHandler::writeReadme(entropy, sil);
-
 }
 
 
@@ -435,6 +437,8 @@ void PCA_Cluster::performFullK_MeansByClusters(const Eigen::MatrixXf& data,
 		break;
 	}
 
+	std::cout << "Initialization completed!" << std::endl;
+
 	float moving=1000, tempMoving,/* dist, tempDist, */before;
 	int *storage = new int[Cluster]; // used to store number inside each cluster
 	MatrixXf centerTemp;
@@ -455,7 +459,7 @@ void PCA_Cluster::performFullK_MeansByClusters(const Eigen::MatrixXf& data,
 		centerTemp = MatrixXf::Zero(Cluster,Column);
 
 	/* clear streamline indices for each cluster */
-	#pragma omp parallel for schedule(static) num_threads(8)
+	#pragma omp parallel for schedule(dynamic) num_threads(8)
 		for (int i = 0; i < Cluster; ++i)
 		{
 			neighborVec[i].clear();
@@ -505,7 +509,7 @@ void PCA_Cluster::performFullK_MeansByClusters(const Eigen::MatrixXf& data,
 		}
 		std::cout << "K-means iteration " << ++tag << " completed, and moving is " << moving 
 				  << "!" << std::endl;
-	}while(abs(moving-before)/before >= 1.0e-2 && tag < 20 && moving > 0.01);
+	}while(abs(moving-before)/before >= 1.0e-2 && tag < 20/* && moving > 5.0*/);
 	
 	gettimeofday(&end, NULL);
 	double delta = ((end.tv_sec - start.tv_sec) * 1000000u + end.tv_usec - start.tv_usec) / 1.e6;
@@ -545,7 +549,7 @@ void PCA_Cluster::performFullK_MeansByClusters(const Eigen::MatrixXf& data,
 	IOHandler::generateGroups(neighborVec);
 
 	// set cluster group number and size number 
-#pragma omp parallel for schedule(static) num_threads(8)
+#pragma omp parallel for schedule(dynamic) num_threads(8)
 	for (int i = 0; i < Row; ++i)
 	{
 		group[i] = increasingOrder[recorder[i]];
@@ -608,6 +612,8 @@ void PCA_Cluster::performFullK_MeansByClusters(const Eigen::MatrixXf& data,
 		}
 	}
 	delete[] storage;
+	std::cout << "Has taken closest and furthest out!" << std::endl;
+
 
 /* Silhouette computation started */
 
@@ -621,14 +627,18 @@ void PCA_Cluster::performFullK_MeansByClusters(const Eigen::MatrixXf& data,
 	{
 		deleteDistanceMatrix(data.rows());
 
-		getDistanceMatrix(data, normOption, object);
-
-		std::cout << "Distance between 0 and 1 is " << distanceMatrix[0][1] << std::endl;
+		if(!getDistanceMatrix(data, normOption, object))
+		{
+			std::cout << "Failure to compute distance matrix!" << std::endl;
+		}
 	}
 
 	gettimeofday(&start, NULL);
+	std::cout << "Final cluster has " << groupNo << " groups!" << std::endl;
 
 	sil.computeValue(normOption,data,Row,Column,group,object,groupNo,isPBF);
+
+	std::cout << "Silhouette computation completed!" << std::endl;
 
 	gettimeofday(&end, NULL);
 	delta = ((end.tv_sec  - start.tv_sec) * 1000000u + end.tv_usec - start.tv_usec) / 1.e6;
@@ -636,11 +646,6 @@ void PCA_Cluster::performFullK_MeansByClusters(const Eigen::MatrixXf& data,
 	tr.eventList.push_back("Clustering evaluation computing takes: ");
 	tr.timeList.push_back(to_string(delta)+"s");
 
-	ValidityMeasurement vm;
-	vm.computeValue(normOption, data, group, object, isPBF);
-	IOHandler::writeReadMe(vm.f_c, "", "k-means", "validity measurement");
-
 	/* write value of the silhouette class */
 	IOHandler::writeReadme(entropy, sil);
-
 }
