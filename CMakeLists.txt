@@ -148,9 +148,9 @@ target_link_libraries(affinityPropagation ${ALL_LIBS})
 
 ###############################################
 # generate readClustering executable
-# set( RC_SRC
-#   )
-# file( GLOB RC_SRC ${CMAKE_CURRENT_SOURCE_DIR}/src/ReadClustering/*.cpp )  
-# add_executable(readClustering ${RC_SRC})
-# target_link_libraries(readClustering ${ALL_LIBS})
+set( RC_SRC
+   )
+file( GLOB RC_SRC ${CMAKE_CURRENT_SOURCE_DIR}/src/ReadClustering/*.cpp )  
+add_executable(readClustering ${RC_SRC})
+target_link_libraries(readClustering ${ALL_LIBS})
 ###############################################
