@@ -20,10 +20,6 @@ ReadClustering::~ReadClustering() {
 /* the public function called by main.cpp */
 void ReadClustering::getEvaluation(const char* fileName)
 {
-	/* get the file path */
-	stringstream ss;
-	ss << "../dataset/" << fileName;
-
 	int isPBFInput;
 	std::cout << "Is it a PBF dataset? 1.Yes, 0.No." << std::endl;
 	std::cin >> isPBFInput;
@@ -31,7 +27,7 @@ void ReadClustering::getEvaluation(const char* fileName)
 	isPBF = (isPBFInput==1);
 
 	/* read data into ds */
-	readData(ss.str().c_str());
+	readData(fileName);
 
 	/* compute the evaluation */
 	computeEvaluation();
