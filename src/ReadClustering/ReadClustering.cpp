@@ -27,6 +27,7 @@ void ReadClustering::getEvaluation(const char* fileName)
 	isPBF = (isPBFInput==1);
 
 	/* read data into ds */
+	std::cout << fileName << std::endl;
 	readData(fileName);
 
 	/* compute the evaluation */
@@ -163,13 +164,19 @@ void ReadClustering::readData(const char* fileName)
 			else
 			{
 				found = line.find("_");
+				found_int = line.find("norm");
 				if(found==std::string::npos)
 				{
-					std::cout << "Error for retrieval of the file!" << std::endl;
-					exit(1);
+					norm_choice = line;
 				}
-				norm_choice = line.substr(0,found);
-
+				else if(found_int>found)
+				{
+					norm_choice = line.substr(found_int);
+				}
+				else if(found_int<found)
+				{
+					norm_choice = line.substr(found_int, found);
+				}
 			}
 
 			getline(fin,line);
