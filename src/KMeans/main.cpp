@@ -29,6 +29,7 @@ void performK_Means(const string& fileName,
 
 int initializationOption;
 bool isPBF;
+int post_processing;
 
 
 int main(int argc, char* argv[])
@@ -145,7 +146,7 @@ void featureExtraction(const int& number,
 
 	for(int i = 0;i<17;i++)
 	{
-		/* in this paper, we only care about those seven metrics */
+		 in this paper, we only care about those seven metrics
 		if(i!=0&& i!=1 && i!=2 && i!=4 && i!=12 && i!=14 && i!=15 && i!=16)
 			continue;
 
@@ -184,6 +185,11 @@ void performPCA_Cluster(const string& fileName,
 	std::vector<ExtractedLine> closest;
 	std::vector<ExtractedLine> furthest;
 	std::vector<int> totalNum(dataVec.size());
+
+	// choose an appropriate post processing technique for PCA rank space
+	std::cout << "Please select a post-processing: 1. k-means, 2. AHC-average." << std::endl;
+	std::cin >> post_processing;
+	assert(post_processing==1 || post_processing==2);
 
 	PCA_Cluster::performPCA_Clustering(data, dataVec.size(), maxElements, centerMass,
 			           group, totalNum, closest, furthest, cluster, tr, sil);
@@ -226,7 +232,10 @@ void performPCA_Cluster(const string& fileName,
 
 	std::cout << "Finish printing vtk for pca-clustering result!" << std::endl;
 
-	IOHandler::printToFull(dataVec, group, totalNum, string("PCA_KMeans"), fullName, dimension);
+	if(post_processing==1)
+		IOHandler::printToFull(dataVec, group, totalNum, string("PCA_KMeans"), fullName, dimension);
+	else if(post_processing==2)
+		IOHandler::printToFull(dataVec, group, totalNum, string("PCA_AHC"), fullName, dimension);
 
 	//IOHandler::writeReadme(closest, furthest);
 

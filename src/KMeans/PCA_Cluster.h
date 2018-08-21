@@ -5,6 +5,8 @@
 #include "Initialization.h"
 #include "Silhouette.h"
 #include "ValidityMeasurement.h"
+#include "Predefined.h"
+
 
 struct Ensemble
 {
@@ -108,15 +110,6 @@ private:
 								 TimeRecorder& tr,
 								 Silhouette& sil);
 
-	static void performAHC(const MatrixXf& cArray, 
-						   const int& Row, 
-						   const int& Column, 
-						   const int& PC_Number, 
-						   const MatrixXf& SingVec, 
-		                   const VectorXf& meanTrajectory, 
-		                   MatrixXf& clusterCenter, 
-		                   std::vector<MeanLine>& massCenter);
-
 	static void performFullK_MeansByClusters(const Eigen::MatrixXf& data, 
 											 const int& Row, 
 											 const int& Column, 
@@ -129,6 +122,36 @@ private:
 						   					 const int& normOption,
 											 TimeRecorder& tr,
 											 Silhouette& sil);
+
+	static void perform_AHC(const MatrixXf& cArray,
+							const int& PC_Number,
+							const MatrixXf& SingVec,
+							const VectorXf& meanTrajectory,
+							std::vector<MeanLine>& massCenter,
+							const int& Cluster,
+							std::vector<int>& group,
+							std::vector<int>& totalNum,
+							std::vector<ExtractedLine>& closest,
+							std::vector<ExtractedLine>& furthest,
+							const Eigen::MatrixXf& data,
+							TimeRecorder& tr,
+							Silhouette& sil);
+
+	/* perform AHC merging by given a distance threshold */
+	static void hierarchicalMerging(std::unordered_map<int, AHC_node>& nodeMap, std::vector<DistNode>& dNodeVec,
+			std::vector<AHC_node>& nodeVec, const Eigen::MatrixXf& reduced_dist_matrix, const Eigen::MatrixXf& cArray,
+			const int& numberOfClusters, TimeRecorder& tr);
+
+	static float getDistAtNodes(const vector<int>& firstList, const vector<int>& secondList,
+			const Eigen::MatrixXf& reduced_dist_matrix);
+
+	/* set a vector for min-heap */
+	static void setValue(std::vector<DistNode>& dNodeVec, const Eigen::MatrixXf& reduced_data,
+					     const Eigen::MatrixXf& reduced_dist_matrix);
+
+	/* perform group-labeling information */
+	static void setLabel(const std::vector<AHC_node>& nodeVec, vector<vector<int> >& neighborVec,
+			vector<int>& storage, Eigen::MatrixXf& centroid, const Eigen::MatrixXf& cArray, std::vector<int>& recorder);
 
 };
 
