@@ -53,20 +53,23 @@ void AHC::performClustering_by_norm()
 	/* perform hiarchical clustering where within each step would merge two nodes */
 	hierarchicalMerging(nodeMap, dNodeVec, nodeVec);
 
-	vector<vector<int>> neighborVec(numberOfClusters);
-	// element size for all groups
-	vector<int> storage(numberOfClusters);
+	if(!lMethod)
+	{
+		vector<vector<int>> neighborVec(numberOfClusters);
+		// element size for all groups
+		vector<int> storage(numberOfClusters);
 
-	// geometric center
-	Eigen::MatrixXf centroid = Eigen::MatrixXf::Zero(numberOfClusters,ds.dataMatrix.cols());
+		// geometric center
+		Eigen::MatrixXf centroid = Eigen::MatrixXf::Zero(numberOfClusters,ds.dataMatrix.cols());
 
 
-	// set label information
-	setLabel(nodeVec, neighborVec, storage, centroid);
+		// set label information
+		setLabel(nodeVec, neighborVec, storage, centroid);
 
-	nodeVec.clear();
+		nodeVec.clear();
 
-	extractFeatures(storage, neighborVec, centroid);
+		extractFeatures(storage, neighborVec, centroid);
+	}
 }
 
 
@@ -93,8 +96,8 @@ void AHC::performClustering()
 	*/
 	for(normOption=0;normOption<16;++normOption)
 	{
-		if(normOption!=0 && normOption!=1 && normOption!=2 && normOption!=4 && normOption!=12
-		   && normOption!=14 && normOption!=15)
+		if(normOption!=0/* && normOption!=1 && normOption!=2 && normOption!=4 && normOption!=12
+		   && normOption!=14 && normOption!=15*/)
 			continue;
 
 		timeList.clear();
@@ -109,6 +112,8 @@ void AHC::performClustering()
 void AHC::hierarchicalMerging(std::unordered_map<int, Ensemble>& nodeMap, std::vector<DistNode>& dNodeVec,
 							  std::vector<Ensemble>& nodeVec)
 {
+	std::map<int, float> dist_map;
+
 	/* would store distance matrix instead because it would save massive time */
 	struct timeval start, end;
 	double timeTemp;
@@ -139,6 +144,10 @@ void AHC::hierarchicalMerging(std::unordered_map<int, Ensemble>& nodeMap, std::v
 	int index = Row, currentNumber;
 	do
 	{
+		if(lMethod)
+		{
+			dist_map.insert(std::make_pair(nodeMap.size(), poped.distance));
+		}
 		//create new node merged and input it into hash map
 		vector<int> first = (nodeMap[poped.first]).element;
 		vector<int> second = (nodeMap[poped.second]).element;
@@ -165,6 +174,7 @@ void AHC::hierarchicalMerging(std::unordered_map<int, Ensemble>& nodeMap, std::v
 		target = -1, minDist = FLT_MAX;
 
 		std::vector<DistNode> tempVec(currentNumber*(currentNumber-1)/2);
+
 		int current = 0, i_first, i_second;
 		for(int i=0;i<dNodeVec.size();++i)
 		{
@@ -198,33 +208,49 @@ void AHC::hierarchicalMerging(std::unordered_map<int, Ensemble>& nodeMap, std::v
 			}
 		}
 
-		poped = tempVec[target];
+		if(target>=0 && tempVec.size()>=1)
+		{
+			poped = tempVec[target];
 
-		/* judge whether current is assigned to right value */
-		assert(current==tempVec.size());
-		dNodeVec.clear();
-		dNodeVec = tempVec;
-		tempVec.clear();
-		++index;
+			/* judge whether current is assigned to right value */
+			assert(current==tempVec.size());
+			dNodeVec.clear();
+			dNodeVec = tempVec;
+			tempVec.clear();
+			++index;
+		}
+
 	}while(nodeMap.size()!=numberOfClusters);	//merging happens whenever requested cluster is not met
 
-	nodeVec=std::vector<Ensemble>(nodeMap.size());
-	int tag = 0;
-	for(auto iter=nodeMap.begin();iter!=nodeMap.end();++iter)
-		nodeVec[tag++]=(*iter).second;
+	if(lMethod)
+	{
+		/* perform L-method computation to detect optimal number of AHC */
+		DetermClusterNum dcn;
+		dcn.iterativeRefinement(dist_map);
+		std::cout << "Otimal number of clusters by L-Method is " << dcn.getFinalNumOfClusters() << std::endl;
+		dcn.recordLMethodResult(normOption);
+	}
 
-	gettimeofday(&end, NULL);
-	timeTemp = ((end.tv_sec  - start.tv_sec) * 1000000u + end.tv_usec - start.tv_usec) / 1.e6;
+	else
+	{
+		nodeVec=std::vector<Ensemble>(nodeMap.size());
+		int tag = 0;
+		for(auto iter=nodeMap.begin();iter!=nodeMap.end();++iter)
+			nodeVec[tag++]=(*iter).second;
 
-	activityList.push_back("Hirarchical clustering of norm "+to_string(normOption)+" for "+
-			               to_string(numberOfClusters)+" groups takes: ");
-	timeList.push_back(to_string(timeTemp)+" s");
-	/* task completed, would delete memory contents */
-	dNodeVec.clear();
-	nodeMap.clear();
-	/* use alpha function to sort the group by its size */
-	std::sort(nodeVec.begin(), nodeVec.end(), [](const Ensemble& e1, const Ensemble& e2)
-	{return e1.element.size()<e2.element.size() ||(e1.element.size()==e2.element.size()&&e1.index<e2.index);});
+		gettimeofday(&end, NULL);
+		timeTemp = ((end.tv_sec  - start.tv_sec) * 1000000u + end.tv_usec - start.tv_usec) / 1.e6;
+
+		activityList.push_back("Hirarchical clustering of norm "+to_string(normOption)+" for "+
+							   to_string(numberOfClusters)+" groups takes: ");
+		timeList.push_back(to_string(timeTemp)+" s");
+		/* task completed, would delete memory contents */
+		dNodeVec.clear();
+		nodeMap.clear();
+		/* use alpha function to sort the group by its size */
+		std::sort(nodeVec.begin(), nodeVec.end(), [](const Ensemble& e1, const Ensemble& e2)
+		{return e1.element.size()<e2.element.size()||(e1.element.size()==e2.element.size()&&e1.index<e2.index);});
+	}
 }
 
 
@@ -458,17 +484,32 @@ void AHC::setDataset(const int& argc, char **argv)
 
 	group = std::vector<int>(ds.dataMatrix.rows());
 
-	std::cout << "---------------------------" << std::endl;
-	std::cout << "Input linkage option: 0.single linkage, 1.complete linkage, 2.average linkage" << std::endl;
-	std::cin >> linkageOption;
-	assert(linkageOption==0||linkageOption==1||linkageOption==2);
+	std::cout << "Perform L-method to detect optimal num of clusters? 0: No, 1: Yes! " << std::endl;
+	std::cin >> lMethod;
+	assert(lMethod==0 || lMethod==1);
+	lMethod = (lMethod==1);
 
-	/* input target cluster number */
-	const int& Row = ds.dataMatrix.rows();
-	std::cout << "---------------------------------------" << std::endl;
-	std::cout << "Input cluster number among [0, " << Row << "]: ";
-	std::cin >> numberOfClusters;
-	assert(numberOfClusters>0 && numberOfClusters<Row);
+	/* L-method is not performed. It's a normal AHC procedure */
+	if(!lMethod)
+	{
+		std::cout << "---------------------------" << std::endl;
+		std::cout << "Input linkage option: 0.single linkage, 1.complete linkage, 2.average linkage" << std::endl;
+		std::cin >> linkageOption;
+		assert(linkageOption==0||linkageOption==1||linkageOption==2);
+
+		/* input target cluster number */
+		const int& Row = ds.dataMatrix.rows();
+		std::cout << "---------------------------------------" << std::endl;
+		std::cout << "Input cluster number among [0, " << Row << "]: ";
+		std::cin >> numberOfClusters;
+		assert(numberOfClusters>0 && numberOfClusters<Row);
+	}
+	/* perform L-method for detecting optimal num of clusters */
+	else if(lMethod)
+	{
+		linkageOption = 0;
+		numberOfClusters = 1;
+	}
 }
 
 

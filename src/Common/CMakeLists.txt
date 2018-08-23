@@ -16,6 +16,8 @@ set( component_SOURCES
 	 Silhouette.cpp
 	 ValidityMeasurement.h
 	 ValidityMeasurement.cpp
+	 DetermClusterNum.h
+	 DetermClusterNum.cpp
    ) # Add the source-files for the component here
 
 include(CheckCXXCompilerFlag)

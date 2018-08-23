@@ -19,14 +19,15 @@
 #ifndef _AHC_H_
 #define _AHC_H_
 
-#include "Predefined.h"
-#include "ValidityMeasurement.h"
 #include <unordered_set>
 #include <map>
 #include <unordered_map>
 #include <string>
 #include <algorithm>
 
+#include "Predefined.h"
+#include "ValidityMeasurement.h"
+#include "DetermClusterNum.h"
 
 class AHC
 {
@@ -79,6 +80,9 @@ private:
 
 /* linkage choice */
 	int linkageOption;
+
+/* whether used L-method to detect optimal number of clusters */
+	bool lMethod;
 
 /* set dataset from user command */
 	void setDataset(const int& argc, char **argv);
