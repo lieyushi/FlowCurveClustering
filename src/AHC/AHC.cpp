@@ -492,11 +492,6 @@ void AHC::setDataset(const int& argc, char **argv)
 	/* L-method is not performed. It's a normal AHC procedure */
 	if(!lMethod)
 	{
-		std::cout << "---------------------------" << std::endl;
-		std::cout << "Input linkage option: 0.single linkage, 1.complete linkage, 2.average linkage" << std::endl;
-		std::cin >> linkageOption;
-		assert(linkageOption==0||linkageOption==1||linkageOption==2);
-
 		/* input target cluster number */
 		const int& Row = ds.dataMatrix.rows();
 		std::cout << "---------------------------------------" << std::endl;
@@ -507,9 +502,13 @@ void AHC::setDataset(const int& argc, char **argv)
 	/* perform L-method for detecting optimal num of clusters */
 	else if(lMethod)
 	{
-		linkageOption = 0;
 		numberOfClusters = 1;
 	}
+
+	std::cout << "---------------------------" << std::endl;
+	std::cout << "Input linkage option: 0.single linkage, 1.complete linkage, 2.average linkage" << std::endl;
+	std::cin >> linkageOption;
+	assert(linkageOption==0||linkageOption==1||linkageOption==2);
 }
 
 
