@@ -22,13 +22,8 @@ void DetermClusterNum::iterativeRefinement(std::map<int, float>& eval_graph)
 {
 	removeExtreme(eval_graph);
 
-	for(auto iter:eval_graph)
-	{
-		std::cout << iter.first << ", " << iter.second << std::endl;
-	}
 	int cutoff, lastKnee;
 	int currentKnee = eval_graph.rbegin()->first;
-	std::cout << currentKnee << std::endl;
 	cutoff = currentKnee;
 	do
 	{
