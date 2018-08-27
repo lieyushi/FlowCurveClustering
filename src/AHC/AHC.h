@@ -20,8 +20,8 @@
 #define _AHC_H_
 
 #include <unordered_set>
-#include <map>
 #include <unordered_map>
+#include <map>
 #include <string>
 #include <algorithm>
 
@@ -91,7 +91,7 @@ private:
 	const float getDistAtNodes(const vector<int>& firstList, const vector<int>& secondList, const int& Linkage);
 
 /* perform AHC merging by given a distance threshold */
-	void hierarchicalMerging(std::unordered_map<int, Ensemble>& nodeMap, std::vector<DistNode>& dNodeVec,
+	void hierarchicalMerging(std::unordered_map<int, Ensemble>& node_map, std::vector<DistNode>& dNodeVec,
 			  std::vector<Ensemble>& nodeVec);
 
 /* perform group-labeling information */
@@ -111,7 +111,10 @@ private:
 	string getEntropyStr(const float& EntropyRatio);	
 
 /* set a vector for min-heap */
-	void setValue(std::vector<DistNode>& dNodeVec);
+	void setValue_merge(std::vector<DistNode>& dNodeVec, std::unordered_map<int, Ensemble>& node_map);
+
+/* set a vector for min-heap */
+	void setValue(std::vector<DistNode>& dNodeVec, std::unordered_map<int, Ensemble>& node_map);
 
 /* perform clustering on normOption */
 	void performClustering_by_norm();

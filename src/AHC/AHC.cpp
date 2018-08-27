@@ -43,15 +43,15 @@ void AHC::performClustering_by_norm()
 	timeList.push_back(to_string(timeTemp)+" s");
 
 
-	std::unordered_map<int, Ensemble> nodeMap;
+	std::unordered_map<int, Ensemble> node_map;
 	std::vector<DistNode> dNodeVec;
 	std::vector<Ensemble> nodeVec;
 
 	/* set the ditNode vector */
-	setValue(dNodeVec);
+	setValue_merge(dNodeVec, node_map);
 
 	/* perform hiarchical clustering where within each step would merge two nodes */
-	hierarchicalMerging(nodeMap, dNodeVec, nodeVec);
+	hierarchicalMerging(node_map, dNodeVec, nodeVec);
 
 	if(!lMethod)
 	{
@@ -96,8 +96,8 @@ void AHC::performClustering()
 	*/
 	for(normOption=0;normOption<16;++normOption)
 	{
-		if(normOption!=0 && normOption!=1 && normOption!=2 && normOption!=4 && normOption!=12
-		   && normOption!=14 && normOption!=15)
+		if(normOption!=0 /*&& normOption!=1 && normOption!=2 && normOption!=4 && normOption!=12
+		   && normOption!=14 && normOption!=15*/)
 			continue;
 
 		timeList.clear();
@@ -109,7 +109,7 @@ void AHC::performClustering()
 
 
 /* perform AHC merging by given a distance threshold */
-void AHC::hierarchicalMerging(std::unordered_map<int, Ensemble>& nodeMap, std::vector<DistNode>& dNodeVec,
+void AHC::hierarchicalMerging(std::unordered_map<int, Ensemble>& node_map, std::vector<DistNode>& dNodeVec,
 							  std::vector<Ensemble>& nodeVec)
 {
 	std::map<int, float> dist_map;
@@ -120,11 +120,6 @@ void AHC::hierarchicalMerging(std::unordered_map<int, Ensemble>& nodeMap, std::v
 	gettimeofday(&start, NULL);
 
 	const int Row = ds.dataMatrix.rows();
-
-	for(int i=0;i<Row;++i)
-	{
-		nodeMap[i].element.push_back(i);
-	}
 
 	DistNode poped;
 
@@ -146,21 +141,21 @@ void AHC::hierarchicalMerging(std::unordered_map<int, Ensemble>& nodeMap, std::v
 	{
 		if(lMethod)
 		{
-			dist_map.insert(std::make_pair(nodeMap.size(), poped.distance));
+			dist_map.insert(std::make_pair(node_map.size(), poped.distance));
 		}
-		//create new node merged and input it into hash map
-		vector<int> first = (nodeMap[poped.first]).element;
-		vector<int> second = (nodeMap[poped.second]).element;
+		//create new node merged and input it into hash unordered_map
+		vector<int> first = (node_map[poped.first]).element;
+		vector<int> second = (node_map[poped.second]).element;
 
 		/* index would be starting from Row */
 		Ensemble newNode(index);
 		newNode.element = first;
 		newNode.element.insert(newNode.element.end(), second.begin(), second.end());
-		nodeMap.insert(make_pair(index, newNode));
+		node_map.insert(make_pair(index, newNode));
 
 		//delete two original nodes
-		nodeMap.erase(poped.first);
-		nodeMap.erase(poped.second);
+		node_map.erase(poped.first);
+		node_map.erase(poped.second);
 
 		/* the difficulty lies how to update the min-heap with linkage
 		 * This would take 2NlogN.
@@ -169,7 +164,7 @@ void AHC::hierarchicalMerging(std::unordered_map<int, Ensemble>& nodeMap, std::v
 		 */
 
 		/* how many clusters exist */
-		currentNumber = nodeMap.size();
+		currentNumber = node_map.size();
 
 		target = -1, minDist = FLT_MAX;
 
@@ -192,7 +187,7 @@ void AHC::hierarchicalMerging(std::unordered_map<int, Ensemble>& nodeMap, std::v
 			}
 		}
 
-		for (auto iter=nodeMap.begin();iter!=nodeMap.end();++iter)
+		for (auto iter=node_map.begin();iter!=node_map.end();++iter)
 		{
 			if((*iter).first!=newNode.index)
 			{
@@ -220,7 +215,7 @@ void AHC::hierarchicalMerging(std::unordered_map<int, Ensemble>& nodeMap, std::v
 			++index;
 		}
 
-	}while(nodeMap.size()!=numberOfClusters);	//merging happens whenever requested cluster is not met
+	}while(node_map.size()!=numberOfClusters);	//merging happens whenever requested cluster is not met
 
 	if(lMethod)
 	{
@@ -233,9 +228,9 @@ void AHC::hierarchicalMerging(std::unordered_map<int, Ensemble>& nodeMap, std::v
 
 	else
 	{
-		nodeVec=std::vector<Ensemble>(nodeMap.size());
+		nodeVec=std::vector<Ensemble>(node_map.size());
 		int tag = 0;
-		for(auto iter=nodeMap.begin();iter!=nodeMap.end();++iter)
+		for(auto iter=node_map.begin();iter!=node_map.end();++iter)
 			nodeVec[tag++]=(*iter).second;
 
 		gettimeofday(&end, NULL);
@@ -246,7 +241,7 @@ void AHC::hierarchicalMerging(std::unordered_map<int, Ensemble>& nodeMap, std::v
 		timeList.push_back(to_string(timeTemp)+" s");
 		/* task completed, would delete memory contents */
 		dNodeVec.clear();
-		nodeMap.clear();
+		node_map.clear();
 		/* use alpha function to sort the group by its size */
 		std::sort(nodeVec.begin(), nodeVec.end(), [](const Ensemble& e1, const Ensemble& e2)
 		{return e1.element.size()<e2.element.size()||(e1.element.size()==e2.element.size()&&e1.index<e2.index);});
@@ -631,7 +626,81 @@ string AHC::getEntropyStr(const float& EntropyRatio)
 
 
 /* set a vector for min-heap */
-void AHC::setValue(std::vector<DistNode>& dNodeVec)
+void AHC::setValue_merge(std::vector<DistNode>& dNodeVec, std::unordered_map<int, Ensemble>& node_map)
+{
+	const int& Row = ds.dataMatrix.rows();
+
+	/* find the node of closest distance */
+	std::vector<int> miniNode(Row);
+#pragma omp parallel for schedule(static) num_threads(8)
+	for(int i=0;i<Row;++i)
+	{
+		float miniDist = FLT_MAX, dist;
+		int index = -1;
+		for(int j=0;j<Row;++j)
+		{
+			if(i==j)
+				continue;
+			if(distanceMatrix)
+				dist = distanceMatrix[i][j];
+			else
+				dist = getDisimilarity(ds.dataMatrix, i, j, normOption, object);
+
+			if(miniDist>dist)
+			{
+				miniDist=dist;
+				index=j;
+			}
+		}
+		miniNode[i]=index;
+	}
+
+	std::vector<bool> isIn(Row, false);
+
+	int tag = 0;
+	for(int i=0;i<Row;++i)
+	{
+		if(!isIn[i])
+		{
+			Ensemble en;
+			if(miniNode[miniNode[i]]==i)
+			{
+				en.element.push_back(i);
+				en.element.push_back(miniNode[i]);
+				isIn[i]=true;
+				isIn[miniNode[i]]=true;
+				node_map[tag] = en;
+			}
+			else
+			{
+				en.element.push_back(i);
+				isIn[i]=true;
+				node_map[tag] = en;
+			}
+			++tag;
+		}
+	}
+
+	const int& mapSize = node_map.size();
+	dNodeVec = std::vector<DistNode>(mapSize*(mapSize-1)/2);
+
+	tag = 0;
+	for(auto start = node_map.begin(); start!=node_map.end(); ++start)
+	{
+		for(auto end = node_map.begin(); end!=node_map.end() && end!=start; ++end)
+		{
+			dNodeVec[tag].first = start->first;
+			dNodeVec[tag].second = end->first;
+			dNodeVec[tag].distance = getDistAtNodes(start->second.element,end->second.element, linkageOption);
+			++tag;
+		}
+	}
+	assert(tag==dNodeVec.size());
+}
+
+
+/* set a vector for min-heap */
+void AHC::setValue(std::vector<DistNode>& dNodeVec, std::unordered_map<int, Ensemble>& node_map)
 {
 	const int& Row = ds.dataMatrix.rows();
 	dNodeVec = std::vector<DistNode>(Row*(Row-1)/2);
@@ -650,5 +719,10 @@ void AHC::setValue(std::vector<DistNode>& dNodeVec)
 		}
 	}
 	assert(tag==dNodeVec.size());
+	for(int i=0;i<Row;++i)
+	{
+		node_map[i].element.push_back(i);
+	}
 }
+
 
