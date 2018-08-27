@@ -1293,6 +1293,9 @@ const float getProcrustesMetric(const Eigen::VectorXf& first,
 		first_average/=PROCRUSTES_SIZE;
 		second_average/=PROCRUSTES_SIZE;
 
+		/* reserve the matrix */
+		X0 = firstSegment;
+
 		/* centralization for the point set */
 		for(int j=0;j<PROCRUSTES_SIZE;++j)
 		{
@@ -1309,9 +1312,6 @@ const float getProcrustesMetric(const Eigen::VectorXf& first,
 
 		ssqX = sqrt(ssqX);
 		ssqY = sqrt(ssqY);
-
-		/* reserve the matrix */
-		X0 = firstSegment;
 
 		/* scaling for the point set */
 		firstSegment/=ssqX;
@@ -1405,6 +1405,9 @@ const float getProcrustesMetricSegment(const Eigen::VectorXf& first,
 		first_average/=PROCRUSTES_SIZE;
 		second_average/=PROCRUSTES_SIZE;
 
+		/* reserve the matrix */
+		X0 = firstSegment;
+
 		/* centralization for the point set */
 		for(int j=0;j<PROCRUSTES_SIZE;++j)
 		{
@@ -1421,9 +1424,6 @@ const float getProcrustesMetricSegment(const Eigen::VectorXf& first,
 
 		ssqX = sqrt(ssqX);
 		ssqY = sqrt(ssqY);
-
-		/* reserve the matrix */
-		X0 = firstSegment;
 
 		/* scaling for the point set */
 		firstSegment/=ssqX;
