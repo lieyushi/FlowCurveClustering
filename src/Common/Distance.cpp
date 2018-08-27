@@ -1334,10 +1334,10 @@ const float getProcrustesMetric(const Eigen::VectorXf& first,
 
 		/* preset the average to the P' */
 		for(int j=0;j<PROCRUSTES_SIZE;++j)
-			secondPrime.row(j) = second_average;
+			secondPrime.row(j) = first_average;
 
 		/* get P' in superimposed space */
-		secondPrime = ssqX*traceA*secondSegment*A+secondPrime;
+		secondPrime = ssqX*traceA*secondSegment*rotation+secondPrime;
 
 		/* compute the distance and store them in the std::vector<float> */
 		pointDist = 0.0;
@@ -1446,10 +1446,10 @@ const float getProcrustesMetricSegment(const Eigen::VectorXf& first,
 
 		/* preset the average to the P' */
 		for(int j=0;j<PROCRUSTES_SIZE;++j)
-			secondPrime.row(j) = second_average;
+			secondPrime.row(j) = first_average;
 
 		/* get P' in superimposed space */
-		secondPrime = ssqX*traceA*secondSegment*A+secondPrime;
+		secondPrime = ssqX*traceA*secondSegment*rotation+secondPrime;
 
 		/* compute the distance and store them in the std::vector<float> */
 		pointDist = 0.0;
@@ -1458,7 +1458,6 @@ const float getProcrustesMetricSegment(const Eigen::VectorXf& first,
 			tempPoint = X0.row(j)-secondPrime.row(j);
 			pointDist+= tempPoint.transpose()*tempPoint;
 		}
-
 		/* get the average of P(x,y')^2 */
 		result+=pointDist;
 	}

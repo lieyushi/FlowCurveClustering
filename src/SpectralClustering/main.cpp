@@ -38,7 +38,9 @@ void setPara(Para& p)
 	std::cin >> p.numberOfClusters;
 
 	/* post-processing method: 1.k-means, 2.eigenvector rotation*/
-	p.postProcessing = 1;
+	std::cout << "Input the post-processing: 1.k-means, 2.eigenvector rotation: " << std::endl;
+	std::cin >> p.postProcessing;
+	assert(p.postProcessing==1 || p.postProcessing==2);
 
 	/* derivative method for eigen rotation: 1.numerical derivative, 2.true derivative */
 	p.mMethod = 2;
