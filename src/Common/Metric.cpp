@@ -2,7 +2,7 @@
 
 const int& BIN_SIZE = 25;
 
-const int& BUNDLE_SIZE = 15;
+const int& BUNDLE_SIZE = 20;
 
 void computeMeanRotation(const Eigen::MatrixXf& data, 
 						 const int& Row, 
