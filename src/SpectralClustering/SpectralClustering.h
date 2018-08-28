@@ -39,9 +39,6 @@ struct Para
 	/* local scaling by sorted distance: true, false */
 	bool isDistSorted;
 
-	/* preset number of clusters */
-	int numberOfClusters;
-
 	/* post-processing method: 1.k-means, 2.eigenvector rotation*/
 	int postProcessing;
 
@@ -69,7 +66,7 @@ public:
 	~SpectralClustering();
 
 /* perform clustering function */
-	void performClustering(const int& presetCluster);
+	void performClustering();
 
 private:
 

@@ -65,8 +65,6 @@ void featureExtraction(const int& number,
 	isPBF = (PBFjudgement==1);
 
 	int cluster, vertexCount;
-	std::cout << "Please input a cluster number (>=2):" << std::endl;
-	std::cin >> cluster;
 
 	std::cout << "Please choose initialization option for seeds:" << std::endl
 			  << "1.chose random positions, 2.Chose from samples, 3.k-means++ sampling" << endl;
@@ -96,6 +94,9 @@ void featureExtraction(const int& number,
 			   + end.tv_usec - start.tv_usec) / 1.e6;
 	tr.eventList.push_back("I-O file reader takes: ");
 	tr.timeList.push_back(to_string(timeTemp)+"s");
+
+	std::cout << "Please input a cluster number (>=2) among [2, " << dataVec.size() << "]: " << std::endl;
+	std::cin >> cluster;
 
 	stringstream ss;
 	ss << strName << "_differentNorm_full.vtk";
@@ -148,7 +149,9 @@ void featureExtraction(const int& number,
 	{
 		if(i!=0&& i!=1 && i!=2 && i!=4 && i!=12 && i!=14 && i!=15 && i!=16)
 			continue;
-
+		std::cout << "Please input a cluster number (>=2) for norm " << i << " in [2, "
+				<< dataVec.size() << "]: " << std::endl;
+		std::cin >> cluster;
 		std::cout << "Kmeans on norm " << i << " starts..." << std::endl;
 		gettimeofday(&start, NULL);
 		ss << strName << "_KMeans";

@@ -15,7 +15,7 @@ int main(int argc, char **argv)
 
 	SpectralClustering spectClus(argc, argv, p, automatic);
 
-	spectClus.performClustering(p.numberOfClusters);
+	spectClus.performClustering();
 
 	return 0;
 }
@@ -32,10 +32,6 @@ void setPara(Para& p)
 
 	/* local scaling by sorted distance: true, false */
 	p.isDistSorted = true;
-
-	/* preset number of clusters */
-	std::cout << "Input a preset cluster numbers: " << std::endl;
-	std::cin >> p.numberOfClusters;
 
 	/* post-processing method: 1.k-means, 2.eigenvector rotation*/
 	std::cout << "Input the post-processing: 1.k-means, 2.eigenvector rotation: " << std::endl;

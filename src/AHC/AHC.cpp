@@ -62,7 +62,6 @@ void AHC::performClustering_by_norm()
 		// geometric center
 		Eigen::MatrixXf centroid = Eigen::MatrixXf::Zero(numberOfClusters,ds.dataMatrix.cols());
 
-
 		// set label information
 		setLabel(nodeVec, neighborVec, storage, centroid);
 
@@ -102,6 +101,22 @@ void AHC::performClustering()
 
 		timeList.clear();
 		activityList.clear();
+
+		/* L-method is not performed. It's a normal AHC procedure */
+		if(!lMethod)
+		{
+			/* input target cluster number */
+			const int& Row = ds.dataMatrix.rows();
+			std::cout << "---------------------------------------" << std::endl;
+			std::cout << "Input cluster number among [0, " << Row << "] for norm " << normOption << ": ";
+			std::cin >> numberOfClusters;
+			assert(numberOfClusters>0 && numberOfClusters<Row);
+		}
+		/* perform L-method for detecting optimal num of clusters */
+		else if(lMethod)
+		{
+			numberOfClusters = 1;
+		}
 
 		performClustering_by_norm();
 	}
@@ -470,22 +485,6 @@ void AHC::setDataset(const int& argc, char **argv)
 	std::cin >> lMethod;
 	assert(lMethod==0 || lMethod==1);
 	lMethod = (lMethod==1);
-
-	/* L-method is not performed. It's a normal AHC procedure */
-	if(!lMethod)
-	{
-		/* input target cluster number */
-		const int& Row = ds.dataMatrix.rows();
-		std::cout << "---------------------------------------" << std::endl;
-		std::cout << "Input cluster number among [0, " << Row << "]: ";
-		std::cin >> numberOfClusters;
-		assert(numberOfClusters>0 && numberOfClusters<Row);
-	}
-	/* perform L-method for detecting optimal num of clusters */
-	else if(lMethod)
-	{
-		numberOfClusters = 1;
-	}
 
 	std::cout << "---------------------------" << std::endl;
 	std::cout << "Input linkage option: 0.single linkage, 1.complete linkage, 2.average linkage" << std::endl;

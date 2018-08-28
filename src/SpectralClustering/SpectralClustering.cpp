@@ -26,7 +26,7 @@ SpectralClustering::~SpectralClustering()
 }
 
 /* perform clustering function */
-void SpectralClustering::performClustering(const int& presetCluster)
+void SpectralClustering::performClustering()
 {
 	//distance metric type
 	/*  0: Euclidean Norm
@@ -53,8 +53,13 @@ void SpectralClustering::performClustering(const int& presetCluster)
 		std::cin >> optimalOption;
 		assert(optimalOption==0 || optimalOption==1);
 		isOptimal = (optimalOption==1);
+
+		std::cout << "Please input the preset number of clusters in [2, " << ds.dataVec.size() << "]: " << std::endl;
+		std::cin >> numberOfClusters;
+		assert(numberOfClusters>=2 && numberOfClusters<=ds.dataVec.size());
+
 		/* record initial number of clusters of user input */
-		recordPreset(presetCluster);
+		recordPreset(numberOfClusters);
 	}
 
 	for(int i=0;i<=15;++i)
@@ -63,15 +68,22 @@ void SpectralClustering::performClustering(const int& presetCluster)
 		if(i!=0 && i!=1 && i!=2 && i!=4 && i!=12 && i!=14 && i!=15)
 			continue;
 
+		if(postProcessing==1)
+		{
+			std::cout << "Please input the preset number of clusters for norm " << i << " among [2, "
+					<< ds.dataVec.size() << "]: " << std::endl;
+			assert(numberOfClusters>=2 && numberOfClusters<=ds.dataVec.size());
+			std::cin >> numberOfClusters;
+		}
+
 		std::cout << "----------------------------------------------------" << std::endl;
 		std::cout << "Experiment on norm " << i << " starts!--------------" << std::endl;
 
 		activityList.clear();
 		timeList.clear();
-		numberOfClusters = presetCluster;
 
 		activityList.push_back("Preset numOfClusters is: ");
-		timeList.push_back(to_string(presetCluster));
+		timeList.push_back(to_string(numberOfClusters));
 
 		clusterByNorm(i);
 
@@ -796,8 +808,6 @@ void SpectralClustering::setParameterAutomatic(const Para& p)
 	LaplacianOption = p.LaplacianOption;
 
 	isDistSorted = p.isDistSorted;
-
-	numberOfClusters = p.numberOfClusters;
 
 	postProcessing = p.postProcessing;
 

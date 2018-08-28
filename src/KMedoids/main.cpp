@@ -47,11 +47,7 @@ void featureExtraction(const int& number,
 	assert(isPBFInput==1||isPBFInput==0);
 	isPBF = (isPBFInput==1);
 
-
 	int numOfClusters, vertexCount;
-	std::cout << "Please input a cluster number (>=2):" << std::endl;
-	std::cin >> numOfClusters;
-
 
 /*-------------------------------------Input parameter choice-------------------------*/
 	Parameter pm;
@@ -137,6 +133,10 @@ void featureExtraction(const int& number,
 	{
 		if(i!=0 && i!=1 && i!=2 && i!=4 && i!=12 && i!=14 && i!=15)
 			continue;
+
+		std::cout << "Please input a cluster number (>=2) for norm " << i << " in [2, "
+				<< dataVec.size() << "]: " << std::endl;
+		std::cin >> numOfClusters;
 
 		gettimeofday(&start, NULL);
 		ss << strName << "_KMeans";
