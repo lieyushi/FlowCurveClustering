@@ -74,7 +74,7 @@ const int DetermClusterNum::LMethod(const std::map<int, float>& eval_graph, cons
 			A_sub.row(1) = Eigen::VectorXf::Constant(index_vec.size(), 1.0).transpose();
 			Eigen::VectorXf b_sub = Eigen::VectorXf::Map(&(dist_vec[0]), index_vec.size());
 			A_sub.transposeInPlace();
-
+			int firstRows = A_sub.rows();
 
 			Eigen::VectorXf c = A_sub.colPivHouseholderQr().solve(b_sub);
 			Eigen::VectorXf error = b_sub-A_sub*c;
@@ -98,13 +98,15 @@ const int DetermClusterNum::LMethod(const std::map<int, float>& eval_graph, cons
 			A_sub.row(1) = Eigen::VectorXf::Constant(index_vec.size(), 1.0).transpose();
 			b_sub = Eigen::VectorXf::Map(&(dist_vec[0]), index_vec.size());
 			A_sub.transposeInPlace();
+			int secondRows = A_sub.rows();
 
 			c = A_sub.colPivHouseholderQr().solve(b_sub);
 			error = b_sub-A_sub*c;
 			float rmse_r = error.transpose()*error;
 
 			/* compute the total weighted error */
-			float rmse = float(i+1)/float(cutoff-1)*rmse_l+float(cutoff-2-i)/float(cutoff-1)*rmse_r;
+			float rmse = float(firstRows)/float(firstRows+secondRows)*rmse_l+
+					float(secondRows)/float(firstRows+secondRows)*rmse_r;
 
 		#pragma omp critical
 			if(RMSE.val>rmse)
