@@ -122,6 +122,9 @@ private:
 /* scaling factor for spectral clustering to decide Gaussian kernel size */
 	int SCALING;
 
+/* whether used to find optimal number of clustering */
+	bool isOptimal;
+
 
 /**********************************************************************************************************
  **************************************   Private member functions   **************************************
@@ -157,13 +160,19 @@ private:
 							Eigen::MatrixXf& laplacianMatrix);
 
 /* decide optimal cluster number by eigenvectors of Laplacian matrix */
-	void getEigenClustering(const Eigen::MatrixXf& laplacianMatrix);
+	void getEigenClustering(const Eigen::MatrixXf& laplacianMatrix, const int& norm);
 
 /* get local scaling from NIPS 2002 paper */
 	void getSigmaList();
 
 /* get entropy ratio */
 	void getEntropyRatio(const std::vector<int>& storage, float& EntropyRatio);
+
+/* record find optimal information */
+	void recordPreset(const int& number);
+
+/* record find optimal information */
+	void recordOptimalResult(const int& normOption, const int& clusNum);
 
 /* url: https://www.cs.cmu.edu/~aarti/Class/10701/readings/Luxburg06_TR.pdf */
 /********************************** Perform k-means clustering *********************************************/

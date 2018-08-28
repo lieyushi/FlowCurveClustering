@@ -46,6 +46,17 @@ void SpectralClustering::performClustering(const int& presetCluster)
 		14: Signature-based measure from http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=6231627
 		15: Procrustes distance take from http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=6787131
 	*/
+	if(postProcessing==2)
+	{
+		std::cout << "Find optimal activated? 0. No, 1. Yes: " << std::endl;
+		int optimalOption;
+		std::cin >> optimalOption;
+		assert(optimalOption==0 || optimalOption==1);
+		isOptimal = (optimalOption==1);
+		/* record initial number of clusters of user input */
+		recordPreset(presetCluster);
+	}
+
 	for(int i=0;i<=15;++i)
 	{
 		/* don't want to deal with many too naive metrics */
@@ -111,7 +122,7 @@ void SpectralClustering::clusterByNorm(const int& norm)
 	/* get Laplacian matrix */
 	getLaplacianMatrix(adjacencyMatrix, degreeMatrix, laplacianMatrix);
 
-	getEigenClustering(laplacianMatrix);
+	getEigenClustering(laplacianMatrix, norm);
 }
 
 
@@ -504,7 +515,7 @@ void SpectralClustering::getLaplacianMatrix(const Eigen::MatrixXf& adjacencyMatr
 
 
 /* decide optimal cluster number by eigenvectors of Laplacian matrix */
-void SpectralClustering::getEigenClustering(const Eigen::MatrixXf& laplacianMatrix)
+void SpectralClustering::getEigenClustering(const Eigen::MatrixXf& laplacianMatrix, const int& norm)
 {
 	struct timeval start, end;
 	gettimeofday(&start, NULL);
@@ -561,7 +572,10 @@ void SpectralClustering::getEigenClustering(const Eigen::MatrixXf& laplacianMatr
 
 		setLabel(neighborVec, storage, clusterCenter);
 
-		extractFeatures(storage,neighborVec,clusterCenter);
+		if(isOptimal)
+			recordOptimalResult(norm, neighborVec.size());
+		else
+			extractFeatures(storage,neighborVec,clusterCenter);
 	}
 }
 
@@ -848,4 +862,33 @@ void SpectralClustering::getParameterUserInput()
 		assert(mMethod==1 || mMethod==2);
 	}
 
+}
+
+/* record find optimal information */
+void SpectralClustering::recordPreset(const int& number)
+{
+	std::ofstream readme("../dataset/optimal.txt",ios::out | ios::app);
+	if(!readme)
+	{
+		std::cout << "Error creating readme!" << std::endl;
+		exit(1);
+	}
+	readme << "Preset cluster number is: " << number << std::endl;
+	readme << std::endl;
+	readme.close();
+}
+
+/* record find optimal information */
+void SpectralClustering::recordOptimalResult(const int& normOption, const int& clusNum)
+{
+	std::ofstream readme("../dataset/optimal.txt",ios::out | ios::app);
+	if(!readme)
+	{
+		std::cout << "Error creating readme!" << std::endl;
+		exit(1);
+	}
+	readme << "Optimal number of cluster for norm " << normOption << " with sc eigen-rotation minimization is "
+		   << clusNum << std::endl;
+	readme << std::endl;
+	readme.close();
 }
