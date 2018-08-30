@@ -6,7 +6,7 @@ void Query::getInteresting(const Eigen::MatrixXf& data,
 						   const int& Column)
 {
 	rotation = std::vector<float>(Row);
-#pragma omp parallel for schedule(dynamic) num_threads(8)
+#pragma omp parallel for schedule(static) num_threads(8)
 	for (int i = 0; i < Row; ++i)
 	{
 		float accumulation = 0.0, leftNorm, rightNorm, dotValue, result;
@@ -146,7 +146,7 @@ void Query::searchClosest(const int& target,
 	const int& lineNumber = storage.cols()/3-2;
 	std::vector<QueryDistance> distance(row);
 	neighbor = std::vector<int>(closestNumber);
-#pragma omp parallel for schedule(dynamic) num_threads(8)
+#pragma omp parallel for schedule(static) num_threads(8)
 	for (int i = 0; i < row; ++i)
 	{
 		float dist;

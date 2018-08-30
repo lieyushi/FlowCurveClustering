@@ -147,7 +147,7 @@ void featureExtraction(const int& number,
 
 	for(int i = 0;i<17;i++)
 	{
-		if(i!=0&& i!=1 && i!=2 && i!=4 && i!=12 && i!=14 && i!=15 && i!=16)
+		if(i!=0&& i!=1 && i!=2 && i!=4 && i!=12 && i!=13 && i!=14 && i!=15 && i!=16)
 			continue;
 		std::cout << "Please input a cluster number (>=2) for norm " << i << " in [2, "
 				<< dataVec.size() << "]: " << std::endl;

@@ -96,7 +96,7 @@ void AHC::performClustering()
 	for(normOption=0;normOption<16;++normOption)
 	{
 		if(normOption!=0 && normOption!=1 && normOption!=2 && normOption!=4 && normOption!=12
-		   && normOption!=14 && normOption!=15)
+		   && normOption!=13 && normOption!=14 && normOption!=15)
 			continue;
 
 		timeList.clear();

@@ -128,7 +128,7 @@ void Evrot::cluster_assign()
 {
 	// find max of each row
 	Eigen::VectorXi max_index_col(mNumData);
-#pragma omp parallel for schedule(dynamic) num_threads(8)
+#pragma omp parallel for schedule(static) num_threads(8)
 	for (int i=0; i<mNumData; i++ )
 	{
 		int col=0;
@@ -141,7 +141,7 @@ void Evrot::cluster_assign()
 	}
 
 	// prepare cluster assignments
-#pragma omp parallel for schedule(dynamic) num_threads(8)
+#pragma omp parallel for schedule(static) num_threads(8)
 	for(int j=0; j<mNumDims; j++ )
 	{  // loop over all columns
 		for(int i=0; i<mNumData; i++ )
@@ -166,7 +166,7 @@ float Evrot::evqual(const Eigen::MatrixXf& X)
 {
 	// take the square of all entries and find max of each row
 	Eigen::MatrixXf X2(X.rows(), X.cols());
-#pragma omp parallel for schedule(dynamic) num_threads(8)
+#pragma omp parallel for schedule(static) num_threads(8)
 	for(int i=0;i<X.rows();++i)
 	{
 		for(int j=0;j<X.cols();++j)
@@ -177,12 +177,12 @@ float Evrot::evqual(const Eigen::MatrixXf& X)
 
 	Eigen::VectorXf max_values(X.rows());
 
-#pragma omp parallel for schedule(dynamic) num_threads(8)
+#pragma omp parallel for schedule(static) num_threads(8)
 	for(int i=0;i<X.rows();++i)
 		max_values(i)=X2.row(i).maxCoeff();
 
 	// compute cost
-#pragma omp parallel for schedule(dynamic) num_threads(8)
+#pragma omp parallel for schedule(static) num_threads(8)
 	for (int i=0; i<mNumData; i++ )
 	{
 		X2.row(i) = X2.row(i) / max_values[i];
@@ -211,7 +211,7 @@ float Evrot::evqualitygrad(const Eigen::VectorXf& theta, const int& angle_index)
 	// find max of each row
 	Eigen::VectorXf max_values(mNumData);
 	Eigen::VectorXi max_index_col(mNumData);
-#pragma omp parallel for schedule(dynamic) num_threads(8)
+#pragma omp parallel for schedule(static) num_threads(8)
 	for (int i=0; i<mNumData; i++ ) {
 		int row, col;
 		Y.row(i).cwiseAbs().maxCoeff(&row, &col);
@@ -255,7 +255,7 @@ Eigen::MatrixXf Evrot::build_Uab(const Eigen::VectorXf& theta, const int& a, con
 	float tt,u_ik;
 	for( k=a; k<=b; k++ ){
 		tt = theta[k];
-	#pragma omp parallel for schedule(dynamic) num_threads(8)
+	#pragma omp parallel for schedule(static) num_threads(8)
 		for( i=0; i<mNumDims; i++ ) {
 			u_ik = 			Uab(i,ik[k]) * cos(tt) - Uab(i,jk[k]) * sin(tt);
 			Uab(i,jk[k]) = 	Uab(i,ik[k]) * sin(tt) + Uab(i,jk[k]) * cos(tt);

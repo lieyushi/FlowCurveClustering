@@ -65,7 +65,7 @@ void SpectralClustering::performClustering()
 	for(int i=0;i<=15;++i)
 	{
 		/* don't want to deal with many too naive metrics */
-		if(i!=0 && i!=1 && i!=2 && i!=4 && i!=12 && i!=14 && i!=15)
+		if(i!=0 && i!=1 && i!=2 && i!=4 && i!=12 && i!=13 && i!=14 && i!=15)
 			continue;
 
 		if(postProcessing==1)
@@ -144,7 +144,7 @@ void SpectralClustering::setLabel(vector<vector<int> >& neighborVec, vector<int>
 	std::vector<Ensemble> nodeVec(storage.size());
 
 	std::cout << "Cluster label setting begins with " << nodeVec.size() << " clusters..." << std::endl;
-#pragma omp parallel for schedule(dynamic) num_threads(8)
+#pragma omp parallel for schedule(static) num_threads(8)
 	for(int i=0;i<nodeVec.size();++i)
 	{
 		nodeVec[i].size = storage[i];
@@ -159,7 +159,7 @@ void SpectralClustering::setLabel(vector<vector<int> >& neighborVec, vector<int>
 	storage = std::vector<int>(nodeVec.size());
 	centroid = Eigen::MatrixXf(nodeVec.size(), ds.dataMatrix.cols());
 
-#pragma omp parallel for schedule(dynamic) num_threads(8)
+#pragma omp parallel for schedule(static) num_threads(8)
 	for(int i=0;i<nodeVec.size();++i)
 	{
 		neighborVec[i] = nodeVec[i].element;
@@ -235,7 +235,7 @@ void SpectralClustering::extractFeatures(const std::vector<int>& storage, const 
 
 	/* extract the closest and furthest streamlines to centroid */
 
-#pragma omp parallel for schedule(dynamic) num_threads(8)
+#pragma omp parallel for schedule(static) num_threads(8)
 	for (int i=0;i<numberOfClusters;++i)
 	{
 		float minDist = FLT_MAX;
@@ -262,7 +262,7 @@ void SpectralClustering::extractFeatures(const std::vector<int>& storage, const 
 	}
 
 	std::vector<std::vector<float> > center_vec(numberOfClusters, vector<float>(Column));
-#pragma omp parallel for schedule(dynamic) num_threads(8)
+#pragma omp parallel for schedule(static) num_threads(8)
 	for (int i = 0; i < center_vec.size(); ++i)
 	{
 		for (int j = 0; j < Column; ++j)
@@ -362,7 +362,7 @@ void SpectralClustering::getSigmaList()
 	if(isDistSorted)
 	{
 		/* get SCALING-th smallest dist */
-	#pragma omp parallel for schedule(dynamic) num_threads(8)
+	#pragma omp parallel for schedule(static) num_threads(8)
 		for(int i=0;i<Row;++i)
 		{
 			/* this is a n*k implementation by linear scan */
@@ -415,7 +415,7 @@ void SpectralClustering::getSigmaList()
 	else
 	{
 		/* directly by index since in both papers only mention i-th neighboring point */
-	#pragma omp parallel for schedule(dynamic) num_threads(8)
+	#pragma omp parallel for schedule(static) num_threads(8)
 		for(int i=0;i<Row;++i)
 		{
 			if(i<SCALING)
@@ -457,7 +457,7 @@ void SpectralClustering::getAdjacencyMatrix(Eigen::MatrixXf& adjacencyMatrix)
 {
 	//in case of diagonal matrix element is not assigned
 	adjacencyMatrix = Eigen::MatrixXf::Zero(ds.dataMatrix.rows(), ds.dataMatrix.rows());
-#pragma omp parallel for schedule(dynamic) num_threads(8)
+#pragma omp parallel for schedule(static) num_threads(8)
 	for(int i=0;i<adjacencyMatrix.rows();++i)
 	{
 		for(int j=0;j<adjacencyMatrix.cols();++j)
@@ -484,7 +484,7 @@ void SpectralClustering::getDegreeMatrix(const Eigen::MatrixXf& adjacencyMatrix,
 {
 	degreeMatrix = Eigen::DiagonalMatrix<float,Dynamic>(ds.dataMatrix.rows());
 	Eigen::VectorXf v = VectorXf::Zero(ds.dataMatrix.rows());
-#pragma omp parallel for schedule(dynamic) num_threads(8)
+#pragma omp parallel for schedule(static) num_threads(8)
 	for(int i=0;i<v.size();++i)
 	{
 		float summation = 0;
@@ -595,7 +595,7 @@ void SpectralClustering::getEigenClustering(const Eigen::MatrixXf& laplacianMatr
 void getMatrixPow(Eigen::DiagonalMatrix<float,Dynamic>& matrix, const float& powNumber)
 {
 	Eigen::VectorXf& m_v = matrix.diagonal();
-#pragma omp parallel for schedule(dynamic) num_threads(8)
+#pragma omp parallel for schedule(static) num_threads(8)
 	for(int i=0;i<m_v.size();++i)
 		m_v(i) = pow(m_v(i), powNumber);
 }
@@ -605,7 +605,7 @@ void getMatrixPow(Eigen::DiagonalMatrix<float,Dynamic>& matrix, const float& pow
 void SpectralClustering::normalizeEigenvec(Eigen::MatrixXf& eigenVec)
 {
 	const int& rows = eigenVec.rows();
-#pragma omp parallel for schedule(dynamic) num_threads(8)
+#pragma omp parallel for schedule(static) num_threads(8)
 	for(int i=0;i<rows;++i)
 	{
 		eigenVec.row(i)/=eigenVec.row(i).norm();
@@ -651,7 +651,7 @@ void SpectralClustering::performKMeans(const Eigen::MatrixXf& eigenVec,
 
 		centerTemp = MatrixXf::Zero(numberOfClusters, Column);
 
-	#pragma omp parallel for schedule(dynamic) num_threads(8)
+	#pragma omp parallel for schedule(static) num_threads(8)
 		for (int i = 0; i < numberOfClusters; ++i)
 		{
 			neighborVec[i].clear();
@@ -771,7 +771,7 @@ void SpectralClustering::getEigvecRotation(std::vector<int>& storage, std::vecto
 	clusterCenter = Eigen::MatrixXf::Zero(neighborVec.size(),vecRot.cols());
 	storage = std::vector<int>(neighborVec.size());
 
-#pragma omp parallel for schedule(dynamic) num_threads(8)
+#pragma omp parallel for schedule(static) num_threads(8)
 	for (unsigned int i=0; i < neighborVec.size(); i++)
 	{
 		storage[i] = neighborVec[i].size();
@@ -782,7 +782,7 @@ void SpectralClustering::getEigvecRotation(std::vector<int>& storage, std::vecto
 		}
 	}
 
-#pragma omp parallel for schedule(dynamic) num_threads(8)
+#pragma omp parallel for schedule(static) num_threads(8)
 	for (unsigned int i=0; i < neighborVec.size(); i++) {
 		//find average point within cluster
 		clusterCenter.row(i) = clusterCenter.row(i) / neighborVec[i].size();
