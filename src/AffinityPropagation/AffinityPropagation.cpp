@@ -53,7 +53,6 @@ void AffinityPropagation::performClustering()
 		if(i!=0 && i!=1 && i!=2 && i!=4 && i!=12 && i!=13 && i!=14 && i!=15)
 			continue;
 
-
 		std::cout << "----------------------------------------------------" << std::endl;
 		std::cout << "Experiment on norm " << i << " starts!--------------" << std::endl;
 
