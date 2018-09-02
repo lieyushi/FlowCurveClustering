@@ -14,7 +14,7 @@
 #include <string>
 
 
-#define LAMBDA 0.9
+#define LAMBDA 0.5
 
 
 struct Para

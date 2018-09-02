@@ -424,6 +424,7 @@ void AffinityPropagation::getMatrixS(Eigen::MatrixXf& matrixS)
 	int count = 0;
 
 	/* fill the matrix S */
+	float minV = FLT_MAX;
 	float tempDist;
 	for(int i=0;i<rows-1;++i)
 	{
@@ -435,15 +436,15 @@ void AffinityPropagation::getMatrixS(Eigen::MatrixXf& matrixS)
 				tempDist = getDisimilarity(ds.dataMatrix, i, j, normOption, object);
 
 			/* conventionally we assign -d*d as non-diagonal entries for matrix S */
-			//matrixS(i,j) = -tempDist*tempDist;
-
 			matrixS(i,j) = -tempDist;
 			matrixS(j,i) = matrixS(i,j);
 
+			minV = std::min(minV, matrixS(i,j));
 			distVec[count++] = matrixS(i,j);
 		}
 	}
 
+	std::cout << "min Value is " << minV << std::endl;
 	assert(count==distVecSize);
 
 	float initialValue;
@@ -467,21 +468,12 @@ void AffinityPropagation::getMatrixS(Eigen::MatrixXf& matrixS)
 
 		initialValue = medianValue;
 	}
-
-	/* else, directly choose the minimal value */
 	else if(initialOption==2)
 	{
-		initialValue = (float)(FLT_MAX);
-
-		/* find the minimum similarity value */
-	#pragma omp parallel for reduction(min:initialValue) num_threads(8)
-		for (int i = 0; i < distVecSize; ++i)
-		{
-			if(initialValue>distVec[i])
-				initialValue = distVec[i];
-		}
+		initialValue = minV;
 	}
 
+	std::cout << "Initial value is " << initialValue << std::endl;
 	/* assign medianValue to diagonal matrix element */
 #pragma omp parallel for schedule(static) num_threads(8)
 	for(int i=0;i<rows;++i)
@@ -517,7 +509,7 @@ void AffinityPropagation::updateResponsibility(Eigen::MatrixXf& matrixR, const E
 		for(int k=0;k<rows;++k)
 		{
 			/* don't use FLT_MIN because FLT_MIN == 0.0 */
-			float maxValue = float(-INT_MIN);
+			float maxValue = -FLT_MAX;
 			for(int kk=0;kk<rows;++kk)
 			{
 				if(kk==k)
@@ -585,7 +577,9 @@ void AffinityPropagation::getGroupAssignment(const Eigen::MatrixXf& matrixR, con
 	{
 		diagonalSum=matrixR(i,i)+matrixA(i,i);
 		if(diagonalSum>0)
+		{
 			centerVec.push_back(i);
+		}
 	}
 
 	const int& centerSize = centerVec.size();
@@ -594,7 +588,7 @@ void AffinityPropagation::getGroupAssignment(const Eigen::MatrixXf& matrixR, con
 	for(int i=0;i<rows;++i)
 	{
 		int index, element;
-		float maxSim = (float)(-INT_MIN);
+		float maxSim = -FLT_MAX;
 		for(int j=0;j<centerSize;++j)
 		{
 			element = centerVec[j];
