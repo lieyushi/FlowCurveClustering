@@ -55,13 +55,12 @@ public:
 					EvaluationMeasure& measure,
 					TimeRecorder& tr) const;
 
-	const int getNumOfClusters() const;
+	int numOfClusters;
 
 private:
 	int initialStates;	//1 is random initialization,
 						//2 is chosen from samples
 						//3 is chosen with k-medoids ++
-	int numOfClusters;
 	bool isSample;	//true means centroid should be from samples,
 					//false means centroids are within domain by iterations
 	Eigen::MatrixXf data;

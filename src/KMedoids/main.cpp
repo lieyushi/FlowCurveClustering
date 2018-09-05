@@ -47,7 +47,7 @@ void featureExtraction(const int& number,
 	assert(isPBFInput==1||isPBFInput==0);
 	isPBF = (isPBFInput==1);
 
-	int numOfClusters, vertexCount;
+	int vertexCount;
 
 /*-------------------------------------Input parameter choice-------------------------*/
 	Parameter pm;
@@ -127,7 +127,7 @@ void featureExtraction(const int& number,
 		15: Procrustes distance take from http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=6787131
 	*/
 
-	KMedoids kmedoid(pm, data, numOfClusters);
+	KMedoids kmedoid(pm, data, -1);
 
 	for(int i = 0;i<16;i++)
 	{
@@ -136,7 +136,7 @@ void featureExtraction(const int& number,
 
 		std::cout << "Please input a cluster number (>=2) for norm " << i << " in [2, "
 				<< dataVec.size() << "]: " << std::endl;
-		std::cin >> numOfClusters;
+		std::cin >> kmedoid.numOfClusters;
 
 		gettimeofday(&start, NULL);
 		ss << strName << "_KMeans";
@@ -152,7 +152,7 @@ void featureExtraction(const int& number,
 		silhou.reset();
 	}
 
-	IOHandler::writeReadme(tr.eventList, tr.timeList, kmedoid.getNumOfClusters());
+	IOHandler::writeReadme(tr.eventList, tr.timeList, kmedoid.numOfClusters);
 
 	recordInitilization(pm, sampleOption);
 

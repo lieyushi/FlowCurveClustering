@@ -354,8 +354,3 @@ void KMedoids::computeMedoids(MatrixXf& centerTemp,
 	}
 }
 
-
-const int KMedoids::getNumOfClusters() const
-{
-	return numOfClusters;
-}
