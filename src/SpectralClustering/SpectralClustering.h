@@ -122,6 +122,9 @@ private:
 /* whether used to find optimal number of clustering */
 	bool isOptimal;
 
+/* preset number */
+	int presetNumber;
+
 
 /**********************************************************************************************************
  **************************************   Private member functions   **************************************

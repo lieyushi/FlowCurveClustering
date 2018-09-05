@@ -55,11 +55,11 @@ void SpectralClustering::performClustering()
 		isOptimal = (optimalOption==1);
 
 		std::cout << "Please input the preset number of clusters in [2, " << ds.dataVec.size() << "]: " << std::endl;
-		std::cin >> numberOfClusters;
-		assert(numberOfClusters>=2 && numberOfClusters<=ds.dataVec.size());
+		std::cin >> presetNumber;
+		assert(presetNumber>=2 && presetNumber<=ds.dataVec.size());
 
 		/* record initial number of clusters of user input */
-		recordPreset(numberOfClusters);
+		recordPreset(presetNumber);
 	}
 
 	for(int i=0;i<=15;++i)
@@ -72,8 +72,8 @@ void SpectralClustering::performClustering()
 		{
 			std::cout << "Please input the preset number of clusters for norm " << i << " among [2, "
 					<< ds.dataVec.size() << "]: " << std::endl;
-			assert(numberOfClusters>=2 && numberOfClusters<=ds.dataVec.size());
-			std::cin >> numberOfClusters;
+			std::cin >> presetNumber;
+			assert(presetNumber>=2 && presetNumber<=ds.dataVec.size());
 		}
 
 		std::cout << "----------------------------------------------------" << std::endl;
@@ -83,7 +83,7 @@ void SpectralClustering::performClustering()
 		timeList.clear();
 
 		activityList.push_back("Preset numOfClusters is: ");
-		timeList.push_back(to_string(numberOfClusters));
+		timeList.push_back(to_string(presetNumber));
 
 		clusterByNorm(i);
 
@@ -142,8 +142,7 @@ void SpectralClustering::clusterByNorm(const int& norm)
 void SpectralClustering::setLabel(vector<vector<int> >& neighborVec, vector<int>& storage, Eigen::MatrixXf& centroid)
 {
 	std::vector<Ensemble> nodeVec(storage.size());
-
-	std::cout << "Cluster label setting begins with " << nodeVec.size() << " clusters..." << std::endl;
+	std::cout << "Cluster label setting begins with " << numberOfClusters << " clusters..." << std::endl;
 #pragma omp parallel for schedule(static) num_threads(8)
 	for(int i=0;i<nodeVec.size();++i)
 	{
@@ -542,7 +541,8 @@ void SpectralClustering::getEigenClustering(const Eigen::MatrixXf& laplacianMatr
 	activityList.push_back("Eigen decomposition takes: ");
 	timeList.push_back(to_string(timeTemp)+" s");
 
-	const int& eigenRows = numberOfClusters;
+	const int& eigenRows = presetNumber;
+	std::cout << "Eigen rows are: " << eigenRows << std::endl;
 	//const int& eigenRows = 5;
 
 	Eigen::MatrixXf eigenVec(eigenRows, ds.dataMatrix.rows());
@@ -623,6 +623,8 @@ void SpectralClustering::performKMeans(const Eigen::MatrixXf& eigenVec,
 	const int& Column = eigenVec.cols();
 
 	float moving=1000, tempMoving, before;
+
+	numberOfClusters = presetNumber;
 
 	storage = std::vector<int>(numberOfClusters);
 
@@ -707,6 +709,13 @@ void SpectralClustering::performKMeans(const Eigen::MatrixXf& eigenVec,
 	float timeTemp = ((end.tv_sec-start.tv_sec)*1000000u+end.tv_usec-start.tv_usec)/1.e6;
 	activityList.push_back("K-means takes: ");
 	timeList.push_back(to_string(timeTemp)+" s");
+
+	for(auto iter=storage.begin(); iter!=storage.end(); ++iter)
+	{
+		if(*iter==0)
+			storage.erase(iter);
+	}
+	numberOfClusters = storage.size();
 }
 
 
@@ -856,8 +865,8 @@ void SpectralClustering::getParameterUserInput()
 
 	std::cout << "-----------------------------------------------------------------------" << std::endl;
 	std::cout << "Input a desired cluster number among [1, " << ds.dataMatrix.rows() << "]: ";
-	std::cin >> numberOfClusters;
-	assert(numberOfClusters>1 && numberOfClusters<ds.dataMatrix.rows()/10);
+	std::cin >> presetNumber;
+	assert(presetNumber>1 && presetNumber<ds.dataMatrix.rows()/10);
 
 	std::cout << "-----------------------------------------------------------------------" << std::endl;
 	std::cout << "Input a post-processing method: 1.k-means, 2.eigenvector rotation: " << std::endl;
