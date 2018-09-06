@@ -60,6 +60,8 @@ void SpectralClustering::performClustering()
 
 		/* record initial number of clusters of user input */
 		recordPreset(presetNumber);
+
+		readCluster = False;
 	}
 
 	std::unordered_map<int,int> clusterMap;
