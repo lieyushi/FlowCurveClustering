@@ -5,6 +5,8 @@ using namespace std;
 
 bool isPBF;
 
+bool readCluster;
+
 
 void featureExtraction(const int& argc,
 					   char **argv);
@@ -71,12 +73,24 @@ void featureExtraction(const int& number,
 	    	  << "1.directly filling with last vertex; 2. uniform sampling." << std::endl;
 	std::cin >> sampleOption;
 	assert(sampleOption==1||sampleOption==2);
+
+    std::cout << "Please choose cluster number method, 0.user input, 1.read clustering: " << std::endl;
+    int clusterInput;
+    std::cin >> clusterInput;
+    assert(clusterInput==0 || clusterInput==1);
+    readCluster = (clusterInput==1);
+
 /*-------------------------------------Finish parameter choice-------------------------*/
 
 	EvaluationMeasure measure;
 
 	TimeRecorder tr;
 
+	std::unordered_map<int,int> clusterMap;
+	if(readCluster)
+	{
+		IOHandler::readClusteringNumber(clusterMap, "cluster_number");
+	}
 
 	/* a Silhouette method to estimate the clustering effect */
 	Silhouette silhou;
@@ -134,12 +148,17 @@ void featureExtraction(const int& number,
 		if(i!=0 && i!=1 && i!=2 && i!=4 && i!=12 && i!=13 && i!=14 && i!=15)
 			continue;
 
-		std::cout << "Please input a cluster number (>=2) for norm " << i << " in [2, "
-				<< dataVec.size() << "]: " << std::endl;
-		std::cin >> kmedoid.numOfClusters;
+		if(readCluster)
+			kmedoid.numOfClusters = clusterMap[i];
+		else
+		{
+			std::cout << "Please input a cluster number (>=2) for norm " << i << " in [2, "
+					<< dataVec.size() << "]: " << std::endl;
+			std::cin >> kmedoid.numOfClusters;
+		}
 
 		gettimeofday(&start, NULL);
-		ss << strName << "_KMeans";
+		ss << strName << "_KMedoids";
 		performKMedoids(ss.str(), dataVec, dimension, fullName, kmedoid, i, silhou, measure, tr);
 		ss.str("");
 		gettimeofday(&end, NULL);
@@ -222,7 +241,7 @@ void performKMedoids(const string& fileName,
 	std::cout << "Finish printing vtk for k-means clustering result!" << std::endl;
 
 	IOHandler::printToFull(dataVec, fl.group, fl.totalNum, string("norm")+to_string(normOption)
-						   +string("_KMeans"), fullName, dimension);
+						   +string("_KMedoids"), fullName, dimension);
 	IOHandler::writeReadme(fl.closest, fl.furthest, normOption);
 
 	IOHandler::printToFull(dataVec, sil.sData, "norm"+to_string(normOption)+"_SValueLine", 
@@ -251,7 +270,7 @@ void recordInitilization(const Parameter& pm,
 		readme << pm.initialization << ".sample initialization" 
 			   << std::endl;
 	else if(pm.initialization==3)
-		readme << pm.initialization << ".kmeans++ initialization" 
+		readme << pm.initialization << ".kmedoids++ initialization"
 			   << std::endl;
     
     readme << "Medoid is: ";

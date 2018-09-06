@@ -30,6 +30,7 @@ void performK_Means(const string& fileName,
 int initializationOption;
 bool isPBF;
 int post_processing;
+bool readCluster;
 
 
 int main(int argc, char* argv[])
@@ -78,6 +79,19 @@ void featureExtraction(const int& number,
     std::cin >> samplingMethod;
     assert(samplingMethod==1 || samplingMethod==2);
 
+    std::cout << "Please choose cluster number method, 0.user input, 1.read clustering: " << std::endl;
+    int clusterInput;
+    std::cin >> clusterInput;
+    assert(clusterInput==0 || clusterInput==1);
+    readCluster = (clusterInput==1);
+
+	std::unordered_map<int,int> clusterMap;
+	if(readCluster)
+	{
+		IOHandler::readClusteringNumber(clusterMap, "cluster_number");
+	}
+
+
     TimeRecorder tr;
 
 	Silhouette sil;
@@ -95,8 +109,15 @@ void featureExtraction(const int& number,
 	tr.eventList.push_back("I-O file reader takes: ");
 	tr.timeList.push_back(to_string(timeTemp)+"s");
 
-	std::cout << "Please input a cluster number (>=2) among [2, " << dataVec.size() << "]: " << std::endl;
-	std::cin >> cluster;
+	if(!readCluster)
+	{
+		std::cout << "Please input a cluster number (>=2) among [2, " << dataVec.size() << "]: " << std::endl;
+		std::cin >> cluster;
+	}
+	else
+	{
+		cluster = clusterMap[0]+1;
+	}
 
 	stringstream ss;
 	ss << strName << "_differentNorm_full.vtk";
@@ -149,9 +170,16 @@ void featureExtraction(const int& number,
 	{
 		if(i!=0&& i!=1 && i!=2 && i!=4 && i!=12 && i!=13 && i!=14 && i!=15 && i!=16)
 			continue;
-		std::cout << "Please input a cluster number (>=2) for norm " << i << " in [2, "
-				<< dataVec.size() << "]: " << std::endl;
-		std::cin >> cluster;
+
+		if(readCluster)
+			cluster = clusterMap[i];
+		else
+		{
+			std::cout << "Please input a cluster number (>=2) for norm " << i << " in [2, "
+					<< dataVec.size() << "]: " << std::endl;
+			std::cin >> cluster;
+		}
+
 		std::cout << "Kmeans on norm " << i << " starts..." << std::endl;
 		gettimeofday(&start, NULL);
 		ss << strName << "_KMeans";

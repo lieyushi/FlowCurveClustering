@@ -84,6 +84,9 @@ private:
 /* whether used L-method to detect optimal number of clusters */
 	bool lMethod;
 
+/* whether read cluster by input or read from txt */
+	bool readCluster;
+
 /* set dataset from user command */
 	void setDataset(const int& argc, char **argv);
 

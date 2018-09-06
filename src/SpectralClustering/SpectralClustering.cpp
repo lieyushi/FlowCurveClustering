@@ -62,6 +62,12 @@ void SpectralClustering::performClustering()
 		recordPreset(presetNumber);
 	}
 
+	std::unordered_map<int,int> clusterMap;
+	if(readCluster)
+	{
+		IOHandler::readClusteringNumber(clusterMap, "cluster_number");
+	}
+
 	for(int i=0;i<=15;++i)
 	{
 		/* don't want to deal with many too naive metrics */
@@ -70,9 +76,14 @@ void SpectralClustering::performClustering()
 
 		if(postProcessing==1)
 		{
-			std::cout << "Please input the preset number of clusters for norm " << i << " among [2, "
-					<< ds.dataVec.size() << "]: " << std::endl;
-			std::cin >> presetNumber;
+			if(readCluster)
+				presetNumber = clusterMap[i];
+			else
+			{
+				std::cout << "Please input the preset number of clusters for norm " << i << " among [2, "
+						<< ds.dataVec.size() << "]: " << std::endl;
+				std::cin >> presetNumber;
+			}
 			assert(presetNumber>=2 && presetNumber<=ds.dataVec.size());
 		}
 
@@ -880,6 +891,12 @@ void SpectralClustering::getParameterUserInput()
 		std::cin >> mMethod;
 		assert(mMethod==1 || mMethod==2);
 	}
+
+    std::cout << "Please choose cluster number method, 0.user input, 1.read clustering: " << std::endl;
+    int clusterInput;
+    std::cin >> clusterInput;
+    assert(clusterInput==0 || clusterInput==1);
+    readCluster = (clusterInput==1);
 
 }
 

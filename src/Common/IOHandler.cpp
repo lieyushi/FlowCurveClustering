@@ -1532,3 +1532,29 @@ void IOHandler::writeReadMe(const float& value, const string& dataSet, const str
 	out_file << std::endl;
 	out_file.close();
 }
+
+
+/* read clustering number as a dictionary */
+void IOHandler::readClusteringNumber(std::unordered_map<int,int>& clusMap, const string& fileName)
+{
+	std::ifstream readme(("../dataset/"+fileName).c_str(), ios::in);
+	if(!readme)
+	{
+		std::cout << "Error creating Storage!" << std::endl;
+		exit(1);
+	}
+	string line;
+	int scopePos;
+	while(getline(readme, line))
+	{
+		scopePos = line.find(":");
+		if(scopePos==std::string::npos)
+		{
+			std::cout << "Error for clustering number reader..." << std::endl;
+			exit(1);
+		}
+		clusMap[std::atoi(line.substr(0,scopePos).c_str())] = std::atoi(line.substr(scopePos+1).c_str());
+	}
+	readme.close();
+}
+

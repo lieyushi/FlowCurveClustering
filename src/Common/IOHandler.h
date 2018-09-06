@@ -276,6 +276,9 @@ public:
 
 	/* need to store each label for elements for NID computation */
 	static void generateGroups(const std::vector<std::vector<int> >& storage, const string& fileName);
+
+	/* read clustering number as a dictionary */
+	static void readClusteringNumber(std::unordered_map<int,int>& clusMap, const string& fileName);
 };
 
 

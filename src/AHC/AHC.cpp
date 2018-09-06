@@ -93,6 +93,12 @@ void AHC::performClustering()
 		15: Procrustes distance take from http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=6787131
 		16: entropy-based distance metric taken from http://vis.cs.ucdavis.edu/papers/pg2011paper.pdf
 	*/
+	std::unordered_map<int,int> clusterMap;
+	if(readCluster)
+	{
+		IOHandler::readClusteringNumber(clusterMap, "cluster_number");
+	}
+
 	for(normOption=0;normOption<16;++normOption)
 	{
 		if(normOption!=0 && normOption!=1 && normOption!=2 && normOption!=4 && normOption!=12
@@ -106,11 +112,18 @@ void AHC::performClustering()
 		/* L-method is not performed. It's a normal AHC procedure */
 		if(!lMethod)
 		{
-			/* input target cluster number */
 			const int& Row = ds.dataMatrix.rows();
-			std::cout << "---------------------------------------" << std::endl;
-			std::cout << "Input cluster number among [0, " << Row << "] for norm " << normOption << ": ";
-			std::cin >> numberOfClusters;
+			if(readCluster)
+			{
+				numberOfClusters = clusterMap[normOption];
+			}
+			else
+			{
+				std::cout << "---------------------------------------" << std::endl;
+				std::cout << "Input cluster number among [0, " << Row << "] for norm " << normOption << ": ";
+				std::cin >> numberOfClusters;
+				assert(numberOfClusters>0 && numberOfClusters<Row);
+			}
 			assert(numberOfClusters>0 && numberOfClusters<Row);
 		}
 		/* perform L-method for detecting optimal num of clusters */
@@ -491,6 +504,14 @@ void AHC::setDataset(const int& argc, char **argv)
 	std::cout << "Input linkage option: 0.single linkage, 1.complete linkage, 2.average linkage" << std::endl;
 	std::cin >> linkageOption;
 	assert(linkageOption==0||linkageOption==1||linkageOption==2);
+
+	std::cout << "---------------------------" << std::endl;
+	std::cout << "Choose cluster number input method: 0.user input, 1.read from file: " << std::endl;
+	int clusterInput;
+	std::cin >> clusterInput;
+	assert(clusterInput==0||clusterInput==1);
+	readCluster = (clusterInput==1);
+
 }
 
 
