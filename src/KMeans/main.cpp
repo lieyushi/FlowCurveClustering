@@ -166,7 +166,7 @@ void featureExtraction(const int& number,
 	if(samplingMethod==2)
 		IOHandler::sampleArray(data, dataVec, dimension, maxElements);
 
-	for(int i = 0;i<17;i++)
+	for(int i = 0;i<16;i++)
 	{
 		if(i!=0&& i!=1 && i!=2 && i!=4 && i!=12 && i!=13 && i!=14 && i!=15 && i!=16)
 			continue;
