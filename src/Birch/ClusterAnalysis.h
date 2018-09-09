@@ -192,7 +192,10 @@ void getBirchClusterTrial(const MetricPreparation& object,
 
 	// phase 1 and 2: building, compacting when overflows memory limit
 	for( std::size_t i = 0 ; i < items.size() ; i++ )
-		tree.insert((float_type*)(&(items[i][0])));
+	{
+		if(&(items[i][0]))
+			tree.insert((float_type*)(&(items[i][0])));
+	}
 
 	// phase 2 or 3: compacting? or clustering?
 	// merging overlayed sub-clusters by rebuilding true
