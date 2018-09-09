@@ -21,6 +21,8 @@ std::vector<double> timeList;
 
 bool isPBF;
 
+bool readCluster;
+
 template<boost::uint32_t dim>
 MetricPreparation CFTree<dim>::object = MetricPreparation();
 
@@ -72,6 +74,13 @@ void getUserInput(const int& argc,
 	std::cin >> PBFjudgement;
 	assert(PBFjudgement==1||PBFjudgement==0);
 	isPBF = (PBFjudgement==1);
+
+	std::cout << "---------------------------" << std::endl;
+	std::cout << "Choose cluster number input method: 0.user input, 1.read from file: " << std::endl;
+	int clusterInput;
+	std::cin >> clusterInput;
+	assert(clusterInput==0||clusterInput==1);
+	readCluster = (clusterInput==1);
 
 	std::cout << "Please choose the sampling method? " << endl
 	          << "1.filling, 2.uniform sampling." << std::endl;
@@ -298,9 +307,18 @@ void getBirchClustering(std::vector<item_type<dim> >& items,
 
 	const float distThreshold = getMaxDist(equalArray, object, normOption);
 
-	std::cout << "Enter approximate number of clusters: " << std::endl;
 	int requiredClusters;
-	std::cin >> requiredClusters;
+	if(readCluster)
+	{
+		std::unordered_map<int,int> clusterMap;
+		IOHandler::readClusteringNumber(clusterMap, "cluster_number");
+		requiredClusters = clusterMap[normOption];
+	}
+	else
+	{
+		std::cout << "Enter approximate number of clusters: " << std::endl;
+		std::cin >> requiredClusters;
+	}
 	const int& upperClusters = requiredClusters*1.2;
 	const int& lowerClusters = requiredClusters*0.8;
 
