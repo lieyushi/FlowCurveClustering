@@ -244,7 +244,9 @@ void KMedoids::getMedoids(FeatureLine& fline,
 	ValidityMeasurement vm;
 	vm.computeValue(normOption, data, fline.group, object, isPBF);
 	tr.eventList.push_back("K-medoids Validity measure is: ");
-	tr.timeList.push_back(to_string(vm.f_c));
+	stringstream fc_ss;
+	fc_ss << vm.f_c;
+	tr.timeList.push_back(fc_ss.str());
 
 	/* store the evaluation value result */
 	measure.silVec.push_back(sil.sAverage);

@@ -292,7 +292,9 @@ void SpectralClustering::extractFeatures(const std::vector<int>& storage, const 
 	ValidityMeasurement vm;
 	vm.computeValue(normOption, ds.dataMatrix, group, object, false);
 	activityList.push_back("SC Validity measure is: ");
-	timeList.push_back(to_string(vm.f_c));
+	stringstream fc_ss;
+	fc_ss << vm.f_c;
+	timeList.push_back(fc_ss.str());
 
 	std::cout << "Finishing extracting features!" << std::endl;	
 

@@ -469,7 +469,9 @@ void DensityClustering::extractFeatures(const float& radius_eps,
 	ValidityMeasurement vm;
 	vm.computeValue(normOption, ds.dataMatrix, item_cids, object, isPBF);
 	activityList.push_back("Validity measure is: ");
-	timeList.push_back(to_string(vm.f_c));
+	stringstream fc_ss;
+	fc_ss << vm.f_c;
+	timeList.push_back(fc_ss.str());
 
 	std::cout << "Finishing extracting features!" << std::endl;
 	IOHandler::printFeature("norm" + to_string(normOption) + "_closest.vtk",

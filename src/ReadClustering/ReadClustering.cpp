@@ -314,7 +314,9 @@ void ReadClustering::computeEvaluation(std::unordered_map<string, std::vector<in
 	timeList.push_back(to_string(sil.dbIndex));
 
 	activityList.push_back("Validity measurement on "+iter->first+" is: ");
-	timeList.push_back(to_string(vm.f_c));
+	stringstream fc_ss;
+	fc_ss << vm.f_c;
+	timeList.push_back(fc_ss.str());
 
 	/* record labeling information */
 	// IOHandler::generateGroups(ds.neighborVec, iter->first+"_storage");

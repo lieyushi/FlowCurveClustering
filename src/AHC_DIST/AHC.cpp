@@ -380,7 +380,9 @@ void AHC::extractFeatures(const std::vector<int>& storage,
 	ValidityMeasurement vm;
 	vm.computeValue(normOption, ds.dataMatrix, group, object, isPBF);
 	activityList.push_back("AHC Validity measure is: ");
-	timeList.push_back(to_string(vm.f_c));
+	stringstream fc_ss;
+	fc_ss << vm.f_c;
+	timeList.push_back(fc_ss.str());
 
 	std::cout << "Finishing extracting features!" << std::endl;
 
