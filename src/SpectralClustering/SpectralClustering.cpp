@@ -12,8 +12,14 @@ SpectralClustering::SpectralClustering(const int& argc, char **argv, const Para&
 	setDataset(argc, argv);
 
 	if(automatic)
+	{
 		setParameterAutomatic(p);
-
+	    std::cout << "Please choose cluster number method, 0.user input, 1.read clustering: " << std::endl;
+	    int clusterInput;
+	    std::cin >> clusterInput;
+	    assert(clusterInput==0 || clusterInput==1);
+	    readCluster = (clusterInput==1);
+	}
 	else
 		getParameterUserInput();
 
