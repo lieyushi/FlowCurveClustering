@@ -507,13 +507,15 @@ void AHC::setDataset(const int& argc, char **argv)
 	std::cin >> linkageOption;
 	assert(linkageOption==0||linkageOption==1||linkageOption==2);
 
-	std::cout << "---------------------------" << std::endl;
-	std::cout << "Choose cluster number input method: 0.user input, 1.read from file: " << std::endl;
-	int clusterInput;
-	std::cin >> clusterInput;
-	assert(clusterInput==0||clusterInput==1);
-	readCluster = (clusterInput==1);
-
+	if(!lMethod)
+	{
+		std::cout << "---------------------------" << std::endl;
+		std::cout << "Choose cluster number input method: 0.user input, 1.read from file: " << std::endl;
+		int clusterInput;
+		std::cin >> clusterInput;
+		assert(clusterInput==0||clusterInput==1);
+		readCluster = (clusterInput==1);
+	}
 }
 
 
