@@ -274,6 +274,9 @@ void ReadClustering::computeEvaluation(std::unordered_map<string, std::vector<in
 		/* count from "norm" for norm option */
 		const int& normOption = std::atoi(iter->first.substr(4).c_str());
 		std::cout << "This is norm " << normOption << std::endl;
+		if(normOption!=4)
+			return;
+
 		MetricPreparation object(ds.array.rows(), ds.array.cols());
 		object.preprocessing(ds.array, ds.array.rows(), ds.array.cols(), normOption);
 		/* if the dataset is not PBF, then should record distance matrix for Gamma matrix compution */
