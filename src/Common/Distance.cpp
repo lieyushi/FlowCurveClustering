@@ -1077,11 +1077,12 @@ const float getMetric_Hausdorff(const VectorXf& first, const VectorXf& second)
 
 
 
-bool getDistanceMatrix(const MatrixXf& data,
+void getDistanceMatrix(const MatrixXf& data,
 				       const int& normOption,
 					   const MetricPreparation& object)
 {
 	const int& Row = data.rows();
+
 	distanceMatrix = new float*[Row];
 
 #pragma omp parallel for schedule(static) num_threads(8)
@@ -1102,11 +1103,6 @@ bool getDistanceMatrix(const MatrixXf& data,
 	std::cout << getDisimilarity(data, 0, 1, normOption, object) << std::endl;
 	std::cout << getDisimilarity(data, 1, 0, normOption, object) << std::endl;
 	std::cout << "Finished computing distance matrix!" << std::endl;
-	if(distanceMatrix)
-		return true;
-	else
-		return false;
-
 }
 
 
@@ -1121,7 +1117,7 @@ void deleteDistanceMatrix(const int& Row)
 			{
 				delete[] distanceMatrix[i];
 				distanceMatrix[i] = NULL;
-			}	
+			}
 		}
 		delete[] distanceMatrix;
 		distanceMatrix = NULL;

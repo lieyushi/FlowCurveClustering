@@ -128,10 +128,7 @@ void SpectralClustering::clusterByNorm(const int& norm)
 
 	deleteDistanceMatrix(ds.dataMatrix.rows());
 
-	if(!getDistanceMatrix(ds.dataMatrix, normOption, object))
-	{
-		std::cout << "Failure to compute distance matrix!" << std::endl;
-	}
+	getDistanceMatrix(ds.dataMatrix, normOption, object);
 
 	gettimeofday(&end, NULL);
 	timeTemp = ((end.tv_sec  - start.tv_sec) * 1000000u

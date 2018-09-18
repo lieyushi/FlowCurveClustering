@@ -299,10 +299,7 @@ void getBirchClustering(std::vector<item_type<dim> >& items,
 	{
 		deleteDistanceMatrix(equalArray.rows());
 
-		if(!getDistanceMatrix(equalArray, normOption, object))
-		{
-			std::cout << "Failure to compute distance matrix!" << std::endl;
-		}
+		getDistanceMatrix(equalArray, normOption, object);
 	}
 
 	const float distThreshold = getMaxDist(equalArray, object, normOption);

@@ -223,10 +223,7 @@ void KMedoids::getMedoids(FeatureLine& fline,
 	{
 		deleteDistanceMatrix(data.rows());
 
-		if(!getDistanceMatrix(data, normOption, object))
-		{
-			std::cout << "Failure to compute distance matrix!" << std::endl;
-		}
+		getDistanceMatrix(data, normOption, object);
 	}
 
 	//groupNo record group numbers */

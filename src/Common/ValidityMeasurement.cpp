@@ -99,6 +99,43 @@ void ValidityMeasurement::computeValue(const int& normOption, const MatrixXf& ar
 	// compoute f_c
 	f_c = h_DDc*g_Sc;
 
+	/* normalization of validity measurement */
+	float min_dist = FLT_MAX, max_dist = -1.0;
+	const int& row = array.rows();
+#pragma omp parallel for reduction(min:min_dist) num_threads(8)
+	for(int i=0; i<row; ++i)
+	{
+		for(int j=0; j<row; ++j)
+		{
+			if(i==j)
+				continue;
+			float dist;
+			if(distanceMatrix)
+				dist = distanceMatrix[i][j];
+			else
+				dist = getDisimilarity(array, i, j, normOption, object);
+			min_dist = std::min(min_dist, dist);
+		}
+	}
+
+#pragma omp parallel for reduction(max:max_dist) num_threads(8)
+	for(int i=0; i<row; ++i)
+	{
+		for(int j=0; j<row; ++j)
+		{
+			if(i==j)
+				continue;
+			float dist;
+			if(distanceMatrix)
+				dist = distanceMatrix[i][j];
+			else
+				dist = getDisimilarity(array, i, j, normOption, object);
+			max_dist = std::max(max_dist, dist);
+		}
+	}
+	std::cout << "min dist is " << min_dist << ", and max is " << max_dist << std::endl;
+	f_c/=(max_dist-min_dist);
+
 	std::cout << "Validity measurement is " << f_c << std::endl;
 }
 
@@ -182,6 +219,34 @@ void ValidityMeasurement::computeValue(const MatrixXf& array, const std::vector<
 
 	// compoute f_c
 	f_c = h_DDc*g_Sc;
+
+	/* normalization of validity measurement */
+	float min_dist = FLT_MAX, max_dist = -1.0;
+	const int& row = array.rows();
+#pragma omp parallel for reduction(min:min_dist) num_threads(8)
+	for(int i=0; i<row; ++i)
+	{
+		for(int j=0; j<row; ++j)
+		{
+			if(i==j)
+				continue;
+			min_dist = std::min(min_dist, (array.row(i)-array.row(j)).norm());
+		}
+	}
+
+#pragma omp parallel for reduction(max:max_dist) num_threads(8)
+	for(int i=0; i<row; ++i)
+	{
+		for(int j=0; j<row; ++j)
+		{
+			if(i==j)
+				continue;
+			max_dist = std::max(max_dist, (array.row(i)-array.row(j)).norm());
+		}
+	}
+	std::cout << "min dist is " << min_dist << ", and max is " << max_dist << std::endl;
+	f_c/=(max_dist-min_dist);
+
 	std::cout << "Validity measurement is " << f_c << std::endl;
 }
 

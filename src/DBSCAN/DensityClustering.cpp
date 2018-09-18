@@ -18,9 +18,7 @@ DensityClustering::DensityClustering(const int& argc, char **argv) {
 	if (!isPBF) {
 		deleteDistanceMatrix(ds.dataMatrix.rows());
 
-		if (!getDistanceMatrix(ds.dataMatrix, normOption, object)) {
-			std::cout << "Failure to compute distance matrix!" << std::endl;
-		}
+		getDistanceMatrix(ds.dataMatrix, normOption, object);
 	}
 
 	nodeVec = vector<PointNode>(ds.dataMatrix.rows(), PointNode());

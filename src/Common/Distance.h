@@ -174,7 +174,7 @@ const float getDisimilarity(const VectorXf& first,
 							const int& normOption,
 							const MetricPreparation& object);
 
-bool getDistanceMatrix(const MatrixXf& data,
+void getDistanceMatrix(const MatrixXf& data,
 				       const int& normOption,
 					   const MetricPreparation& object);
 

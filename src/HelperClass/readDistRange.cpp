@@ -8,6 +8,7 @@
 #include <fstream>
 #include <string>
 #include <float.h>
+#include <limits>
 #include "IOHandler.h"
 #include "Initialization.h"
 
@@ -58,15 +59,13 @@ void getDistRange(const Dataset& ds)
 		/* very hard to decide whether needed to perform such pre-processing */
 		MetricPreparation object = MetricPreparation(ds.dataMatrix.rows(), ds.dataMatrix.cols());
 		object.preprocessing(ds.dataMatrix, ds.dataMatrix.rows(), ds.dataMatrix.cols(), i);
-		deleteDistanceMatrix(ds.dataMatrix.rows());
 
-		if(!getDistanceMatrix(ds.dataMatrix, i, object))
-		{
-			std::cout << "Failure to compute distance matrix!" << std::endl;
-		}
+		deleteDistanceMatrix(ds.dataMatrix.rows());
+		getDistanceMatrix(ds.dataMatrix, i, object);
 
 		const int& Row = ds.dataMatrix.rows();
-		float min_dist = FLT_MAX, max_dist = -1.0;
+		float min_dist = numeric_limits<float>::max(), max_dist = numeric_limits<float>::min();
+
 	#pragma omp parallel for reduction(min:min_dist) num_threads(8)
 		for (int i = 0; i < Row; ++i)
 		{
@@ -88,6 +87,8 @@ void getDistRange(const Dataset& ds)
 				max_dist = std::max(max_dist, distanceMatrix[i][j]);
 			}
 		}
+
+		std::cout << "norm " << i << " has min " << min_dist << " and max " << max_dist << std::endl;
 
 		std::ofstream readme("../dataset/dist_range", ios::app | ios::out);
 		if(readme.fail())
