@@ -274,7 +274,7 @@ void ReadClustering::computeEvaluation(std::unordered_map<string, std::vector<in
 		/* count from "norm" for norm option */
 		const int& normOption = std::atoi(iter->first.substr(4).c_str());
 		std::cout << "This is norm " << normOption << std::endl;
-		if(normOption!=4)
+		if(normOption!=4 && normOption!=15)
 			return;
 
 		MetricPreparation object(ds.array.rows(), ds.array.cols());
