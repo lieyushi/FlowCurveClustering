@@ -22,16 +22,6 @@ struct Parameter
 };
 
 
-struct EvaluationMeasure
-{
-	std::vector<float> silVec;
-	std::vector<float> gammaVec;
-	std::vector<float> entropyVec;
-	std::vector<float> dbIndexVec;
-};
-
-
-
 struct TimeRecorder
 {
 	std::vector<string> eventList;
@@ -52,7 +42,6 @@ public:
 	void getMedoids(FeatureLine& fline,
 					const int& normOption,
 					Silhouette& sil,
-					EvaluationMeasure& measure,
 					TimeRecorder& tr) const;
 
 	int numOfClusters;

@@ -35,7 +35,7 @@ int main( int argc, char** argv)
 {
 	std::vector<std::vector<float> > trajectories;
 	Eigen::MatrixXf equalArray;
-	std::vector<item_type<1998u> > items;
+	std::vector<item_type<4824u> > items;
 	int dimension, maxGroup, normOption;
 	FileIndex fi;
 	std::vector<int> item_cids;

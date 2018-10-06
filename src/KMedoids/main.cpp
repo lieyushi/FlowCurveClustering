@@ -18,7 +18,6 @@ void performKMedoids(const string& fileName,
 					 const KMedoids& kmedoid,
 					 const int& normOption,
 					 Silhouette& sil,
-					 EvaluationMeasure& measure,
 					 TimeRecorder& tr);
 
 void recordInitilization(const Parameter& pm,
@@ -82,8 +81,6 @@ void featureExtraction(const int& number,
 
 /*-------------------------------------Finish parameter choice-------------------------*/
 
-	EvaluationMeasure measure;
-
 	TimeRecorder tr;
 
 	std::unordered_map<int,int> clusterMap;
@@ -143,9 +140,11 @@ void featureExtraction(const int& number,
 
 	KMedoids kmedoid(pm, data, -1);
 
+	recordInitilization(pm, sampleOption);
+
 	for(int i = 0;i<16;i++)
 	{
-		if(i!=0 && i!=1 && i!=2 && i!=4 && i!=12 && i!=13 && i!=14 && i!=15)
+		if(i!=0 && i!=1/* && i!=2 && i!=4 && i!=12 && i!=13 && i!=14 && i!=15*/)
 			continue;
 
 		if(readCluster)
@@ -159,7 +158,7 @@ void featureExtraction(const int& number,
 
 		gettimeofday(&start, NULL);
 		ss << strName << "_KMedoids";
-		performKMedoids(ss.str(), dataVec, dimension, fullName, kmedoid, i, silhou, measure, tr);
+		performKMedoids(ss.str(), dataVec, dimension, fullName, kmedoid, i, silhou, tr);
 		ss.str("");
 		gettimeofday(&end, NULL);
 		timeTemp = ((end.tv_sec  - start.tv_sec) * 1000000u + end.tv_usec - start.tv_usec) / 1.e6;
@@ -168,24 +167,11 @@ void featureExtraction(const int& number,
 		if(silhou.sData.empty())
 			silhou.sAverage = 0;
 
+		IOHandler::writeReadme(tr.eventList, tr.timeList, kmedoid.numOfClusters);
+		tr.eventList.clear();
+		tr.timeList.clear();
 		silhou.reset();
 	}
-
-	IOHandler::writeReadme(tr.eventList, tr.timeList, kmedoid.numOfClusters);
-
-	recordInitilization(pm, sampleOption);
-
-	/* print silhouette values in the readme file */
-	IOHandler::writeReadme("Average Silhouette value is ", measure.silVec);
-
-	/* print gamma statistics vector in the readme */
-	IOHandler::writeReadme("Average Gamma statistics value is ", measure.gammaVec);
-
-	/* print entropy value in the readme file */
-	IOHandler::writeReadme("Average Entropy value is ", measure.entropyVec);
-
-	/* print DB index values in the readme file */
-	IOHandler::writeReadme("Average DB index is ", measure.dbIndexVec);
 }
 
 
@@ -196,11 +182,10 @@ void performKMedoids(const string& fileName,
 					 const KMedoids& kmedoid, 
 					 const int& normOption,
 					 Silhouette& sil,
-					 EvaluationMeasure& measure,
 					 TimeRecorder& tr)
 {
 	FeatureLine fl(dataVec);
-	kmedoid.getMedoids(fl, normOption, sil, measure, tr);
+	kmedoid.getMedoids(fl, normOption, sil, tr);
 
 	std::vector<std::vector<float> > closestStreamline, furthestStreamline;
 	std::vector<int> closestCluster, furthestCluster, meanCluster;
@@ -225,8 +210,6 @@ void performKMedoids(const string& fileName,
 	tr.timeList.push_back(to_string(furthestAverage));
 /* finish the rotation computation */
 
-
-
 	IOHandler::assignVec(meanCluster, fl.centerMass);
 	IOHandler::printVTK(fileName+string("_norm")+to_string(normOption)+string("_mean.vtk"), 
 						fl.centerMass, 
@@ -242,7 +225,7 @@ void performKMedoids(const string& fileName,
 
 	IOHandler::printToFull(dataVec, fl.group, fl.totalNum, string("norm")+to_string(normOption)
 						   +string("_KMedoids"), fullName, dimension);
-	IOHandler::writeReadme(fl.closest, fl.furthest, normOption);
+	//IOHandler::writeReadme(fl.closest, fl.furthest, normOption);
 
 	IOHandler::printToFull(dataVec, sil.sData, "norm"+to_string(normOption)+"_SValueLine", 
 						   fullName, 3);

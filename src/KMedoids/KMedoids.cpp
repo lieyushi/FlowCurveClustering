@@ -23,7 +23,6 @@ KMedoids::~KMedoids()
 void KMedoids::getMedoids(FeatureLine& fline,
 						  const int& normOption,
 						  Silhouette& sil,
-						  EvaluationMeasure& measure,
 						  TimeRecorder& tr) const
 {
 	MetricPreparation object(data.rows(), data.cols());
@@ -237,20 +236,15 @@ void KMedoids::getMedoids(FeatureLine& fline,
 
 	tr.eventList.push_back("Evaluation analysis would take: ");
 	tr.timeList.push_back(to_string(delta)+"s");
+	tr.eventList.push_back("Final cluster number is : ");
+	tr.timeList.push_back(to_string(groupNo));
 
 	ValidityMeasurement vm;
 	vm.computeValue(normOption, data, fline.group, object, isPBF);
-	tr.eventList.push_back("K-medoids Validity measure is: ");
-	stringstream fc_ss;
-	fc_ss << vm.f_c;
-	tr.timeList.push_back(fc_ss.str());
+	IOHandler::writeReadMe(vm.f_c, "", "kmedoids on norm "+to_string(normOption), "validity measurement");
 
-	/* store the evaluation value result */
-	measure.silVec.push_back(sil.sAverage);
-	measure.gammaVec.push_back(sil.gammaStatistic);
-	measure.entropyVec.push_back(entropy);
-	measure.dbIndexVec.push_back(sil.dbIndex);
-
+	/* write value of the silhouette class */
+	IOHandler::writeReadme(entropy, sil);
 }
 
 

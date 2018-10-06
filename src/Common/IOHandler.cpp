@@ -743,7 +743,6 @@ void IOHandler::writeReadme(const std::vector<string>& timeName,
 		exit(1);
 	}
 	assert(timeName.size()==timeDiff.size());
-
 	for (int i = 0; i < timeName.size(); ++i)
 	{
 		readme << timeName[i] << " is " << timeDiff[i] << " s." << std::endl;
@@ -768,12 +767,10 @@ void IOHandler::writeReadme(const std::vector<string>& timeName,
 		exit(1);
 	}
 	assert(timeName.size()==timeDiff.size());
-
 	for (int i = 0; i < timeName.size(); ++i)
 	{
 		readme << timeName[i] << " " << timeDiff[i] << std::endl;
 	}
-	readme << std::endl;
 	readme << "Preset cluster number in K-means is: " << cluster << std::endl;
 	readme << std::endl;
     readme.close();
@@ -1526,10 +1523,9 @@ void IOHandler::writeReadMe(const float& value, const string& dataSet, const str
 		std::cout << "Error for creating README!" << std::endl;
 		exit(1);
 	}
-
+	out_file << "-----------------------------------------------------------------" << std::endl;
 	out_file << "The " << value_name << " of " << clustering << " on dataset "
 			 << dataSet << " is " << value << std::endl;
-	out_file << std::endl;
 	out_file.close();
 }
 

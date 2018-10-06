@@ -140,8 +140,12 @@ void featureExtraction(const int& number,
 	gettimeofday(&end, NULL);
 	timeTemp = ((end.tv_sec  - start.tv_sec) * 1000000u 
 			   + end.tv_usec - start.tv_usec) / 1.e6;
-	tr.eventList.push_back("PCA+K_Means operation takes: ");
-	tr.timeList.push_back(to_string(timeTemp)+"s");
+
+	IOHandler::writeReadme(tr.eventList, tr.timeList, cluster);
+
+	tr.eventList.clear();
+	tr.timeList.clear();
+
 
 	sil.reset();
 
@@ -168,7 +172,7 @@ void featureExtraction(const int& number,
 
 	for(int i = 0;i<16;i++)
 	{
-		if(i!=0&& i!=1 && i!=2 && i!=4 && i!=12 && i!=13 && i!=14 && i!=15 && i!=16)
+		if(i!=0 && i!=1 && i!=2 && i!=4 && i!=12 && i!=13 && i!=14 && i!=15 && i!=16)
 			continue;
 
 		if(readCluster)
@@ -192,10 +196,12 @@ void featureExtraction(const int& number,
 		tr.eventList.push_back("K-means on norm "+to_string(i)+" takes: ");
 		tr.timeList.push_back(to_string(timeTemp)+"s");
 
+		IOHandler::writeReadme(tr.eventList, tr.timeList, cluster);
+
+		tr.eventList.clear();
+		tr.timeList.clear();
 		sil.reset();
 	}
-
-	IOHandler::writeReadme(tr.eventList, tr.timeList, cluster);
 }
 
 

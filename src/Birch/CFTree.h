@@ -770,8 +770,8 @@ public:
 
     //template<typename _iter>
     //template<cfentry_vec_type::iterator _iter>
-   // void redist(std::vector<item_type<1998u> >::iterator begin, std::vector<item_type<1998u> >::iterator end, /*cfentry_vec_type*/std::vector<CFEntry<1998u> >& entries, std::vector<int>& out_cid)
-	void redist(std::vector<item_type<1998u> >::iterator begin, std::vector<item_type<1998u> >::iterator end, /*cfentry_vec_type*/std::vector<CFEntry<1998u> >& entries, std::vector<int>& out_cid)
+   // void redist(std::vector<item_type<4824u> >::iterator begin, std::vector<item_type<4824u> >::iterator end, /*cfentry_vec_type*/std::vector<CFEntry<4824u> >& entries, std::vector<int>& out_cid)
+	void redist(std::vector<item_type<4824u> >::iterator begin, std::vector<item_type<4824u> >::iterator end, /*cfentry_vec_type*/std::vector<CFEntry<4824u> >& entries, std::vector<int>& out_cid)
     {
         using namespace boost::numeric::ublas;
 
@@ -802,7 +802,7 @@ public:
 
         out_cid.clear();
         out_cid.reserve(end - begin);
-        for (std::vector<item_type<1998u> >::iterator it = begin; it != end; it++) {
+        for (std::vector<item_type<4824u> >::iterator it = begin; it != end; it++) {
             ublas_vec_type v(dim);
             std::copy(&(*it)[0], &(*it)[0] + dim, v.begin());
             out_cid.push_back(_redist(v, subclusters, dist_mat));

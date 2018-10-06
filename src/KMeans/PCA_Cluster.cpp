@@ -23,6 +23,7 @@ void PCA_Cluster::performPCA_Clustering(const Eigen::MatrixXf& data,
 	MatrixXf cArray, SingVec;
 	VectorXf meanTrajectory(Column);
 	int PC_Number;
+
 	performSVD(cArray, data, Row, Column, PC_Number, SingVec, meanTrajectory, tr);
 
 	if(post_processing==1)
@@ -627,7 +628,7 @@ void PCA_Cluster::performFullK_MeansByClusters(const Eigen::MatrixXf& data,
 
 	ValidityMeasurement vm;
 	vm.computeValue(normOption, data, group, object, isPBF);
-	IOHandler::writeReadMe(vm.f_c, "", "k-means", "validity measurement");
+	IOHandler::writeReadMe(vm.f_c, "", "k-means on norm "+to_string(normOption), "validity measurement");
 
 	/* write value of the silhouette class */
 	IOHandler::writeReadme(entropy, sil);
