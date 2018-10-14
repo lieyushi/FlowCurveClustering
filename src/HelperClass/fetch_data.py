@@ -16,10 +16,13 @@ def get_distance_limit(file_position):
 		if x!='':
 			norm_pos = x.find('norm')
 			range_pos = x.find('(max - min) is')
-			comma_pos = x.find(',')
-			if norm_pos==-1 or range_pos==-1 or comma_pos==-1:
+			if norm_pos==-1 or range_pos==-1:
 				raise ValueError('Error for string prediction')
-			distance_range[x[(norm_pos+5):comma_pos]] = float(x[range_pos+16:])
+			start_pos = norm_pos+5
+			end_pos = start_pos
+			while x[end_pos]!=' ' and x[end_pos]!=',':
+				end_pos+=1
+			distance_range[x[start_pos:end_pos]] = float(x[range_pos+16:])
 	return distance_range
 
 
@@ -159,7 +162,6 @@ def extract_single_readme(distance_range, data_folder):
 					end_pos+=1
 				norm = x[norm_pos+6:end_pos]
 			norm_found = True
-			print(norm)
 
 		elif norm_found is True and norm in norm_list:
 			sil_pos = x.find('silhouette:')
