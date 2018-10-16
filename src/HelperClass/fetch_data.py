@@ -22,7 +22,11 @@ def get_distance_limit(file_position):
 			end_pos = start_pos
 			while x[end_pos]!=' ' and x[end_pos]!=',':
 				end_pos+=1
-			distance_range[x[start_pos:end_pos]] = float(x[range_pos+16:])
+
+			start_ = range_pos+len('(max - min) is')
+			while x[start_]==' ':
+				start_+=1
+			distance_range[x[start_pos:end_pos]] = float(x[start_:])
 	return distance_range
 
 
@@ -335,7 +339,7 @@ def get_average(lmethod_evaluation, sc_eigen_evaluation):
 
 def generate_text(evaluation_data, storage_name):
 	storage = open(storage_name, 'w')
-	clustering_algorithms = ['kmeans', 'kmedoids', 'AHC_single', 'AHC_average', 'birch', 'dbscan', 'sc_kmeans', 'sc_eigen', 'AP']
+	clustering_algorithms = ['kmeans', 'kmedoids', 'AHC_single', 'AHC_average', 'birch', 'dbscan', 'optics', 'sc_kmeans', 'sc_eigen', 'AP']
 	norm_order = ['0', '1', '2', '4', '12', '13', '14', '15']
 	for clustering in clustering_algorithms:
 		if clustering in evaluation_data.keys():
@@ -381,6 +385,9 @@ def merge_two_dicts(first, second):
 
 def extract_full_data():
 	distance_range=get_distance_limit('dist_range')
+
+	print(distance_range)
+
 	lmethod_evaluation = extract_evaluation_data(distance_range, 'optimal_clustering/lmethod')
 	sc_eigen_evaluation = extract_evaluation_data(distance_range, 'optimal_clustering/sc_eigen_number')
 	average_evaluation = get_average(lmethod_evaluation, sc_eigen_evaluation)
