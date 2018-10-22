@@ -15,14 +15,17 @@ def get_distance_limit(file_position):
 	for x in content:
 		if x!='':
 			norm_pos = x.find('norm')
+			pca_pos = x.find('PCA')
+
+			if norm_pos==-1 and pca_pos==-1:
+				continue
 			if norm_pos!=-1:
 				start_pos = norm_pos+5
 				end_pos = start_pos
 				while x[end_pos]!=' ' and x[end_pos]!=',':
 					end_pos+=1
 				norm_str = x[start_pos:end_pos]
-			else:
-				pca_pos = x.find('PCA')
+			elif pca_pos!=-1:
 				norm_str = 'PCA'
 
 			range_pos = x.find('(max - min) is')
