@@ -15,18 +15,21 @@ def get_distance_limit(file_position):
 	for x in content:
 		if x!='':
 			norm_pos = x.find('norm')
-			range_pos = x.find('(max - min) is')
-			if norm_pos==-1 or range_pos==-1:
-				raise ValueError('Error for string prediction')
-			start_pos = norm_pos+5
-			end_pos = start_pos
-			while x[end_pos]!=' ' and x[end_pos]!=',':
-				end_pos+=1
+			if norm_pos!=-1:
+				start_pos = norm_pos+5
+				end_pos = start_pos
+				while x[end_pos]!=' ' and x[end_pos]!=',':
+					end_pos+=1
+				norm_str = x[start_pos:end_pos]
+			else:
+				pca_pos = x.find('PCA')
+				norm_str = 'PCA'
 
+			range_pos = x.find('(max - min) is')
 			start_ = range_pos+len('(max - min) is')
 			while x[start_]==' ':
 				start_+=1
-			distance_range[x[start_pos:end_pos]] = float(x[start_:])
+			distance_range[norm_str] = float(x[start_:])
 	return distance_range
 
 
@@ -44,6 +47,11 @@ def extract_evaluation_data(distance_range, data_folder):
 		for val in norm_list:
 			evaluation[d_folder][val] = {'silhouette':-10000.0, 'gamma':-10000.0, 'db index':-10000.0, 'validity':-10000.0}
 
+		if d_folder=='kmeans':
+			evaluation['PCA'] = {}
+			for val in norm_list:
+				evaluation['PCA'][val] = {'silhouette':-10000.0, 'gamma':-10000.0, 'db index':-10000.0, 'validity':-10000.0}
+
 		norm_found = False
 		for x in content:
 			if x=='' or x=='\n':
@@ -51,7 +59,8 @@ def extract_evaluation_data(distance_range, data_folder):
 			if norm_found is False:
 				norm_pos = x.find('norm')
 				Norm_pos = x.find('Norm:')
-				if norm_pos==-1 and Norm_pos==-1:
+				pca_pos = x.find('PCA')
+				if norm_pos==-1 and Norm_pos==-1 and pca_pos==-1:
 					continue
 
 				if norm_pos!=-1:
@@ -64,9 +73,11 @@ def extract_evaluation_data(distance_range, data_folder):
 					while(x[end_pos]!=' ' and end_pos<=len(x)-1) and x[end_pos]!='\n':
 						end_pos+=1
 					norm = x[norm_pos+6:end_pos]
+				elif pca_pos!=-1:
+					norm = 'PCA'
 				norm_found = True
 			
-			elif norm_found is True and norm in norm_list:
+			elif norm_found is True and (norm in norm_list or norm=='PCA'):
 				sil_pos = x.find('silhouette:')
 				gamma_pos = x.find('statistic is:')
 				dbindex_pos = x.find('DB index is:')
@@ -82,7 +93,10 @@ def extract_evaluation_data(distance_range, data_folder):
 						end_pos+=1
 					val_str = x[start_pos:end_pos]
 					if val_str !='-nan' and val_str !='inf':
-						evaluation[d_folder][norm]['silhouette'] = float(x[start_pos:end_pos])
+						if norm=='PCA':
+							evaluation[norm]['0']['silhouette'] = float(x[start_pos:end_pos])
+						else:
+							evaluation[d_folder][norm]['silhouette'] = float(x[start_pos:end_pos])
 
 				if gamma_pos!=-1:
 					start_pos = gamma_pos+len('statistic is:')+1
@@ -93,7 +107,10 @@ def extract_evaluation_data(distance_range, data_folder):
 						end_pos+=1
 					val_str = x[start_pos:end_pos]
 					if val_str !='-nan' and val_str !='inf':
-						evaluation[d_folder][norm]['gamma'] = float(x[start_pos:end_pos])
+						if norm=='PCA':
+							evaluation[norm]['0']['gamma'] = float(x[start_pos:end_pos])
+						else:
+							evaluation[d_folder][norm]['gamma'] = float(x[start_pos:end_pos])
 
 				if dbindex_pos!=-1:
 					start_pos = dbindex_pos+len('DB index is:')+1
@@ -104,7 +121,10 @@ def extract_evaluation_data(distance_range, data_folder):
 						end_pos+=1
 					val_str = x[start_pos:end_pos]
 					if val_str !='-nan' and val_str !='inf':
-						evaluation[d_folder][norm]['db index'] = float(x[start_pos:end_pos])
+						if norm=='PCA':
+							evaluation[norm]['0']['db index'] = float(x[start_pos:end_pos])
+						else:
+							evaluation[d_folder][norm]['db index'] = float(x[start_pos:end_pos])
 					norm_found = False
 
 				if validity_pos!=-1:
@@ -116,7 +136,10 @@ def extract_evaluation_data(distance_range, data_folder):
 						end_pos+=1
 					val_str = x[start_pos:end_pos]
 					if val_str !='-nan' and val_str !='inf':
-						evaluation[d_folder][norm]['validity'] = float(x[start_pos:end_pos])/distance_range[norm]
+						if norm=='PCA':
+							evaluation[norm]['0']['validity'] = float(x[start_pos:end_pos])/distance_range[norm]
+						else:
+							evaluation[d_folder][norm]['validity'] = float(x[start_pos:end_pos])/distance_range[norm]
 
 				elif measurement_pos!=-1:
 					start_pos = measurement_pos+len('measurement is:')+1
@@ -127,7 +150,10 @@ def extract_evaluation_data(distance_range, data_folder):
 						end_pos+=1
 					val_str = x[start_pos:end_pos]
 					if val_str !='-nan' and val_str !='inf':
-						evaluation[d_folder][norm]['validity'] = float(x[start_pos:end_pos])/distance_range[norm]
+						if norm=='PCA':
+							evaluation[norm]['0']['validity'] = float(x[start_pos:end_pos])/distance_range[norm]
+						else:
+							evaluation[d_folder][norm]['validity'] = float(x[start_pos:end_pos])/distance_range[norm]
 
 	return evaluation
 
@@ -339,7 +365,7 @@ def get_average(lmethod_evaluation, sc_eigen_evaluation):
 
 def generate_text(evaluation_data, storage_name):
 	storage = open(storage_name, 'w')
-	clustering_algorithms = ['kmeans', 'kmedoids', 'AHC_single', 'AHC_average', 'birch', 'dbscan', 'optics', 'sc_kmeans', 'sc_eigen', 'AP']
+	clustering_algorithms = ['kmeans', 'kmedoids', 'AHC_single', 'AHC_average', 'birch', 'dbscan', 'optics', 'sc_kmeans', 'sc_eigen', 'AP', 'PCA']
 	norm_order = ['0', '1', '2', '4', '12', '13', '14', '15']
 	for clustering in clustering_algorithms:
 		if clustering in evaluation_data.keys():
@@ -391,6 +417,7 @@ def extract_full_data():
 	lmethod_evaluation = extract_evaluation_data(distance_range, 'optimal_clustering/lmethod')
 	sc_eigen_evaluation = extract_evaluation_data(distance_range, 'optimal_clustering/sc_eigen_number')
 	average_evaluation = get_average(lmethod_evaluation, sc_eigen_evaluation)
+	print(average_evaluation['PCA']['0'])
 
 	ap_evaluation = extract_single_readme(distance_range, 'AP')
 	full_evaluation = merge_two_dicts(average_evaluation, ap_evaluation)
