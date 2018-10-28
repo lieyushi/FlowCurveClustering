@@ -21,7 +21,8 @@ if(nrow(corr)==16)
 # rownames(corr) <- 0:(nrow(corr)-1)
 # colnames(corr) <- 0:(ncol(corr)-1)
 bwr <- c("white", "white", "green")
-#bwr <- c("white", "#4080FF", "red")
+# bwr <- c("white", "white", "red")
+# bwr <- c("white", "#4080FF", "red")
 col3 <- colorRampPalette(bwr, space = "rgb")
 
 pdf(pdf_path, height=25, width=25)
@@ -38,8 +39,7 @@ q2 = q[,]
 #corrplot(q2,col=col3(100), tl.col="black", tl.srt=45, order = "hclust")
 
 #corrplot(q2,col=col3(100), tl.col="black", tl.srt=45, type = "upper", tl.cex=50/nrow(corr), cl.pos = "n")
-corrplot(q2,col=col3(100), tl.col="black", tl.srt=45, tl.cex=50/nrow(corr), cl.pos = "n")
-
+corrplot(q2,col=col3(100), tl.col="black", tl.srt=45, tl.cex=40/nrow(corr), cl.pos = "n", is.corr = FALSE)
 #image(q2, col=col3(100))
 dev.off()
 
