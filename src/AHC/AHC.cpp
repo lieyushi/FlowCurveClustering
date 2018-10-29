@@ -96,41 +96,58 @@ void AHC::performClustering()
 		IOHandler::readClusteringNumber(clusterMap, "cluster_number");
 	}
 
-	for(normOption=0;normOption<16;++normOption)
-	{
-		if(normOption!=0 && normOption!=1 && normOption!=2 && normOption!=4 && normOption!=12
-		   && normOption!=13 && normOption!=14 && normOption!=15)
-			continue;
-
-		std::cout << "norm " << normOption << " starts......" << std::endl;
-		timeList.clear();
-		activityList.clear();
-
-		/* L-method is not performed. It's a normal AHC procedure */
-		if(!lMethod)
+	// std::vector<int> cluster_array;
+	//for(int i=2; i<=100; ++i)
+	//{
+		//cluster_array.push_back(i);
+		for(normOption=0;normOption<16;++normOption)
 		{
-			const int& Row = ds.dataMatrix.rows();
-			if(readCluster)
+			if(normOption!=0 && normOption!=1 && normOption!=2 && normOption!=4 && normOption!=12
+			   && normOption!=13 && normOption!=14 && normOption!=15)
+				continue;
+
+			std::cout << "norm " << normOption << " starts......" << std::endl;
+			timeList.clear();
+			activityList.clear();
+
+			/* L-method is not performed. It's a normal AHC procedure */
+			if(!lMethod)
 			{
-				numberOfClusters = clusterMap[normOption];
-			}
-			else
-			{
-				std::cout << "---------------------------------------" << std::endl;
-				std::cout << "Input cluster number among [0, " << Row << "] for norm " << normOption << ": ";
-				std::cin >> numberOfClusters;
+				const int& Row = ds.dataMatrix.rows();
+				if(readCluster)
+				{
+					numberOfClusters = clusterMap[normOption];
+				}
+				else
+				{
+					std::cout << "---------------------------------------" << std::endl;
+					std::cout << "Input cluster number among [0, " << Row << "] for norm " << normOption << ": ";
+					std::cin >> numberOfClusters;
+					assert(numberOfClusters>0 && numberOfClusters<Row);
+				}
+				//numberOfClusters = i;
 				assert(numberOfClusters>0 && numberOfClusters<Row);
 			}
-			assert(numberOfClusters>0 && numberOfClusters<Row);
-		}
-		/* perform L-method for detecting optimal num of clusters */
-		else if(lMethod)
-		{
-			numberOfClusters = 1;
-		}
+			/* perform L-method for detecting optimal num of clusters */
+			else if(lMethod)
+			{
+				numberOfClusters = 1;
+			}
 
-		performClustering_by_norm();
+			performClustering_by_norm();
+		}
+	//}
+
+	/*std::ofstream curve("../dataset/curveValue.txt", ios::out);
+	for(int i=0; i<4; ++i)
+	{
+		for(int j=0; j<curveValue[0].size(); ++j)
+		{
+			curve << curveValue[i][j] << " ";
+		}
+		curve << std::endl;
 	}
+	curve.close();*/
 }
 
 
@@ -331,16 +348,6 @@ void AHC::extractFeatures(const std::vector<int>& storage, const std::vector<std
 	struct timeval start, end;
 	double timeTemp;
 
-	gettimeofday(&start, NULL);
-	Silhouette sil;
-	sil.computeValue(normOption,ds.dataMatrix,ds.dataMatrix.rows(),ds.dataMatrix.cols(),
-			         group,object,numberOfClusters, isPBF);
-	gettimeofday(&end, NULL);
-	timeTemp = ((end.tv_sec  - start.tv_sec) * 1000000u 
-			   + end.tv_usec - start.tv_usec) / 1.e6;
-	activityList.push_back("Silhouette calculation for norm " +to_string(normOption)+" takes: ");
-	timeList.push_back(to_string(timeTemp)+" s");
-
 	/* compute the centroid coordinates of each clustered group */
 
 	gettimeofday(&start, NULL);
@@ -404,6 +411,16 @@ void AHC::extractFeatures(const std::vector<int>& storage, const std::vector<std
 	fc_ss << vm.f_c;
 	timeList.push_back(fc_ss.str());
 
+	gettimeofday(&start, NULL);
+	Silhouette sil;
+	sil.computeValue(normOption,ds.dataMatrix,ds.dataMatrix.rows(),ds.dataMatrix.cols(),
+			         group,object,numberOfClusters, isPBF);
+	gettimeofday(&end, NULL);
+	timeTemp = ((end.tv_sec  - start.tv_sec) * 1000000u
+			   + end.tv_usec - start.tv_usec) / 1.e6;
+	activityList.push_back("Silhouette calculation for norm " +to_string(normOption)+" takes: ");
+	timeList.push_back(to_string(timeTemp)+" s");
+
 	std::cout << "Finishing extracting features!" << std::endl;	
 
 	stringstream ss;
@@ -448,10 +465,14 @@ void AHC::extractFeatures(const std::vector<int>& storage, const std::vector<std
 	IOHandler::writeGroupSize(storage);
 
 /* print entropy value for the clustering algorithm */
-	IOHandler::writeReadme(EntropyRatio, sil);
+	IOHandler::writeReadme(EntropyRatio, sil, "For norm "+to_string(normOption));
 
 	IOHandler::writeReadme(closestAverage, furthestAverage);
 
+	//curveValue[0].push_back(sil.sAverage);
+	//curveValue[1].push_back(sil.gammaStatistic);
+	//curveValue[2].push_back(sil.dbIndex);
+	//curveValue[3].push_back(vm.f_c);
 }
 
 /* set dataset from user command */

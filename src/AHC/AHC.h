@@ -87,6 +87,9 @@ private:
 /* whether read cluster by input or read from txt */
 	bool readCluster;
 
+/* used to test the curve of some function */
+	std::vector<float> curveValue[4];
+
 /* set dataset from user command */
 	void setDataset(const int& argc, char **argv);
 

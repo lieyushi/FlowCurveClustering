@@ -433,6 +433,11 @@ void getClusterAnalysis(const vector<vector<float> >& trajectories,
 	struct timeval start, end;
 	double timeTemp;
 
+	ValidityMeasurement vm;
+	vm.computeValue(normOption, equalArray, item_cids, object, isPBF);
+	activityList.push_back("Validity measure is: ");
+	timeList.push_back(vm.f_c);
+
 	gettimeofday(&start, NULL);
 	Silhouette sil;
 	sil.computeValue(normOption,equalArray,equalArray.rows(),
@@ -442,11 +447,6 @@ void getClusterAnalysis(const vector<vector<float> >& trajectories,
 			   + end.tv_usec - start.tv_usec) / 1.e6;
 	activityList.push_back("Silhouette calculation takes: ");
 	timeList.push_back(timeTemp);
-
-	ValidityMeasurement vm;
-	vm.computeValue(normOption, equalArray, item_cids, object, isPBF);
-	activityList.push_back("Validity measure is: ");
-	timeList.push_back(vm.f_c);
 
 	/* compute the centroid coordinates of each clustered group */
 	Eigen::MatrixXf centroid = MatrixXf::Zero(numClusters,equalArray.cols());
@@ -510,7 +510,7 @@ void getClusterAnalysis(const vector<vector<float> >& trajectories,
 				numClusters,sil.sAverage,birch_threshold);
 
 /* print entropy value for the clustering algorithm */
-	IOHandler::writeReadme(entropy,sil);
+	IOHandler::writeReadme(entropy,sil,"For norm "+to_string(normOption));
 
 /* measure closest and furthest rotation */
 	std::vector<float> closestRot, furthestRot;

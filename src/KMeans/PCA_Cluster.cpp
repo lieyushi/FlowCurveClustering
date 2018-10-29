@@ -309,7 +309,15 @@ void PCA_Cluster::performPC_KMeans(const MatrixXf& cArray,
 		}
 	}
 
-/* Silhouette effect */
+	ValidityMeasurement vm;
+	vm.computeValue(cArray, group);
+
+	tr.eventList.push_back("PCA Validity measure is: ");
+	stringstream fc_ss;
+	fc_ss << vm.f_c;
+	tr.timeList.push_back(fc_ss.str());
+
+	/* Silhouette effect */
 	gettimeofday(&start, NULL);
 
 	sil.computeValue(cArray,group,groupNo,isPBF);
@@ -320,12 +328,8 @@ void PCA_Cluster::performPC_KMeans(const MatrixXf& cArray,
 	tr.eventList.push_back("Clustering evaluation computing takes: ");
 	tr.timeList.push_back(to_string(delta)+"s");
 
-	ValidityMeasurement vm;
-	vm.computeValue(cArray, group);
-	IOHandler::writeReadMe(vm.f_c, "", "PCA", "validity measurement");
-
 	/* write value of the silhouette class */
-	IOHandler::writeReadme(entropy, sil);
+	IOHandler::writeReadme(entropy, sil, "For PCA");
 
 }
 
@@ -500,7 +504,7 @@ void PCA_Cluster::performFullK_MeansByClusters(const Eigen::MatrixXf& data,
 	gettimeofday(&end, NULL);
 	double delta = ((end.tv_sec - start.tv_sec) * 1000000u + end.tv_usec - start.tv_usec) / 1.e6;
 
-	tr.eventList.push_back("k-means iteration takes ");
+	tr.eventList.push_back("k-means iteration of norm "+to_string(normOption)+" takes ");
 	tr.timeList.push_back(to_string(delta)+"s");
 
 	std::multimap<int,int> groupMap;
@@ -599,8 +603,6 @@ void PCA_Cluster::performFullK_MeansByClusters(const Eigen::MatrixXf& data,
 	}
 	delete[] storage;
 
-/* Silhouette computation started */
-
 	//groupNo record group numbers */
 
 	if(groupNo<=1)
@@ -628,10 +630,14 @@ void PCA_Cluster::performFullK_MeansByClusters(const Eigen::MatrixXf& data,
 
 	ValidityMeasurement vm;
 	vm.computeValue(normOption, data, group, object, isPBF);
-	IOHandler::writeReadMe(vm.f_c, "", "k-means on norm "+to_string(normOption), "validity measurement");
+
+	tr.eventList.push_back("kmeans Validity measure is: ");
+	stringstream fc_ss;
+	fc_ss << vm.f_c;
+	tr.timeList.push_back(fc_ss.str());
 
 	/* write value of the silhouette class */
-	IOHandler::writeReadme(entropy, sil);
+	IOHandler::writeReadme(entropy, sil, "For norm "+to_string(normOption));
 
 }
 
@@ -781,6 +787,14 @@ void PCA_Cluster::perform_AHC(const Eigen::MatrixXf& cArray, const int& PC_Numbe
 		}
 	}
 
+	ValidityMeasurement vm;
+	vm.computeValue(cArray, group);
+
+	tr.eventList.push_back("PCA Validity measure is: ");
+	stringstream fc_ss;
+	fc_ss << vm.f_c;
+	tr.timeList.push_back(fc_ss.str());
+
 	/* Silhouette effect */
 	gettimeofday(&start, NULL);
 
@@ -792,12 +806,8 @@ void PCA_Cluster::perform_AHC(const Eigen::MatrixXf& cArray, const int& PC_Numbe
 	tr.eventList.push_back("Clustering evaluation computing takes: ");
 	tr.timeList.push_back(to_string(delta)+"s");
 
-	ValidityMeasurement vm;
-	vm.computeValue(cArray, group);
-	IOHandler::writeReadMe(vm.f_c, "", "PCA", "validity measurement");
-
 	/* write value of the silhouette class */
-	IOHandler::writeReadme(entropy, sil);
+	IOHandler::writeReadme(entropy, sil, "For PCA");
 }
 
 

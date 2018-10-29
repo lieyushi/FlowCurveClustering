@@ -841,7 +841,7 @@ void IOHandler::writeReadme(const std::vector<ExtractedLine>& closest,
 
 
 /* write value of the silhouette class */
-void IOHandler::writeReadme(const float& entropy, const Silhouette& sil)
+void IOHandler::writeReadme(const float& entropy, const Silhouette& sil, const string& norm_str)
 {
 	std::ofstream readme("../dataset/README",ios::out | ios::app);
 	if(!readme)
@@ -849,6 +849,7 @@ void IOHandler::writeReadme(const float& entropy, const Silhouette& sil)
 		std::cout << "Error creating readme!" << std::endl;
 		exit(1);
 	}
+	readme << norm_str << std::endl;
 	readme << "The average silhouette: " << sil.sAverage
 		   << ", the gamma statistic is: " << sil.gammaStatistic
 		   << ", the entropy is: " << entropy

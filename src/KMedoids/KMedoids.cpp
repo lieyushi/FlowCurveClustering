@@ -225,6 +225,17 @@ void KMedoids::getMedoids(FeatureLine& fline,
 		getDistanceMatrix(data, normOption, object);
 	}
 
+	tr.eventList.push_back("Final cluster number is : ");
+	tr.timeList.push_back(to_string(groupNo));
+
+	ValidityMeasurement vm;
+	vm.computeValue(normOption, data, fline.group, object, isPBF);
+
+	tr.eventList.push_back("Kmedoids Validity measure is: ");
+	stringstream fc_ss;
+	fc_ss << vm.f_c;
+	tr.timeList.push_back(fc_ss.str());
+
 	//groupNo record group numbers */
 	gettimeofday(&start, NULL);
 
@@ -236,15 +247,9 @@ void KMedoids::getMedoids(FeatureLine& fline,
 
 	tr.eventList.push_back("Evaluation analysis would take: ");
 	tr.timeList.push_back(to_string(delta)+"s");
-	tr.eventList.push_back("Final cluster number is : ");
-	tr.timeList.push_back(to_string(groupNo));
-
-	ValidityMeasurement vm;
-	vm.computeValue(normOption, data, fline.group, object, isPBF);
-	IOHandler::writeReadMe(vm.f_c, "", "kmedoids on norm "+to_string(normOption), "validity measurement");
 
 	/* write value of the silhouette class */
-	IOHandler::writeReadme(entropy, sil);
+	IOHandler::writeReadme(entropy, sil, "For norm "+to_string(normOption));
 }
 
 

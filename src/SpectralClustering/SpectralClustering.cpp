@@ -102,10 +102,20 @@ void SpectralClustering::performClustering()
 		activityList.clear();
 		timeList.clear();
 
-		activityList.push_back("Preset numOfClusters is: ");
+		activityList.push_back("Preset numOfClusters for norm "+to_string(i) +" is: ");
 		timeList.push_back(to_string(presetNumber));
 
+		struct timeval start, end;
+		double timeTemp;
+		gettimeofday(&start, NULL);
+
 		clusterByNorm(i);
+
+		gettimeofday(&end, NULL);
+		timeTemp = ((end.tv_sec  - start.tv_sec) * 1000000u
+						   + end.tv_usec - start.tv_usec) / 1.e6;
+		activityList.push_back("SC for "+to_string(i) +" takes: ");
+		timeList.push_back(to_string(timeTemp)+"s");
 
 		std::cout << std::endl;
 	}
@@ -133,7 +143,7 @@ void SpectralClustering::clusterByNorm(const int& norm)
 	gettimeofday(&end, NULL);
 	timeTemp = ((end.tv_sec  - start.tv_sec) * 1000000u
 			   + end.tv_usec - start.tv_usec) / 1.e6;
-	activityList.push_back("Distance matrix computing takes: ");
+	activityList.push_back("Distance matrix computing for norm "+to_string(norm)+" takes: ");
 	timeList.push_back(to_string(timeTemp)+" s");
 
 	getSigmaList();
@@ -233,15 +243,6 @@ void SpectralClustering::extractFeatures(const std::vector<int>& storage, const 
 	struct timeval start, end;
 	double timeTemp;
 
-	gettimeofday(&start, NULL);
-	Silhouette sil;
-	sil.computeValue(normOption,ds.dataMatrix,ds.dataMatrix.rows(),ds.dataMatrix.cols(),group,object,
-			         numberOfClusters, false, neighborVec);
-	gettimeofday(&end, NULL);
-	timeTemp = ((end.tv_sec  - start.tv_sec) * 1000000u + end.tv_usec - start.tv_usec) / 1.e6;
-	activityList.push_back("Silhouette calculation takes: ");
-	timeList.push_back(to_string(timeTemp)+" s");
-
 	/* compute the centroid coordinates of each clustered group */
 
 	gettimeofday(&start, NULL);
@@ -300,6 +301,15 @@ void SpectralClustering::extractFeatures(const std::vector<int>& storage, const 
 	fc_ss << vm.f_c;
 	timeList.push_back(fc_ss.str());
 
+	gettimeofday(&start, NULL);
+	Silhouette sil;
+	sil.computeValue(normOption,ds.dataMatrix,ds.dataMatrix.rows(),ds.dataMatrix.cols(),group,object,
+			         numberOfClusters, false, neighborVec);
+	gettimeofday(&end, NULL);
+	timeTemp = ((end.tv_sec  - start.tv_sec) * 1000000u + end.tv_usec - start.tv_usec) / 1.e6;
+	activityList.push_back("Silhouette calculation takes: ");
+	timeList.push_back(to_string(timeTemp)+" s");
+
 	std::cout << "Finishing extracting features!" << std::endl;	
 
 	stringstream ss;
@@ -345,7 +355,7 @@ void SpectralClustering::extractFeatures(const std::vector<int>& storage, const 
 
 	IOHandler::generateReadme(activityList,timeList);
 
-	IOHandler::writeReadme(EntropyRatio, sil);
+	IOHandler::writeReadme(EntropyRatio, sil, "For norm "+to_string(normOption));
 }
 
 /* set dataset from user command */

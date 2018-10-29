@@ -93,7 +93,7 @@ void AffinityPropagation::clusterByNorm(const int& norm)
 	gettimeofday(&end, NULL);
 	timeTemp = ((end.tv_sec  - start.tv_sec) * 1000000u
 			   + end.tv_usec - start.tv_usec) / 1.e6;
-	activityList.push_back("Distance matrix computing takes: ");
+	activityList.push_back("Distance matrix computing for norm "+to_string(norm)+" takes: ");
 	timeList.push_back(to_string(timeTemp)+" s");
 
 	Eigen::MatrixXf matrixR, matrixA, matrixS;
@@ -209,16 +209,6 @@ void AffinityPropagation::extractFeatures(const std::vector<int>& storage, const
 	struct timeval start, end;
 	double timeTemp;
 
-	gettimeofday(&start, NULL);
-	Silhouette sil;
-	sil.computeValue(normOption,ds.dataMatrix,ds.dataMatrix.rows(),ds.dataMatrix.cols(),group,object,
-			         numberOfClusters, isPBF, neighborVec);
-	gettimeofday(&end, NULL);
-	timeTemp = ((end.tv_sec  - start.tv_sec) * 1000000u 
-			   + end.tv_usec - start.tv_usec) / 1.e6;
-	activityList.push_back("Silhouette calculation takes: ");
-	timeList.push_back(to_string(timeTemp)+" s");
-
 	/* compute the centroid coordinates of each clustered group */
 
 	gettimeofday(&start, NULL);
@@ -280,8 +270,20 @@ void AffinityPropagation::extractFeatures(const std::vector<int>& storage, const
 
 	std::cout << "Finishing extracting features!" << std::endl;	
 
+	gettimeofday(&start, NULL);
+	Silhouette sil;
+	sil.computeValue(normOption,ds.dataMatrix,ds.dataMatrix.rows(),ds.dataMatrix.cols(),group,object,
+					 numberOfClusters, isPBF, neighborVec);
+	gettimeofday(&end, NULL);
+	timeTemp = ((end.tv_sec  - start.tv_sec) * 1000000u
+			   + end.tv_usec - start.tv_usec) / 1.e6;
+	activityList.push_back("Silhouette calculation takes: ");
+	timeList.push_back(to_string(timeTemp)+" s");
+
 	stringstream ss;
 	ss << "norm_" << normOption;
+
+
 
 /* measure closest and furthest rotation */
 	std::vector<float> closestRotation, furthestRotation;
@@ -308,7 +310,7 @@ void AffinityPropagation::extractFeatures(const std::vector<int>& storage, const
 	IOHandler::generateReadme(activityList,timeList);
 
 /* print entropy value for the clustering algorithm */
-	IOHandler::writeReadme(EntropyRatio, sil);
+	IOHandler::writeReadme(EntropyRatio, sil, "For norm "+to_string(normOption));
 
 	IOHandler::writeReadme(closestAverage, furthestAverage);
 

@@ -406,7 +406,7 @@ void AHC::extractFeatures(const std::vector<int>& storage,
 			"AHC_Dist_SValueCluster_" + ss.str(), ds.fullName, ds.dimension);
 
 	activityList.push_back("numCluster is: ");
-	timeList.push_back(to_string(numberOfClusters));
+	timeList.push_back(std::to_string(numberOfClusters));
 
 	IOHandler::generateReadme(activityList, timeList);
 
@@ -416,7 +416,7 @@ void AHC::extractFeatures(const std::vector<int>& storage,
 	IOHandler::writeGroupSize(storage);
 
 	/* print entropy value for the clustering algorithm */
-	IOHandler::writeReadme(EntropyRatio, sil);
+	IOHandler::writeReadme(EntropyRatio, sil, "For norm "+std::to_string(normOption));
 
 	/* measure closest and furthest rotation */
 	std::vector<float> closestRot, furthestRot;

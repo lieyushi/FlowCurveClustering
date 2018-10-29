@@ -41,7 +41,7 @@ void DensityClustering::performClustering() {
 	gettimeofday(&end, NULL);
 	timeTemp = ((end.tv_sec - start.tv_sec) * 1000000u + end.tv_usec
 			- start.tv_usec) / 1.e6;
-	activityList.push_back("DBSCAN clustering takes: ");
+	activityList.push_back("DBSCAN clustering for norm "+to_string(normOption)+" takes: ");
 	timeList.push_back(to_string(timeTemp) + " s");
 
 	extractFeatures(distThreshold, minPts);
@@ -397,16 +397,6 @@ void DensityClustering::extractFeatures(const float& radius_eps,
 
 	numClusters -= 1;
 
-	gettimeofday(&start, NULL);
-	Silhouette sil;
-	sil.computeValue(normOption, ds.dataMatrix, ds.dataMatrix.rows(),
-			ds.dataMatrix.cols(), item_cids, object, numClusters, isPBF);
-	gettimeofday(&end, NULL);
-	timeTemp = ((end.tv_sec - start.tv_sec) * 1000000u + end.tv_usec
-			- start.tv_usec) / 1.e6;
-	activityList.push_back("Silhouette calculation takes: ");
-	timeList.push_back(to_string(timeTemp) + " s");
-
 	const int& numNoise = storage[0].size();
 	storage.erase(storage.begin());
 
@@ -471,6 +461,16 @@ void DensityClustering::extractFeatures(const float& radius_eps,
 	fc_ss << vm.f_c;
 	timeList.push_back(fc_ss.str());
 
+	gettimeofday(&start, NULL);
+	Silhouette sil;
+	sil.computeValue(normOption, ds.dataMatrix, ds.dataMatrix.rows(),
+			ds.dataMatrix.cols(), item_cids, object, numClusters, isPBF);
+	gettimeofday(&end, NULL);
+	timeTemp = ((end.tv_sec - start.tv_sec) * 1000000u + end.tv_usec
+			- start.tv_usec) / 1.e6;
+	activityList.push_back("Silhouette calculation takes: ");
+	timeList.push_back(to_string(timeTemp) + " s");
+
 	std::cout << "Finishing extracting features!" << std::endl;
 	IOHandler::printFeature("norm" + to_string(normOption) + "_closest.vtk",
 			closest, sil.sCluster, ds.dimension);
@@ -503,7 +503,7 @@ void DensityClustering::extractFeatures(const float& radius_eps,
 
 	IOHandler::generateReadme(activityList, timeList);
 
-	IOHandler::writeReadme(entropy, sil);
+	IOHandler::writeReadme(entropy, sil, "For norm "+to_string(normOption));
 
 	/* measure closest and furthest rotation */
 	std::vector<float> closestRot, furthestRot;

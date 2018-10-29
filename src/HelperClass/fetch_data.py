@@ -48,12 +48,12 @@ def extract_evaluation_data(distance_range, data_folder):
 		norm=None
 		evaluation[d_folder] = {}
 		for val in norm_list:
-			evaluation[d_folder][val] = {'silhouette':-10000.0, 'gamma':-10000.0, 'db index':-10000.0, 'validity':-10000.0}
+			evaluation[d_folder][val] = {'silhouette':-10000.0, 'gamma':-10000.0, 'db index':-10000.0, 'validity':-10000.0, 'time':-10000.0}
 
 		if d_folder=='kmeans':
 			evaluation['PCA'] = {}
 			for val in norm_list:
-				evaluation['PCA'][val] = {'silhouette':-10000.0, 'gamma':-10000.0, 'db index':-10000.0, 'validity':-10000.0}
+				evaluation['PCA'][val] = {'silhouette':-10000.0, 'gamma':-10000.0, 'db index':-10000.0, 'validity':-10000.0, 'time':-10000.0}
 
 		norm_found = False
 		for x in content:
@@ -80,7 +80,7 @@ def extract_evaluation_data(distance_range, data_folder):
 					norm = 'PCA'
 				norm_found = True
 			
-			elif norm_found is True and (norm in norm_list or norm=='PCA'):
+			if norm_found is True and (norm in norm_list or norm=='PCA'):
 				sil_pos = x.find('silhouette:')
 				gamma_pos = x.find('statistic is:')
 				dbindex_pos = x.find('DB index is:')
@@ -158,6 +158,40 @@ def extract_evaluation_data(distance_range, data_folder):
 						else:
 							evaluation[d_folder][norm]['validity'] = float(x[start_pos:end_pos])/distance_range[norm]
 
+				pca_time_tag = x.find('PCA+K_Means operation takes:')
+				kmeans_time_tag = x.find('K-means on norm')
+				kmedoid_time_tag = x.find('Direct K_Means operation time for norm')
+
+				if pca_time_tag!=-1 or kmeans_time_tag!=-1 or kmedoid_time_tag!=-1:
+					takes = x.find('takes:')
+					if takes==-1:
+						raise ValueError('Error for time search!')
+					start_pos = takes+len('takes:')
+					while x[start_pos]==' ':
+						start_pos+=1
+					end_pos=start_pos
+					while x[end_pos]!=',' and x[end_pos]!='\n' and end_pos<=len(x)-1 and x[end_pos]!=' ' and x[end_pos]!='s':
+						end_pos+=1
+					val_str = x[start_pos:end_pos]
+					if norm=='PCA':
+						evaluation[norm]['0']['time'] = float(x[start_pos:end_pos])
+					else:
+						evaluation[d_folder][norm]['time'] = float(x[start_pos:end_pos])
+				else:
+					takes = x.find('takes:')
+					if takes!=-1:
+						start_pos = takes+len('takes:')
+						while x[start_pos]==' ':
+							start_pos+=1
+						end_pos=start_pos
+						while x[end_pos]!=',' and x[end_pos]!='\n' and end_pos<=len(x)-1 and x[end_pos]!=' ' and x[end_pos]!='s':
+							end_pos+=1
+						val_str = x[start_pos:end_pos]
+						if evaluation[d_folder][norm]['time']<=-9999.0:
+							evaluation[d_folder][norm]['time'] = float(x[start_pos:end_pos])
+						else:
+							evaluation[d_folder][norm]['time'] += float(x[start_pos:end_pos])
+		
 	return evaluation
 
 
@@ -166,7 +200,7 @@ def extract_single_readme(distance_range, data_folder):
 	evaluation = {data_folder:{}}
 	norm_list = ['0','1','2','4','12','13','14','15']
 	for val in norm_list:
-		evaluation[data_folder][val] = {'silhouette':-10000.0, 'gamma':-10000.0, 'db index':-10000.0, 'validity':-10000.0}
+		evaluation[data_folder][val] = {'silhouette':-10000.0, 'gamma':-10000.0, 'db index':-10000.0, 'validity':-10000.0, 'time':-10000.0}
 		
 	readme = data_folder+'/README'
 	with open(readme) as r:
@@ -196,7 +230,7 @@ def extract_single_readme(distance_range, data_folder):
 				norm = x[norm_pos+6:end_pos]
 			norm_found = True
 
-		elif norm_found is True and norm in norm_list:
+		if norm_found is True and norm in norm_list:
 			sil_pos = x.find('silhouette:')
 			gamma_pos = x.find('statistic is:')
 			dbindex_pos = x.find('DB index is:')
@@ -259,6 +293,20 @@ def extract_single_readme(distance_range, data_folder):
 				if val_str !='-nan' and val_str !='inf':
 					evaluation[data_folder][norm]['validity'] = float(x[start_pos:end_pos])/distance_range[norm]
 
+			takes = x.find('takes:')
+			if takes!=-1:
+				start_pos = takes+len('takes:')
+				while x[start_pos]==' ':
+					start_pos+=1
+				end_pos=start_pos
+				while x[end_pos]!=',' and x[end_pos]!='\n' and end_pos<=len(x)-1 and x[end_pos]!=' ' and x[end_pos]!='s':
+					end_pos+=1
+				val_str = x[start_pos:end_pos]
+				if evaluation[data_folder][norm]['time']<=-9999.0:
+					evaluation[data_folder][norm]['time'] = float(x[start_pos:end_pos])
+				else:
+					evaluation[data_folder][norm]['time'] += float(x[start_pos:end_pos])
+
 	return evaluation
 
 
@@ -267,7 +315,7 @@ def extract_norm_readme(distance_range, data_folder):
 	evaluation = {data_folder:{}}
 	norm_list = ['0','1','2','4','12','13','14','15']
 	for val in norm_list:
-		evaluation[data_folder][val] = {'silhouette':-10000.0, 'gamma':-10000.0, 'db index':-10000.0, 'validity':-10000.0}
+		evaluation[data_folder][val] = {'silhouette':-10000.0, 'gamma':-10000.0, 'db index':-10000.0, 'validity':-10000.0, 'time':-10000.0}
 	
 	for norm in listdir(data_folder):
 		readme = data_folder+'/'+norm+'/README'
@@ -340,6 +388,20 @@ def extract_norm_readme(distance_range, data_folder):
 				if val_str !='-nan' and val_str !='inf':
 					evaluation[data_folder][norm]['validity'] = float(x[start_pos:end_pos])/distance_range[norm]
 
+			takes = x.find('takes:')
+			if takes!=-1:
+				start_pos = takes+len('takes:')
+				while x[start_pos]==' ':
+					start_pos+=1
+				end_pos=start_pos
+				while x[end_pos]!=',' and x[end_pos]!='\n' and end_pos<=len(x)-1 and x[end_pos]!=' ' and x[end_pos]!='s':
+					end_pos+=1
+				val_str = x[start_pos:end_pos]
+				if evaluation[data_folder][norm]['time']<=-9999.0:
+					evaluation[data_folder][norm]['time'] = float(x[start_pos:end_pos])
+				else:
+					evaluation[data_folder][norm]['time'] += float(x[start_pos:end_pos])
+
 	return evaluation
 
 
@@ -406,6 +468,29 @@ def generate_text(evaluation_data, storage_name):
 			storage.write('\n')
 
 
+def generate_time(evaluation_data, storage_name):
+	storage = open(storage_name, 'w')
+	clustering_algorithms = ['kmeans', 'kmedoids', 'AHC_single', 'AHC_average', 'birch', 'dbscan', 'optics', 'sc_kmeans', 'sc_eigen', 'AP', 'PCA']
+	norm_order = ['0', '1', '2', '4', '12', '13', '14', '15']
+	for clustering in clustering_algorithms:
+		if clustering in evaluation_data.keys():
+			first=[]
+			second=[]
+			for norm in norm_order:
+				val = evaluation_data[clustering][norm]['time']
+				if val>=-9999.0:
+					first.append(val)
+				else:
+					first.append('-')
+
+			for x in first:
+				storage.write('%s ' % x)
+			storage.write('\n')
+			for x in second:
+				storage.write('%s ' % x)
+			storage.write('\n')
+
+
 def merge_two_dicts(first, second):
 	result = first.copy()
 	result.update(second)
@@ -438,6 +523,8 @@ def extract_full_data():
 	full_evaluation = merge_two_dicts(full_evaluation, optics_evaluation)
 
 	generate_text(full_evaluation, 'evaluation')
+
+	generate_time(full_evaluation, 'time')
 
 
 if __name__ == '__main__':

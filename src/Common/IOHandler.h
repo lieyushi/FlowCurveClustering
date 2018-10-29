@@ -169,7 +169,7 @@ public:
 	static void writeReadme(const string& comments);
 
 /* write value of the silhouette class */
-	static void writeReadme(const float& entropy, const Silhouette& sil);
+	static void writeReadme(const float& entropy, const Silhouette& sil, const string& norm_str);
 
 /* print information into README */
 	static void writeReadMe(const float& value, const string& dataSet, const string& clustering,

@@ -141,6 +141,9 @@ void featureExtraction(const int& number,
 	timeTemp = ((end.tv_sec  - start.tv_sec) * 1000000u 
 			   + end.tv_usec - start.tv_usec) / 1.e6;
 
+	tr.eventList.push_back("PCA+KMeans takes ");
+	tr.timeList.push_back(std::to_string(timeTemp)+"s");
+
 	IOHandler::writeReadme(tr.eventList, tr.timeList, cluster);
 
 	tr.eventList.clear();

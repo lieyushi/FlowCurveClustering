@@ -144,7 +144,7 @@ void featureExtraction(const int& number,
 
 	for(int i = 0;i<16;i++)
 	{
-		if(i!=0 && i!=1/* && i!=2 && i!=4 && i!=12 && i!=13 && i!=14 && i!=15*/)
+		if(i!=0 && i!=1 && i!=2 && i!=4 && i!=12 && i!=13 && i!=14 && i!=15)
 			continue;
 
 		if(readCluster)
