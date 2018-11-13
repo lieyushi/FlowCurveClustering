@@ -20,8 +20,8 @@ if(nrow(corr)==16)
 }
 # rownames(corr) <- 0:(nrow(corr)-1)
 # colnames(corr) <- 0:(ncol(corr)-1)
-bwr <- c("white", "white", "green")
-# bwr <- c("white", "white", "red")
+# bwr <- c("white", "white", "green")
+bwr <- c("white", "white", "blue")
 # bwr <- c("white", "#4080FF", "red")
 col3 <- colorRampPalette(bwr, space = "rgb")
 
