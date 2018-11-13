@@ -154,3 +154,13 @@ file( GLOB RC_SRC ${CMAKE_CURRENT_SOURCE_DIR}/src/ReadClustering/*.cpp )
 add_executable(readClustering ${RC_SRC})
 target_link_libraries(readClustering ${ALL_LIBS})
 ###############################################
+
+
+###############################################
+# generate readDistRange executable
+set( RC_SRC
+   )
+file( GLOB RC_SRC ${CMAKE_CURRENT_SOURCE_DIR}/src/HelperClass/readDistRange.cpp )  
+add_executable(readDistRange ${RC_SRC})
+target_link_libraries(readDistRange ${ALL_LIBS})
+###############################################
