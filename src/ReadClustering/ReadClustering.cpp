@@ -274,8 +274,8 @@ void ReadClustering::computeEvaluation(std::unordered_map<string, std::vector<in
 		/* count from "norm" for norm option */
 		const int& normOption = std::atoi(iter->first.substr(4).c_str());
 		std::cout << "This is norm " << normOption << std::endl;
-		if(normOption!=4 && normOption!=15)
-			return;
+		//if(normOption!=4 && normOption!=15)
+		//	return;
 
 		MetricPreparation object(ds.array.rows(), ds.array.cols());
 		object.preprocessing(ds.array, ds.array.rows(), ds.array.cols(), normOption);
@@ -298,11 +298,12 @@ void ReadClustering::computeEvaluation(std::unordered_map<string, std::vector<in
 		if(ds.neighborVec[i].size()>0)
 		{
 			prob = float(ds.neighborVec[i].size())/float(totalNum);
-			entropy+=log2f(prob);
+			entropy+=prob*log2f(prob);
 		}
 	}
-	entropy = -entropy/log2f(ds.maxGroup[iter->first]);
 
+	entropy = -entropy/log2f(ds.maxGroup[iter->first]);
+	std::cout << "Entropy is " << entropy << std::endl;
 
 	activityList.push_back("Silhouette for "+iter->first+" is: ");
 	timeList.push_back(to_string(sil.sAverage));
