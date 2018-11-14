@@ -134,7 +134,7 @@ void ValidityMeasurement::computeValue(const int& normOption, const MatrixXf& ar
 		}
 	}
 	std::cout << "min dist is " << min_dist << ", and max is " << max_dist << std::endl;
-	f_c/=(max_dist-min_dist);
+	f_c/=(max_dist-min_dist)*(max_dist-min_dist);
 
 	std::cout << "Validity measurement is " << f_c << std::endl;
 }
@@ -245,7 +245,7 @@ void ValidityMeasurement::computeValue(const MatrixXf& array, const std::vector<
 		}
 	}
 	std::cout << "min dist is " << min_dist << ", and max is " << max_dist << std::endl;
-	f_c/=(max_dist-min_dist);
+	f_c/=(max_dist-min_dist)*(max_dist-min_dist);
 
 	std::cout << "Validity measurement is " << f_c << std::endl;
 }
