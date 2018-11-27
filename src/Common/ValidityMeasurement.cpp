@@ -611,7 +611,7 @@ const float ValidityMeasurement::get_Sc_by_range(const Eigen::MatrixXf& distM, c
 			continue;
 		result+=float(inside_cluster)/float(inside_whole);
 		++index;
-		assert(!isnan(result));
+		assert(!std::isnan(result));
 	}
 	return result;
 }
