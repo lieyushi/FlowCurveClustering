@@ -716,7 +716,7 @@ void Silhouette::computeGammaStatistic(const Eigen::MatrixXf& distM,
 		exit(1);
 	}
 
-	gammaStatistic = numerator/s_1/s_2/totalNum;
+	gammaStatistic = float(numerator/s_1/s_2/totalNum);
 
 }
 
@@ -765,7 +765,7 @@ void Silhouette::computeGammaStatistic(const Eigen::MatrixXf& idealDistM)
 		exit(1);
 	}
 
-	gammaStatistic = numerator/s_1/s_2/totalNum;
+	gammaStatistic = float(numerator/s_1/s_2/totalNum);
 
 }
 

@@ -331,13 +331,13 @@ void ValidityMeasurement::getMST_Parent_Node(std::tuple<float, float, float>& va
 	}
 
 	// compute the standard deviation for the distance in MST
-	float summation = 0.0, sq_summation = 0.0, average_mst_d, max_d_mst = -1.0;
+	double summation = 0.0, sq_summation = 0.0, average_mst_d, max_d_mst = -1.0;
 	const int& MST_EDGE_NUM = num_nodes-1;
 
 	for (std::vector < Edge >::iterator ei = spanning_tree.begin(); ei != spanning_tree.end(); ++ei)
 	{
 			dist = weight[*ei];
-			max_d_mst = std::max(dist, max_d_mst);
+			max_d_mst = std::max(double(dist), max_d_mst);
 			summation+=dist;
 			sq_summation+=dist*dist;
 	}
@@ -444,7 +444,7 @@ void ValidityMeasurement::getMST_Parent_Node(std::tuple<float, float, float>& va
 	}
 
 	// compute the standard deviation for the distance in MST
-	float summation = 0.0, sq_summation = 0.0, average_mst_d, max_d_mst = -1.0;
+	double summation = 0.0, sq_summation = 0.0, average_mst_d, max_d_mst = -1.0;
 	const int& MST_EDGE_NUM = num_nodes-1;
 
 	for (std::vector < Edge >::iterator ei = spanning_tree.begin(); ei != spanning_tree.end(); ++ei)
@@ -452,7 +452,7 @@ void ValidityMeasurement::getMST_Parent_Node(std::tuple<float, float, float>& va
 		dist = weight[*ei];
 		summation+=dist;
 		sq_summation+=dist*dist;
-		max_d_mst=std::max(max_d_mst, dist);
+		max_d_mst=std::max(max_d_mst, double(dist));
 	}
 
 	float variance;
