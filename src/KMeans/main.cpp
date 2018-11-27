@@ -65,20 +65,31 @@ void featureExtraction(const int& number,
 	assert(PBFjudgement==1||PBFjudgement==0);
 	isPBF = (PBFjudgement==1);
 
+	/* input for judge whether it is a pathline data set so that MCP can be called */
+	bool isPathlines;
+	std::cout << "It is pathlines? 1.Yes, 0.No" << std::endl;
+	std::cin >> PBFjudgement;
+	assert(PBFjudgement==1||PBFjudgement==0);
+	isPathlines = (PBFjudgement==1);
+
+	/* set how many clusters and max vertex count of the data set */
 	int cluster, vertexCount;
 
+	/* choose k-means initialization method, 2 is often adopted providing better visualization effect */
 	std::cout << "Please choose initialization option for seeds:" << std::endl
 			  << "1.chose random positions, 2.Chose from samples, 3.k-means++ sampling" << endl;
 	std::cin >> initializationOption;
 	assert(initializationOption==1 || initializationOption==2 
 		   || initializationOption==3);
 
+	/* select sampling strategy, and 2 is often for geometric clustering */
 	std::cout << "Please choose sampling strategy: " << std::endl
 			  << "1.directly filling, 2.uniformly sampling" << std::endl;
     int samplingMethod;
     std::cin >> samplingMethod;
     assert(samplingMethod==1 || samplingMethod==2);
 
+    /* whether number of clusters is read from user input or from ../dataset/cluster_number */
     std::cout << "Please choose cluster number method, 0.user input, 1.read clustering: " << std::endl;
     int clusterInput;
     std::cin >> clusterInput;
@@ -173,10 +184,22 @@ void featureExtraction(const int& number,
 	if(samplingMethod==2)
 		IOHandler::sampleArray(data, dataVec, dimension, maxElements);
 
-	for(int i = 0;i<16;i++)
+	for(int i = 0;i<=17;i++)
 	{
-		if(i!=0 && i!=1 && i!=2 && i!=4 && i!=12 && i!=13 && i!=14 && i!=15 && i!=16)
-			continue;
+		if(isPathlines)
+		{
+			if(i!=0 && i!=1 && i!=2 && i!=4 && i!=12 && i!=13 && i!=14 && i!=15 && i!=17)
+				continue;
+		}
+
+		else
+		{
+			if(i!=0 && i!=1 && i!=2 && i!=4 && i!=12 && i!=13 && i!=14 && i!=15)
+				continue;
+		}
+
+		if(i==17)
+			IOHandler::expandArray(data, dataVec, dimension, maxElements);
 
 		if(readCluster)
 			cluster = clusterMap[i];

@@ -77,11 +77,20 @@ void SpectralClustering::performClustering()
 		IOHandler::readClusteringNumber(clusterMap, "cluster_number");
 	}
 
-	for(int i=0;i<=15;++i)
+
+	for(int i=0;i<=17;++i)
 	{
-		/* don't want to deal with many too naive metrics */
-		if(i!=0 && i!=1 && i!=2 && i!=4 && i!=12 && i!=13 && i!=14 && i!=15)
-			continue;
+		if(isPathlines)
+		{
+			/* don't want to deal with many too naive metrics */
+			if(i!=0 && i!=1 && i!=2 && i!=4 && i!=12 && i!=13 && i!=14 && i!=15 && i!=17)
+				continue;
+		}
+		else
+		{
+			if(i!=0 && i!=1 && i!=2 && i!=4 && i!=12 && i!=13 && i!=14 && i!=15)
+				continue;
+		}
 
 		if(postProcessing==1)
 		{
@@ -104,6 +113,9 @@ void SpectralClustering::performClustering()
 
 		activityList.push_back("Preset numOfClusters for norm "+to_string(i) +" is: ");
 		timeList.push_back(to_string(presetNumber));
+
+		if(isPathlines && i==17)
+			IOHandler::expandArray(ds.dataMatrix,ds.dataVec,ds.dimension,ds.maxElements);
 
 		struct timeval start, end;
 		double timeTemp;
@@ -853,6 +865,11 @@ void SpectralClustering::setParameterAutomatic(const Para& p)
 
 	extractOption = p.extractOption;
 
+	std::cout << "It is a pathline data set? 1.Yes, 0.No." << std::endl;
+	int pathlineOption;
+	std::cin >> pathlineOption;
+	assert(pathlineOption==1||pathlineOption==0);
+	isPathlines = (pathlineOption==1);
 }
 
 

@@ -9,6 +9,10 @@ int minPts;
 DensityClustering::DensityClustering(const int& argc,
 									 char **argv)
 {
+	struct timeval start, end;
+	double timeTemp;
+	gettimeofday(&start, NULL);
+
 	setDataset(argc, argv);
 	setNormOption();
 
@@ -22,6 +26,12 @@ DensityClustering::DensityClustering(const int& argc,
 
 		getDistanceMatrix(ds.dataMatrix, normOption, object);
 	}
+
+	gettimeofday(&end, NULL);
+	timeTemp = ((end.tv_sec  - start.tv_sec) * 1000000u
+			   + end.tv_usec - start.tv_usec) / 1.e6;
+	activityList.push_back("Distance matrix for norm "+to_string(normOption)+" takes: ");
+	timeList.push_back(to_string(timeTemp)+" s");
 
 	nodeVec = vector<PointNode>(ds.dataMatrix.rows(),PointNode());
 }
@@ -193,6 +203,11 @@ void DensityClustering::setDataset(const int& argc,
 	assert(PBFInput==1||PBFInput==0);
 	isPBF = (PBFInput==1);
 
+	std::cout << "It is a pathlines dataset? 1.Yes, 0.No." << std::endl;
+	std::cin >> PBFInput;
+	assert(PBFInput==1||PBFInput==0);
+	isPathlines = (PBFInput==1);
+
 	int sampleOption;
     std::cout << "choose a sampling method for the dataset?" << std::endl
 	    	  << "1.directly filling with last vertex; 2. uniform sampling." << std::endl;
@@ -213,9 +228,18 @@ void DensityClustering::setDataset(const int& argc,
 
 void DensityClustering::setNormOption()
 {
-	std::cout << "Choose a norm from 0-15!" << std::endl;
-	std::cin >> normOption;
-	std::cout << std::endl;
+	if(isPathlines)
+	{
+		std::cout << "Choose a norm from 0-17!" << std::endl;
+		std::cin >> normOption;
+		assert(normOption>=0 && normOption<=17);
+	}
+	else
+	{
+		std::cout << "Choose a norm from 0-15!" << std::endl;
+		std::cin >> normOption;
+		assert(normOption>=0 && normOption<=15);
+	}
 	/*  0: Euclidean Norm
 		1: Fraction Distance Metric
 		2: piece-wise angle average
@@ -233,21 +257,8 @@ void DensityClustering::setNormOption()
 		14: Signature-based measure from http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=6231627
 		15: Procrustes distance take from http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=6787131
 	*/
-	bool found = false;
-	for (int i = 0; i < 16&&!found; ++i)
-	{
-		if(normOption==i)
-		{
-			found = true;
-			break;
-		}
-	}
-	if(!found)
-	{
-		std::cout << "Cannot find the norm!" << std::endl;
-		exit(1);
-	}
-
+	if(isPathlines && normOption==17)
+		IOHandler::expandArray(ds.dataMatrix,ds.dataVec,ds.dimension,ds.maxElements);
 }
 
 

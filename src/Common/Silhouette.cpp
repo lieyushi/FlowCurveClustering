@@ -68,13 +68,11 @@ void Silhouette::computeValue(const Eigen::MatrixXf& array,
 	/* assert information */
 	assert(Row==group.size());
 
-
 	std::vector<std::vector<int> > storage(groupNumber, std::vector<int>());
 	for (int i = 0; i < group.size(); ++i)
 	{
 		storage[group[i]].push_back(i);
 	}
-
 	/* record labeling information */
 	generateGroups(storage);
 
@@ -663,13 +661,26 @@ void Silhouette::computeGammaStatistic(const Eigen::MatrixXf& distM,
 {
 	const int& Row = distM.rows();
 
-	const int& totalNum = Row*(Row-1)/2;
+	std::ofstream distM_file("../dataset/distM"), ideaDistM_file("../dataset/idealDistM");
+	for(int i=0; i<Row-1; ++i)
+	{
+		for(int j=i+1; j<Row; ++j)
+		{
+			distM_file << distM(i,j) << " ";
+			ideaDistM_file << idealDistM(i,j) << " ";
+		}
+	}
 
+	distM_file.close();
+	ideaDistM_file.close();
+
+
+	const int& totalNum = Row*(Row-1)/2;
 	/* mean of values */
-	float u_1 = 0.0, u_2 = 0.0;
+	double u_1 = 0.0, u_2 = 0.0;
 
 	/* E(X*X) */
-	float s_1 = 0.0, s_2 = 0.0, numerator = 0.0;
+	double s_1 = 0.0, s_2 = 0.0, numerator = 0.0;
 
 	for(int i=0;i<Row-1;++i)
 	{
@@ -718,10 +729,10 @@ void Silhouette::computeGammaStatistic(const Eigen::MatrixXf& idealDistM)
 	const int& totalNum = Row*(Row-1)/2;
 
 	/* mean of values */
-	float u_1 = 0.0, u_2 = 0.0;
+	double u_1 = 0.0, u_2 = 0.0;
 
 	/* E(X*X) */
-	float s_1 = 0.0, s_2 = 0.0, numerator = 0.0;
+	double s_1 = 0.0, s_2 = 0.0, numerator = 0.0;
 
 	for(int i=0;i<Row-1;++i)
 	{

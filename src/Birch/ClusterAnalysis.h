@@ -23,6 +23,8 @@ bool isPBF;
 
 bool readCluster;
 
+bool isPathlines;
+
 template<boost::uint32_t dim>
 MetricPreparation CFTree<dim>::object = MetricPreparation();
 
@@ -75,6 +77,11 @@ void getUserInput(const int& argc,
 	assert(PBFjudgement==1||PBFjudgement==0);
 	isPBF = (PBFjudgement==1);
 
+	std::cout << "It is a pathline dataset? 1.Yes, 0.No" << std::endl;
+	std::cin >> PBFjudgement;
+	assert(PBFjudgement==1||PBFjudgement==0);
+	isPathlines = (PBFjudgement==1);
+
 	std::cout << "---------------------------" << std::endl;
 	std::cout << "Choose cluster number input method: 0.user input, 1.read from file: " << std::endl;
 	int clusterInput;
@@ -115,9 +122,6 @@ void getUserInput(const int& argc,
 	activityList.push_back("Pre-processing takes: ");
 	timeList.push_back(timeTemp);
 
-
-	load_items(equalArray, items);
-	std::cout << items.size() << " items loaded" << std::endl;
 }
 
 
@@ -243,7 +247,7 @@ void getBirchClustering(std::vector<item_type<dim> >& items,
 						char **argv,
 						std::vector<std::vector<float> >& trajectories,
 						const FileIndex& fi,
-						const Eigen::MatrixXf& equalArray,
+						Eigen::MatrixXf& equalArray,
 						const int& dimension,
 						std::vector<int>& item_cids,
 						int& maxGroup,
@@ -253,10 +257,18 @@ void getBirchClustering(std::vector<item_type<dim> >& items,
 {
 
 	std::cout << std::endl;
-	std::cout << "Choose a norm from 0-15!" << std::endl;
-	std::cin >> normOption;
-	std::cout << std::endl;
-
+	if(isPathlines)
+	{
+		std::cout << "Choose a norm from 0-17!" << std::endl;
+		std::cin >> normOption;
+		assert(normOption>=0 && normOption<=17);
+	}
+	else
+	{
+		std::cout << "Choose a norm from 0-16!" << std::endl;
+		std::cin >> normOption;
+		assert(normOption>=0 && normOption<=16);
+	}
 
 	/*  0: Euclidean Norm
 		1: Fraction Distance Metric
@@ -276,23 +288,19 @@ void getBirchClustering(std::vector<item_type<dim> >& items,
 		15: Procrustes distance take from http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=6787131
 	*/
 
-	bool found = false;
-	for (int i = 0; i < 16&&!found; ++i)
-	{
-		if(normOption==i)
-		{
-			found = true;
-			break;
-		}
-	}
-	if(!found)
-	{
-		std::cout << "Cannot find the norm!" << std::endl;
-		exit(1);
-	}
+	struct timeval start, end;
+	double timeTemp;
+	gettimeofday(&start, NULL);
+
+	if(isPathlines && normOption==17)
+		IOHandler::expandArray(equalArray,trajectories,dimension, fi.maxElement);
 
 	object = MetricPreparation(equalArray.rows(), equalArray.cols());
 	object.preprocessing(equalArray, equalArray.rows(), equalArray.cols(), normOption);
+
+
+	load_items(equalArray, items);
+	std::cout << items.size() << " items loaded" << std::endl;
 
 	/* if the dataset is not PBF, then should record distance matrix for Gamma matrix compution */
 	if(!isPBF)
@@ -328,10 +336,6 @@ void getBirchClustering(std::vector<item_type<dim> >& items,
 	else
 		right = 0.5;
 
-	struct timeval start, end;
-	double timeTemp;
-	gettimeofday(&start, NULL);
-
 	int iteration = 0;
 	while(true&&iteration<10)
 	{
@@ -354,7 +358,7 @@ void getBirchClustering(std::vector<item_type<dim> >& items,
 	gettimeofday(&end, NULL);
 	timeTemp = ((end.tv_sec  - start.tv_sec) * 1000000u 
 			   + end.tv_usec - start.tv_usec) / 1.e6;
-	activityList.push_back("Birch search required numbers takes: ");
+	activityList.push_back("Birch clustering takes: ");
 	timeList.push_back(timeTemp);
 
     std::cout << "Max group is: " << maxGroup << std::endl;

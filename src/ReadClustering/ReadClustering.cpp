@@ -7,6 +7,8 @@
 
 #include "ReadClustering.h"
 
+const float& TOR_1 = 0.999;
+
 ReadClustering::ReadClustering() {
 	// TODO Auto-generated constructor stub
 
@@ -107,7 +109,7 @@ void ReadClustering::readData(const char* fileName)
 
 	/* read vertex coordinates into dataVec */
 
-	int maxElements = INT_MIN;
+	maxElements = INT_MIN;
 
 	int vertexNum, index;
 	for(int i=0;i<ds.numOfElements;++i)
@@ -201,8 +203,6 @@ void ReadClustering::readData(const char* fileName)
 
 	fin.close();
 
-	IOHandler::sampleArray(ds.array,ds.dataVec,3,maxElements);
-
 	/* compute cluster number */
 
 	std::vector<int> groupArray;
@@ -238,7 +238,6 @@ void ReadClustering::computeEvaluation()
 }
 
 
-
 /* compute evaluation based on norm option */
 void ReadClustering::computeEvaluation(std::unordered_map<string, std::vector<int> >::const_iterator& iter)
 {
@@ -262,11 +261,18 @@ void ReadClustering::computeEvaluation(std::unordered_map<string, std::vector<in
 		ds.neighborVec[groupOfNorm[i]].push_back(i);
 		++totalNum;
 	}
-
+	std::cout << totalNum << std::endl;
 	/* the 'PCA' option */
 	if(strcmp("PCA", iter->first.c_str())==0)
 	{
-		sil.computeValue(ds.array,groupOfNorm,ds.maxGroup[iter->first],isPBF);
+		IOHandler::expandArray(ds.array,ds.dataVec,3,maxElements);
+		std::cout << "expanded!" << std::endl;
+		Eigen::MatrixXf cArray;
+		int PC_number;
+		std::cout << ds.maxGroup[iter->first] << std::endl;
+		performSVD(cArray, ds.array, ds.array.rows(), ds.array.cols(), PC_number);
+		//sil.computeValue(ds.array,groupOfNorm,ds.maxGroup[iter->first],isPBF);
+		sil.computeValue(cArray,groupOfNorm,ds.maxGroup[iter->first],isPBF);
 		vm.computeValue(ds.array, groupOfNorm);
 	}
 	else
@@ -276,6 +282,11 @@ void ReadClustering::computeEvaluation(std::unordered_map<string, std::vector<in
 		std::cout << "This is norm " << normOption << std::endl;
 		//if(normOption!=4 && normOption!=15)
 		//	return;
+
+		if(normOption==17)
+			IOHandler::expandArray(ds.array,ds.dataVec,3,maxElements);
+		else
+			IOHandler::sampleArray(ds.array,ds.dataVec,3,maxElements);
 
 		MetricPreparation object(ds.array.rows(), ds.array.cols());
 		object.preprocessing(ds.array, ds.array.rows(), ds.array.cols(), normOption);
@@ -324,5 +335,57 @@ void ReadClustering::computeEvaluation(std::unordered_map<string, std::vector<in
 
 	/* record labeling information */
 	// IOHandler::generateGroups(ds.neighborVec, iter->first+"_storage");
+}
+
+
+void ReadClustering::performSVD(MatrixXf& cArray, const Eigen::MatrixXf& data,
+	 const int& Row, const int& Column, int& PC_Number)
+{
+	MatrixXf SingVec;
+	VectorXf meanTrajectory(Column);
+	Eigen::MatrixXf temp = data;
+
+#pragma omp parallel for schedule(static) num_threads(8)
+	for (int i = 0; i < Column; ++i)
+	{
+		meanTrajectory(i) = temp.transpose().row(i).mean();
+	}
+#pragma omp parallel for schedule(static) num_threads(8)
+	for (int i = 0; i < Row; ++i)
+	{
+		temp.row(i) = temp.row(i)-meanTrajectory.transpose();
+	}
+	/* perform SVD decomposition for temp */
+	JacobiSVD<MatrixXf> svd(temp, ComputeThinU | ComputeThinV);
+	//const VectorXf& singValue = svd.singularValues();
+	SingVec = svd.matrixV();
+
+	/* compute new attribute space based on principal component */
+	MatrixXf coefficient = temp*SingVec;
+	/*  decide first r dorminant PCs with a threshold */
+	const float& varianceSummation = coefficient.squaredNorm();
+	float tempSum = 0.0;
+	const float& threshold = TOR_1*varianceSummation;
+
+	for (int i = 0; i < Column; ++i)
+	{
+		tempSum+=(coefficient.transpose().row(i)).squaredNorm();
+		if(tempSum>threshold)
+		{
+			PC_Number = i;
+			break;
+		}
+	}
+
+	cArray = MatrixXf(Row, PC_Number);
+#pragma omp parallel for schedule(static) num_threads(8)
+	for (int i = 0; i < PC_Number; ++i)
+	{
+		cArray.transpose().row(i) = coefficient.transpose().row(i);
+	}
+
+	std::cout << "SVD completed!" << std::endl;
+
+	SingVec.transposeInPlace();
 }
 

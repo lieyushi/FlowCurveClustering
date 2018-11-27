@@ -8,6 +8,7 @@ void streamlineQuery(const int& argc,
 					 char **argv);
 
 int initializationOption;
+bool isPathlines;
 
 int main(int argc, char* argv[])
 {
@@ -38,8 +39,22 @@ void streamlineQuery(const int& argc,
 	ss.str("");*/
 	
 	Eigen::MatrixXf data;
-	IOHandler::expandArray(data, dataVec, dimension, maxElements); //directly filling
-	//IOHandler::sampleArray(data, dataVec, dimension, maxElements); //uniform sampling
+	int userInput;
+	std::cout << "It is pathlines? 1.Yes, 0.No" << std::endl;
+	std::cin >> userInput;
+	assert(userInput==1||userInput==0);
+	isPathlines = (isPathlines==1);
+
+	/* select sampling strategy, and 2 is often for geometric clustering */
+	std::cout << "Please choose sampling strategy: " << std::endl
+			  << "1.directly filling, 2.uniformly sampling" << std::endl;
+	int samplingMethod;
+	std::cin >> samplingMethod;
+	assert(samplingMethod==1 || samplingMethod==2);
+	if(samplingMethod==1)
+		IOHandler::expandArray(data, dataVec, dimension, maxElements); //directly filling
+	else if(samplingMethod==2)
+		IOHandler::sampleArray(data, dataVec, dimension, maxElements); //uniform sampling
 
 	Query q = Query(data, dataVec.size(), maxElements);
 	std::vector<StringQuery> searchResult;
@@ -65,35 +80,78 @@ void streamlineQuery(const int& argc,
 		15: Procrustes distance take from http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=6787131
 	*/
 
-	for (int i = 2; i < 14; ++i)
+	if(isPathlines)
 	{
-		if(i!=12)
-			continue;
-		//std::cout << "Wanted to continue the query?" << std::endl
-		//		  << "Y. Yes; N. No" << std::endl;
-		//std::cin >> isContinued;
-		//if(isContinued=='N'||isContinued=='n')
-		//	break;
-		std::cin.ignore();
-		std::cout << "-----------------------------------------------" << std::endl
-				  << "--------------------- Norm " << i << " string query" 
-				  << "-----------------" << std::endl;
-
-		std::cout << "Want to search among interesting curves or not?"
-				  << " 0.No, 1.Yes!" << std::endl;
-		std::cin >> searchInteresting;
-		std::cin.ignore();
-
-		if(searchInteresting==0)
-			q.getClosestCurve(i,searchResult);
-		else if(searchInteresting==1&&!q.interestedEmpty())
-			q.getClosestInteresting(i,searchResult);
-
-		for (int j = 0; j < searchResult.size(); ++j)
+		for (int i = 2; i < 17; ++i)
 		{
-			IOHandler::printQuery(i,j,searchResult[j], dataVec);
+			if(i!=12)
+				continue;
+
+			if(i==17)
+			{
+				IOHandler::expandArray(data, dataVec, dimension, maxElements); //directly filling
+				q = Query(data, dataVec.size(), maxElements);
+			}
+			//std::cout << "Wanted to continue the query?" << std::endl
+			//		  << "Y. Yes; N. No" << std::endl;
+			//std::cin >> isContinued;
+			//if(isContinued=='N'||isContinued=='n')
+			//	break;
+			std::cin.ignore();
+			std::cout << "-----------------------------------------------" << std::endl
+					  << "--------------------- Norm " << i << " string query"
+					  << "-----------------" << std::endl;
+
+			std::cout << "Want to search among interesting curves or not?"
+					  << " 0.No, 1.Yes!" << std::endl;
+			std::cin >> searchInteresting;
+			std::cin.ignore();
+
+			if(searchInteresting==0)
+				q.getClosestCurve(i,searchResult);
+			else if(searchInteresting==1&&!q.interestedEmpty())
+				q.getClosestInteresting(i,searchResult);
+
+			for (int j = 0; j < searchResult.size(); ++j)
+			{
+				IOHandler::printQuery(i,j,searchResult[j], dataVec);
+			}
+			searchResult.clear();
+			std::cout << "--------------------------------------------------" << std::endl;
 		}
-		searchResult.clear();
-		std::cout << "--------------------------------------------------" << std::endl;
+	}
+	else
+	{
+		for (int i = 2; i < 15; ++i)
+		{
+			if(i!=12)
+				continue;
+			//std::cout << "Wanted to continue the query?" << std::endl
+			//		  << "Y. Yes; N. No" << std::endl;
+			//std::cin >> isContinued;
+			//if(isContinued=='N'||isContinued=='n')
+			//	break;
+			std::cin.ignore();
+			std::cout << "-----------------------------------------------" << std::endl
+					  << "--------------------- Norm " << i << " string query"
+					  << "-----------------" << std::endl;
+
+			std::cout << "Want to search among interesting curves or not?"
+					  << " 0.No, 1.Yes!" << std::endl;
+			std::cin >> searchInteresting;
+			std::cin.ignore();
+
+			if(searchInteresting==0)
+				q.getClosestCurve(i,searchResult);
+			else if(searchInteresting==1&&!q.interestedEmpty())
+				q.getClosestInteresting(i,searchResult);
+
+			for (int j = 0; j < searchResult.size(); ++j)
+			{
+				IOHandler::printQuery(i,j,searchResult[j], dataVec);
+			}
+			searchResult.clear();
+			std::cout << "--------------------------------------------------" << std::endl;
+		}
 	}
 }

@@ -100,11 +100,24 @@ void AHC::performClustering()
 	//for(int i=2; i<=100; ++i)
 	//{
 		//cluster_array.push_back(i);
-		for(normOption=0;normOption<16;++normOption)
+		for(normOption=0;normOption<=17;++normOption)
 		{
-			if(normOption!=0 && normOption!=1 && normOption!=2 && normOption!=4 && normOption!=12
-			   && normOption!=13 && normOption!=14 && normOption!=15)
-				continue;
+			if(isPathlines)
+			{
+				if(normOption!=0 && normOption!=1 && normOption!=2 && normOption!=4 && normOption!=12
+				   && normOption!=13 && normOption!=14 && normOption!=15 && normOption!=17)
+					continue;
+			}
+			else
+			{
+				if(normOption!=0 && normOption!=1 && normOption!=2 && normOption!=4 && normOption!=12
+				&& normOption!=13 && normOption!=14 && normOption!=15)
+					continue;
+			}
+
+			/* MCP for pathline datga set */
+			if(normOption==17)
+				IOHandler::expandArray(ds.dataMatrix,ds.dataVec,ds.dimension,ds.maxElements);
 
 			std::cout << "norm " << normOption << " starts......" << std::endl;
 			timeList.clear();
@@ -496,6 +509,11 @@ void AHC::setDataset(const int& argc, char **argv)
 	assert(PBFjudgement==1||PBFjudgement==0);
 	isPBF = (PBFjudgement==1);
 
+/* get the bool tag for isPBF */
+	std::cout << "It is a pathline dataset? 1.Yes, 0.No" << std::endl;
+	std::cin >> PBFjudgement;
+	assert(PBFjudgement==1||PBFjudgement==0);
+	isPathlines = (PBFjudgement==1);
 
 	int sampleOption;
     std::cout << "choose a sampling method for the dataset?" << std::endl

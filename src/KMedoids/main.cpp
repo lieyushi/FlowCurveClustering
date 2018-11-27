@@ -42,11 +42,19 @@ void featureExtraction(const int& number,
 	const string& strName = string("../dataset/")+string(argv[1]);
 	const int& dimension = atoi(argv[2]);
 
+	/* check whether it is a PBF data set */
 	std::cout << "It is a PBF dataset? 1. Yes, 0. No." << std::endl;
 	int isPBFInput;
 	std::cin >> isPBFInput;
 	assert(isPBFInput==1||isPBFInput==0);
 	isPBF = (isPBFInput==1);
+
+	/* check whether it is a Pathline data set or not */
+	bool isPathlines;
+	std::cout << "It is a Pathline? 1.Yes, 0. No" << std::endl;
+	std::cin >> isPBFInput;
+	assert(isPBFInput==1||isPBFInput==0);
+	isPathlines = (isPBFInput==1);
 
 	int vertexCount;
 
@@ -142,10 +150,22 @@ void featureExtraction(const int& number,
 
 	recordInitilization(pm, sampleOption);
 
-	for(int i = 0;i<16;i++)
+	for(int i = 0;i<=17;i++)
 	{
-		if(i!=0 && i!=1 && i!=2 && i!=4 && i!=12 && i!=13 && i!=14 && i!=15)
-			continue;
+		if(isPathlines)
+		{
+			if(i!=0 && i!=1 && i!=2 && i!=4 && i!=12 && i!=13 && i!=14 && i!=15 && i!=17)
+				continue;
+		}
+		else
+		{
+			if(i!=0 && i!=1 && i!=2 && i!=4 && i!=12 && i!=13 && i!=14 && i!=15)
+				continue;
+		}
+
+		/* MCP distance requires directly filling the sampling */
+		if(i==17)
+			IOHandler::expandArray(data, dataVec, dimension, maxElements);
 
 		if(readCluster)
 			kmedoid.numOfClusters = clusterMap[i];

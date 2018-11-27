@@ -57,6 +57,9 @@ private:
 /* Dataset object */
 	Dataset ds;
 
+/* max element */
+	int maxElements;
+
 /* judge whether it is a PBF or not */
 	bool isPBF;
 
@@ -71,6 +74,10 @@ private:
 
 /* compute evaluation based on norm option */
 	void computeEvaluation(std::unordered_map<string, std::vector<int> >::const_iterator& iter);
+
+/* perform SVD decomposition for equal-sized streamlines */
+	void performSVD(MatrixXf& cArray, const Eigen::MatrixXf& data,
+		 const int& Row, const int& Column, int& PC_Number);
 
 };
 

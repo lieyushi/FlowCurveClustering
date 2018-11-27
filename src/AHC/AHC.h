@@ -87,6 +87,9 @@ private:
 /* whether read cluster by input or read from txt */
 	bool readCluster;
 
+/* whether is pathline or not */
+	bool isPathlines;
+
 /* used to test the curve of some function */
 	std::vector<float> curveValue[4];
 

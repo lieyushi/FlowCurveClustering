@@ -66,6 +66,8 @@ private:
 	/* whether it is a PBF dataset or not */
 	bool isPBF;
 
+	bool isPathlines;
+
 	void setDataset(const int& argc,
 				    char **argv);	//get dataset from file
 

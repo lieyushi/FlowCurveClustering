@@ -85,6 +85,9 @@ private:
 /* tell whether it is a tag for PBF dataset */
 	bool isPBF;
 
+/* tell whether it is a pathline data set or not */
+	bool isPathlines;
+
 /* S[i,i] initialization format */
 	int initialOption;
 

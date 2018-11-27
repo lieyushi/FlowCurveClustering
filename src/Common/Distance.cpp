@@ -839,6 +839,10 @@ const float getDisimilarity(const VectorXf& others,
 		length = getEntropyMetric(object.pairwise[index], others);
 		break;
 
+	case 17:
+		length = getPathline_MCP(others, data.row(index));
+		break;
+
 	default:
 		exit(1);
 		break;
@@ -920,6 +924,9 @@ const float getDisimilarity(const VectorXf& first,
 		length = getEntropyMetric(object.pairwise[firstIndex], object.pairwise[secondIndex]);
 		break;
 
+	case 17:
+		length = getPathline_MCP(first, second);
+		break;
 
 	default:
 		exit(1);
@@ -993,6 +1000,10 @@ const float getDisimilarity(const VectorXf& first,
 
 	case 16:
 		length = getEntropyMetric(first, second);
+		break;
+
+	case 17:
+		length = getPathline_MCP(first, second);
 		break;
 
 	default:
@@ -1533,4 +1544,26 @@ const float getEntropyMetric(const Eigen::VectorXf& first,
 
 	return getEntropyMetric(firstEntropy, secondEntropy);
 
+}
+
+const float getPathline_MCP(const Eigen::VectorXf& first,
+        					const Eigen::VectorXf& second)
+{
+	/* preset the initial time step is 0, then 1, 2, ... as long as it will be normalized */
+	const int& t_M = first.size()/3-1;
+	float dist = 0.0, a, b, c;
+	Eigen::Vector3f temp, another, diff;
+	for(int i=0; i<t_M; ++i)
+	{
+		temp=Eigen::Vector3f(first(i*3)-second(i*3), first(3*i+1)-second(3*i+1), first(3*i+2)-second(3*i+2));
+		another=Eigen::Vector3f(first(i*3+3)-second(i*3+3), first(3*i+4)-second(3*i+4), first(3*i+5)-second(3*i+5));
+		diff=another-temp;
+
+		a=temp.transpose()*temp;
+		b=temp.transpose()*diff;
+		c=diff.transpose()*diff;
+
+		dist+=get_calculus(a, b, c);
+	}
+	return dist/t_M;
 }

@@ -53,11 +53,24 @@ void AffinityPropagation::performClustering()
 		15: Procrustes distance take from http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=6787131
 		16: entropy-based distance metric taken from http://vis.cs.ucdavis.edu/papers/pg2011paper.pdf
 	*/
-	for(int i=0;i<=15;++i)
+
+	for(int i=0;i<=17;++i)
 	{
-		/* don't want to deal with many too naive metrics */
-		if(i!=0 && i!=1 && i!=2 && i!=4 && i!=12 && i!=13 && i!=14 && i!=15)
-			continue;
+		if(isPathlines)
+		{
+			if(i!=0 && i!=1 && i!=2 && i!=4 && i!=12 && i!=13 && i!=14 && i!=15 && i!=17)
+				continue;
+		}
+		else
+		{
+			/* don't want to deal with many too naive metrics */
+			if(i!=0 && i!=1 && i!=2 && i!=4 && i!=12 && i!=13 && i!=14 && i!=15)
+				continue;
+		}
+
+		/* set the sampling for computing MCP between pathlines to be directly filling */
+		if(i==17)
+			IOHandler::expandArray(ds.dataMatrix,ds.dataVec,ds.dimension,ds.maxElements);
 
 		std::cout << "----------------------------------------------------" << std::endl;
 		std::cout << "Experiment on norm " << i << " starts!--------------" << std::endl;
@@ -337,6 +350,12 @@ void AffinityPropagation::setDataset(const int& argc, char **argv)
 	std::cin >> PBFjudgement;
 	assert(PBFjudgement==1||PBFjudgement==0);
 	isPBF = (PBFjudgement==1);
+
+/* check whether it is a Pathline data set or not */
+	std::cout << "It is a Pathline? 1.Yes, 0. No" << std::endl;
+	std::cin >> PBFjudgement;
+	assert(PBFjudgement==1||PBFjudgement==0);
+	isPathlines = (PBFjudgement==1);
 
 	IOHandler::readFile(ds.strName,ds.dataVec,ds.vertexCount,ds.dimension,ds.maxElements);
 

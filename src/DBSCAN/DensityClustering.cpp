@@ -7,6 +7,11 @@ float multiTimes;
 int minPts;
 
 DensityClustering::DensityClustering(const int& argc, char **argv) {
+
+	struct timeval start, end;
+	double timeTemp;
+	gettimeofday(&start, NULL);
+
 	setDataset(argc, argv);
 	setNormOption();
 
@@ -21,6 +26,12 @@ DensityClustering::DensityClustering(const int& argc, char **argv) {
 		getDistanceMatrix(ds.dataMatrix, normOption, object);
 	}
 
+	gettimeofday(&end, NULL);
+	timeTemp = ((end.tv_sec - start.tv_sec) * 1000000u + end.tv_usec
+			- start.tv_usec) / 1.e6;
+	activityList.push_back("Computing distance matrix for norm "+to_string(normOption)+" takes: ");
+	timeList.push_back(to_string(timeTemp) + " s");
+
 	nodeVec = vector<PointNode>(ds.dataMatrix.rows(), PointNode());
 }
 
@@ -29,12 +40,13 @@ DensityClustering::~DensityClustering() {
 }
 
 void DensityClustering::performClustering() {
-	minPts = setMinPts();
-	float distThreshold = getDistThreshold(minPts);
 
 	struct timeval start, end;
 	double timeTemp;
 	gettimeofday(&start, NULL);
+
+	minPts = setMinPts();
+	float distThreshold = getDistThreshold(minPts);
 
 	DBSCAN(distThreshold, minPts);
 
@@ -141,7 +153,7 @@ void DensityClustering::DBSCAN(const float& radius_eps, const int& minPts) {
 }
 
 void DensityClustering::expandCluster(const int& index, vector<int>& neighbor,
-		const int& cluster_id, const float& radius_eps, const int& minPts) {
+	const int& cluster_id, const float& radius_eps, const int& minPts) {
 	nodeVec[index].group = cluster_id;
 	int insideElement;
 	for (int i = 0; i < neighbor.size(); ++i) {
@@ -197,6 +209,11 @@ void DensityClustering::setDataset(const int& argc, char **argv) {
 	assert(PBFjudgement == 1 || PBFjudgement == 0);
 	isPBF = (PBFjudgement == 1);
 
+	std::cout << "It is a pathlines dataset? 1.Yes, 0.No" << std::endl;
+	std::cin >> PBFjudgement;
+	assert(PBFjudgement == 1 || PBFjudgement == 0);
+	isPathlines = (PBFjudgement == 1);
+
 	int sampleOption;
 	std::cout << "choose a sampling method for the dataset?" << std::endl
 			<< "1.directly filling with last vertex; 2. uniform sampling; 3. equal-arc sampling. "
@@ -222,9 +239,19 @@ void DensityClustering::setDataset(const int& argc, char **argv) {
 }
 
 void DensityClustering::setNormOption() {
-	std::cout << "Choose a norm from 0-15!" << std::endl;
-	std::cin >> normOption;
-	std::cout << std::endl;
+
+	if(isPathlines)
+	{
+		std::cout << "Choose a norm from 0-17!" << std::endl;
+		std::cin >> normOption;
+		assert(normOption>=0 && normOption<=17);
+	}
+	else
+	{
+		std::cout << "Choose a norm from 0-15!" << std::endl;
+		std::cin >> normOption;
+		assert(normOption>=0 && normOption<=15);
+	}
 
 	/*  0: Euclidean Norm
 	 1: Fraction Distance Metric
@@ -243,19 +270,8 @@ void DensityClustering::setNormOption() {
 	 14: Signature-based measure from http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=6231627
 	 15: Procrustes distance take from http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=6787131
 	 */
-
-	bool found = false;
-	for (int i = 0; i < 16 && !found; ++i) {
-		if (normOption == i) {
-			found = true;
-			break;
-		}
-	}
-	if (!found) {
-		std::cout << "Cannot find the norm!" << std::endl;
-		exit(1);
-	}
-
+	if(isPathlines && normOption==17)
+		IOHandler::expandArray(ds.dataMatrix, ds.dataVec, ds.dimension, ds.maxElements);
 }
 
 void DensityClustering::getDistRange(float& minDist, float& maxDist) {

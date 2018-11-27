@@ -154,6 +154,12 @@ const float getEntropyMetric(const std::vector<float>& firstEntropy,
 const float getEntropyMetric(const Eigen::VectorXf& first,
 		                     const Eigen::VectorXf& second);
 
+/* get the revised MCP distance for pathlines from paper
+ https://www.sciencedirect.com/science/article/pii/S0097849318300128
+ */
+const float getPathline_MCP(const Eigen::VectorXf& first,
+        					const Eigen::VectorXf& second);
+
 
 const float getDisimilarity(const MatrixXf& data,
 							const int& first,

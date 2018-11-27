@@ -132,4 +132,11 @@ void getBundleEntropy(const Eigen::MatrixXf& data,
 }
 
 
+/* get the calculus of int_0^1(sqrt(a+2bt+ct^2))d_t */
+const float get_calculus(const float& a, const float& b, const float& c)
+{
+	typedef boost::multiprecision::cpp_dec_float_50 mp_type;
+	float result = integral(0.0F, 1.0F, 0.00001F, cyl_bessel_j_integral_rep<float>(a,b,c));
+	return result;
+}
 

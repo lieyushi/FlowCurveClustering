@@ -128,6 +128,9 @@ private:
 /* whether read cluster */
 	bool readCluster;
 
+/* whether it is a pathlines */
+	bool isPathlines;
+
 
 /**********************************************************************************************************
  **************************************   Private member functions   **************************************
