@@ -307,7 +307,54 @@ void getBirchClustering(std::vector<item_type<dim> >& items,
 	{
 		deleteDistanceMatrix(equalArray.rows());
 
-		getDistanceMatrix(equalArray, normOption, object);
+		std::ifstream distFile(("../dataset/"+to_string(normOption)).c_str(), ios::in);
+		if(distFile.fail())
+		{
+			distFile.close();
+			getDistanceMatrix(equalArray, normOption, object);
+			std::ofstream distFileOut(("../dataset/"+to_string(normOption)).c_str(), ios::out);
+			for(int i=0;i<equalArray.rows();++i)
+			{
+				for(int j=0;j<equalArray.rows();++j)
+				{
+					distFileOut << distanceMatrix[i][j] << " ";
+				}
+				distFileOut << std::endl;
+			}
+			distFileOut.close();
+		}
+		else
+		{
+			std::cout << "read distance matrix..." << std::endl;
+
+			distanceMatrix = new float*[equalArray.rows()];
+		#pragma omp parallel for schedule(static) num_threads(8)
+			for (int i = 0; i < equalArray.rows(); ++i)
+			{
+				distanceMatrix[i] = new float[equalArray.rows()];
+			}
+
+			int i=0, j;
+			string line;
+			stringstream ss;
+			while(getline(distFile, line))
+			{
+				j=0;
+				ss.str(line);
+				while(ss>>line)
+				{
+					if(i==j)
+						distanceMatrix[i][j]=0;
+					else
+						distanceMatrix[i][j] = std::atof(line.c_str());
+					++j;
+				}
+				++i;
+				ss.str("");
+				ss.clear();
+			}
+			distFile.close();
+		}
 	}
 
 	const float distThreshold = getMaxDist(equalArray, object, normOption);

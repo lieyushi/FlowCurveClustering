@@ -101,7 +101,53 @@ void AffinityPropagation::clusterByNorm(const int& norm)
 
 	deleteDistanceMatrix(ds.dataMatrix.rows());
 
-	getDistanceMatrix(ds.dataMatrix, normOption, object);
+	std::ifstream distFile(("../dataset/"+to_string(norm)).c_str(), ios::in);
+	if(distFile.fail())
+	{
+		distFile.close();
+		getDistanceMatrix(ds.dataMatrix, normOption, object);
+		std::ofstream distFileOut(("../dataset/"+to_string(norm)).c_str(), ios::out);
+		for(int i=0;i<ds.dataMatrix.rows();++i)
+		{
+			for(int j=0;j<ds.dataMatrix.rows();++j)
+			{
+				distFileOut << distanceMatrix[i][j] << " ";
+			}
+			distFileOut << std::endl;
+		}
+		distFileOut.close();
+	}
+	else
+	{
+		std::cout << "read distance matrix..." << std::endl;
+
+		distanceMatrix = new float*[ds.dataMatrix.rows()];
+	#pragma omp parallel for schedule(static) num_threads(8)
+		for (int i = 0; i < ds.dataMatrix.rows(); ++i)
+		{
+			distanceMatrix[i] = new float[ds.dataMatrix.rows()];
+		}
+		int i=0, j;
+		string line;
+		stringstream ss;
+		while(getline(distFile, line))
+		{
+			j=0;
+			ss.str(line);
+			while(ss>>line)
+			{
+				if(i==j)
+					distanceMatrix[i][j]=0;
+				else
+					distanceMatrix[i][j] = std::atof(line.c_str());
+				++j;
+			}
+			++i;
+			ss.str("");
+			ss.clear();
+		}
+		distFile.close();
+	}
 
 	gettimeofday(&end, NULL);
 	timeTemp = ((end.tv_sec  - start.tv_sec) * 1000000u

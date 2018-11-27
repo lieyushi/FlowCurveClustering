@@ -14,6 +14,7 @@
 #include <sys/time.h>
 #include <set>
 #include <queue>
+#include <cmath>
 
 using namespace std;
 using namespace Eigen;

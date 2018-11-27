@@ -293,7 +293,55 @@ void ReadClustering::computeEvaluation(std::unordered_map<string, std::vector<in
 		if(!isPBF)
 		{
 			deleteDistanceMatrix(ds.array.rows());
-			getDistanceMatrix(ds.array, normOption, object);
+
+			std::ifstream distFile(("../dataset/"+to_string(normOption)).c_str(), ios::in);
+			if(distFile.fail())
+			{
+				distFile.close();
+				getDistanceMatrix(ds.array, normOption, object);
+				std::ofstream distFileOut(("../dataset/"+to_string(normOption)).c_str(), ios::out);
+				for(int i=0;i<ds.array.rows();++i)
+				{
+					for(int j=0;j<ds.array.rows();++j)
+					{
+						distFileOut << distanceMatrix[i][j] << " ";
+					}
+					distFileOut << std::endl;
+				}
+				distFileOut.close();
+			}
+			else
+			{
+				std::cout << "read distance matrix..." << std::endl;
+
+				distanceMatrix = new float*[ds.array.rows()];
+			#pragma omp parallel for schedule(static) num_threads(8)
+				for (int i = 0; i < ds.array.rows(); ++i)
+				{
+					distanceMatrix[i] = new float[ds.array.rows()];
+				}
+				int i=0, j;
+				string line;
+				stringstream ss;
+				while(getline(distFile, line))
+				{
+					j=0;
+					ss.str(line);
+					while(ss>>line)
+					{
+						if(i==j)
+							distanceMatrix[i][j]=0;
+						else
+							distanceMatrix[i][j] = std::atof(line.c_str());
+						++j;
+					}
+					++i;
+					ss.str("");
+					ss.clear();
+				}
+				distFile.close();
+			}
+
 			std::cout << "Distance between 0 and 1 is " << distanceMatrix[0][1] << std::endl;
 		}
 		sil.computeValue(normOption,ds.array,ds.array.rows(),ds.array.cols(),groupOfNorm,object,
