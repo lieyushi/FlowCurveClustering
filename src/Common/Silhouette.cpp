@@ -177,7 +177,7 @@ const float Silhouette::getA_i(const std::vector<std::vector<int> >& storage,
 				inClusterDist += getDist(index, clusterSet[j], object, array, normOption);
 		}
 	}
-	if(isnan(inClusterDist))
+	if(std::isnan(inClusterDist))
 	{
 		std::cout << "a_i has nan error!" << std::endl;
 		exit(1);
@@ -345,7 +345,7 @@ const float Silhouette::getA_i(const std::vector<std::vector<int> >& storage,
 				inClusterDist += (array.row(index)-array.row(candidate)).norm();
 		}
 	}
-	if(isnan(inClusterDist))
+	if(std::isnan(inClusterDist))
 	{
 		std::cout << "a_i has nan error!" << std::endl;
 		exit(1);
@@ -437,7 +437,7 @@ void Silhouette::computeSilhouette(const Eigen::MatrixXf& array,
 				s_i = 1 - a_i/b_i;
 			else
 				s_i = b_i/a_i - 1;
-			if(isnan(s_i))
+			if(std::isnan(s_i))
 			{
 				std::cout << "Error for nan number!" << std::endl;
 				exit(1);
@@ -492,7 +492,7 @@ void Silhouette::computeSilhouette(const Eigen::MatrixXf& array,
 				s_i = 1 - a_i/b_i;
 			else
 				s_i = b_i/a_i - 1;
-			if(isnan(s_i))
+			if(std::isnan(s_i))
 			{
 				std::cout << "Error for nan number!" << std::endl;
 				exit(1);
@@ -710,7 +710,7 @@ void Silhouette::computeGammaStatistic(const Eigen::MatrixXf& distM,
 	s_1=sqrt(s_1/totalNum-u_1*u_1);
 	s_2=sqrt(s_2/totalNum-u_2*u_2);
 
-	if(isnan(s_1) || isnan(s_2))
+	if(std::isnan(s_1) || std::isnan(s_2))
 	{
 		std::cout << "standard deviation has nan error!" << std::endl;
 		exit(1);
@@ -759,7 +759,7 @@ void Silhouette::computeGammaStatistic(const Eigen::MatrixXf& idealDistM)
 	s_1=sqrt(s_1/totalNum-u_1*u_1);
 	s_2=sqrt(s_2/totalNum-u_2*u_2);
 
-	if(isnan(s_1) || isnan(s_2))
+	if(std::isnan(s_1) || std::isnan(s_2))
 	{
 		std::cout << "standard deviation has nan error!" << std::endl;
 		exit(1);
