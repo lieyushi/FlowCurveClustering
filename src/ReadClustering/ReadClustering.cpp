@@ -271,9 +271,8 @@ void ReadClustering::computeEvaluation(std::unordered_map<string, std::vector<in
 		int PC_number;
 		std::cout << ds.maxGroup[iter->first] << std::endl;
 		performSVD(cArray, ds.array, ds.array.rows(), ds.array.cols(), PC_number);
-		//sil.computeValue(ds.array,groupOfNorm,ds.maxGroup[iter->first],isPBF);
 		sil.computeValue(cArray,groupOfNorm,ds.maxGroup[iter->first],isPBF);
-		vm.computeValue(ds.array, groupOfNorm);
+		//vm.computeValue(ds.array, groupOfNorm);
 	}
 	else
 	{
@@ -299,7 +298,7 @@ void ReadClustering::computeEvaluation(std::unordered_map<string, std::vector<in
 		}
 		sil.computeValue(normOption,ds.array,ds.array.rows(),ds.array.cols(),groupOfNorm,object,
 					         ds.maxGroup[iter->first],isPBF, ds.neighborVec);
-		vm.computeValue(normOption, ds.array, groupOfNorm, object, isPBF);
+		//vm.computeValue(normOption, ds.array, groupOfNorm, object, isPBF);
 	}
 
 	/* compute the entropy */
