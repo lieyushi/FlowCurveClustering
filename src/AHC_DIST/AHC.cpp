@@ -499,6 +499,9 @@ void AHC::setNormOption() {
 	 13: Hausdorff distance min_max(x_i,y_i)
 	 14: Signature-based measure from http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=6231627
 	 15: Procrustes distance take from http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=6787131
+	 16: entropy-based distance metric taken from http://vis.cs.ucdavis.edu/papers/pg2011paper.pdf
+	 17: time-series MCP distance from https://www.sciencedirect.com/science/article/pii/S0097849318300128
+		 for pathlines only
 	 */
 	bool found = false;
 	for (int i = 0; i < 16 && !found; ++i) {

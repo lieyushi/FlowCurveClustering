@@ -180,6 +180,8 @@ void featureExtraction(const int& number,
 		14: Signature-based measure taken from http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=6231627
 		15: Procrustes distance taken from http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=6787131
 		16: entropy-based distance metric taken from http://vis.cs.ucdavis.edu/papers/pg2011paper.pdf
+		17: time-series MCP distance from https://www.sciencedirect.com/science/article/pii/S0097849318300128
+			for pathlines only
 	*/
 	if(samplingMethod==2)
 		IOHandler::sampleArray(data, dataVec, dimension, maxElements);
