@@ -91,7 +91,7 @@ void SpectralClustering::performClustering()
 		}
 		else
 		{
-			if(i!=0 && i!=1 && i!=2 && i!=4 && i!=12 && i!=13 && i!=14 && i!=15)
+			if(/*i!=0 && i!=1 && i!=2 && i!=4 &&*/ i!=12 && i!=13 /*&& i!=14 && i!=15*/)
 				continue;
 		}
 
@@ -801,10 +801,12 @@ void SpectralClustering::performKMeans(const Eigen::MatrixXf& eigenVec,
 	activityList.push_back("K-means takes: ");
 	timeList.push_back(to_string(timeTemp)+" s");
 
-	for(auto iter=storage.begin(); iter!=storage.end(); ++iter)
+	for(auto iter=storage.begin(); iter!=storage.end();)
 	{
 		if(*iter==0)
 			storage.erase(iter);
+		else
+			++iter;
 	}
 	numberOfClusters = storage.size();
 }
