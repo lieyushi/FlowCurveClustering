@@ -159,8 +159,8 @@ void AHC::performClustering()
 			}
 			else
 			{
-				if(normOption!=0 && normOption!=1 && normOption!=2 && normOption!=4 && normOption!=12
-				&& normOption!=13 && normOption!=14 && normOption!=15)
+				if(/*normOption!=0 && normOption!=1 && normOption!=2 && normOption!=4 &&*/ normOption!=12
+				&& normOption!=13 /*&& normOption!=14 && normOption!=15*/)
 					continue;
 			}
 
@@ -637,7 +637,7 @@ const float AHC::getDistAtNodes(const vector<int>& firstList, const vector<int>&
 
 	case 1:	//complete linkage
 		{
-			result = FLT_MIN;
+			result = -1.0;
 		#pragma omp parallel for reduction(max:result) num_threads(8)
 			for(int i=0;i<m;++i)
 			{

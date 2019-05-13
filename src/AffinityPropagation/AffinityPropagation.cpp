@@ -35,9 +35,9 @@ AffinityPropagation::~AffinityPropagation()
 void AffinityPropagation::performClustering()
 {
 	//distance metric type
-	/*  0: Euclidean Norm
-		1: Fraction Distance Metric
-		2: piece-wise angle average
+	/*  0: Euclidean Norm, d(a,b) = (\sum_(a-b)^2)^(1/2).
+		1: Fraction Distance Metric, d(a,b) = (\sum_(a-b)^p)^(1/p), we choose p==0.5
+		2: piece-wise angle average, from http://www2.cs.uh.edu/~chengu/Publications/3DFlowVis/curveClustering.pdf
 		3: Bhattacharyya metric for rotation
 		4: average rotation
 		5: signed-angle intersection
@@ -90,100 +90,23 @@ void AffinityPropagation::performClustering()
 /* run clustering based on different norm */
 void AffinityPropagation::clusterByNorm(const int& norm)
 {
-	normOption = norm;
-
-	/* very hard to decide whether needed to perform such pre-processing */
-	object = MetricPreparation(ds.dataMatrix.rows(), ds.dataMatrix.cols());
-	object.preprocessing(ds.dataMatrix, ds.dataMatrix.rows(), ds.dataMatrix.cols(), normOption);
-
-	/* would store distance matrix instead because it would save massive time */
 	struct timeval start, end;
 	double timeTemp;
-	gettimeofday(&start, NULL);
 
-	deleteDistanceMatrix(ds.dataMatrix.rows());
-
-	std::ifstream distFile(("../dataset/"+to_string(norm)).c_str(), ios::in);
-	if(distFile.fail())
-	{
-		distFile.close();
-		getDistanceMatrix(ds.dataMatrix, normOption, object);
-		std::ofstream distFileOut(("../dataset/"+to_string(norm)).c_str(), ios::out);
-		for(int i=0;i<ds.dataMatrix.rows();++i)
-		{
-			for(int j=0;j<ds.dataMatrix.rows();++j)
-			{
-				distFileOut << distanceMatrix[i][j] << " ";
-			}
-			distFileOut << std::endl;
-		}
-		distFileOut.close();
-	}
-	else
-	{
-		std::cout << "read distance matrix..." << std::endl;
-
-		distanceMatrix = new float*[ds.dataMatrix.rows()];
-	#pragma omp parallel for schedule(static) num_threads(8)
-		for (int i = 0; i < ds.dataMatrix.rows(); ++i)
-		{
-			distanceMatrix[i] = new float[ds.dataMatrix.rows()];
-		}
-		int i=0, j;
-		string line;
-		stringstream ss;
-		while(getline(distFile, line))
-		{
-			j=0;
-			ss.str(line);
-			while(ss>>line)
-			{
-				if(i==j)
-					distanceMatrix[i][j]=0;
-				else
-					distanceMatrix[i][j] = std::atof(line.c_str());
-				++j;
-			}
-			++i;
-			ss.str("");
-			ss.clear();
-		}
-		distFile.close();
-	}
-
-	gettimeofday(&end, NULL);
-	timeTemp = ((end.tv_sec  - start.tv_sec) * 1000000u
-			   + end.tv_usec - start.tv_usec) / 1.e6;
-	activityList.push_back("Distance matrix computing for norm "+to_string(norm)+" takes: ");
-	timeList.push_back(to_string(timeTemp)+" s");
+	getDistanceMatrixFromFile(norm);
 
 	Eigen::MatrixXf matrixR, matrixA, matrixS;
 
 	gettimeofday(&start, NULL);
 
-	/* initialize S, R, A */
-	initializeMatrices(matrixS, matrixR, matrixA);
+/*-------------------------First-level Affinity Propagation--------------------------------------*/
 
-	/* get S */
-	getMatrixS(matrixS);
-
-	int current = 0;
-	while(current++<maxIteration)
-	{
-		std::cout << "Iteration " << current << std::endl;
-
-		/* update responsibility */
-		updateResponsibility(matrixR, matrixA, matrixS);
-
-		/* update availability */
-		updateAvailability(matrixA, matrixR);
-
-	}
+	performAPClustering(matrixS, matrixR, matrixA, distanceMatrix, ds.dataMatrix);
 
 	gettimeofday(&end, NULL);
 	timeTemp = ((end.tv_sec  - start.tv_sec) * 1000000u+ end.tv_usec - start.tv_usec) / 1.e6;
 
-	activityList.push_back("Affinity propagation takes: ");
+	activityList.push_back("First-level affinity propagation takes: ");
 	timeList.push_back(to_string(timeTemp)+" s");
 
 	std::vector<std::vector<int> > neighborVec;
@@ -191,30 +114,84 @@ void AffinityPropagation::clusterByNorm(const int& norm)
 	Eigen::MatrixXf centroid;
 
 	/* get exemplary examples */
-	getGroupAssignment(matrixR, matrixA, matrixS, neighborVec, storage);
+	getGroupAssignment(matrixR, matrixA, matrixS, neighborVec, storage, group);
 
-	setLabel(neighborVec, storage, centroid);
+	setLabel(neighborVec, storage, centroid, group);
 
-	activityList.push_back("Affinity propagation generates: ");
+	activityList.push_back("First-level affinity propagation generates: ");
 	timeList.push_back(to_string(storage.size())+" groups");
 
+/*----------------------Second-level Affinity Propagation --------------------------------------------
+ * Use the centroid of the first level and then apply affinipty propagation once again ---------------
+ */
+	gettimeofday(&start, NULL);
+
+	/* get distance matrix for the centroids */
+	float** centroidDistMatrix = NULL;
+	getDistMatrixForCentroids(&centroidDistMatrix, normOption, centroid);
+
+	// perform second-level Affinity Propagation on centroids of the streamlines/pathlines
+	performAPClustering(matrixS, matrixR, matrixA, centroidDistMatrix, centroid);
+
+	// release the memory of centroidDistMatrix
+#pragma omp parallel for schedule(static) num_threads(8)
+	for(int i=0; i<centroid.rows(); ++i)
+	{
+		delete[] centroidDistMatrix[i];
+		centroidDistMatrix[i] = NULL;
+	}
+	delete[] centroidDistMatrix;
+	centroidDistMatrix = NULL;
+
+	// record the time into the README
+	gettimeofday(&end, NULL);
+	timeTemp = ((end.tv_sec  - start.tv_sec) * 1000000u+ end.tv_usec - start.tv_usec) / 1.e6;
+	activityList.push_back("Second-level affinity propagation takes: ");
+	timeList.push_back(to_string(timeTemp)+" s");
+
+	/* extract the group information */
+	std::vector<std::vector<int> > secondNeighborVec;
+	std::vector<int> secondStorage;
+	Eigen::MatrixXf secondCentroid;
+
+	std::vector<int> centroidGroup(centroid.rows());
+	/* get exemplary examples */
+	getGroupAssignment(matrixR, matrixA, matrixS, secondNeighborVec, secondStorage, centroidGroup);
+
+	setLabel(secondNeighborVec, secondStorage, secondCentroid, centroidGroup);
+
+	secondNeighborVec.clear();
+
+	activityList.push_back("Second-level affinity propagation generates: ");
+	timeList.push_back(to_string(secondStorage.size())+" groups");
+
+/*------------------------ Get the true group id by hierarchical affinity propagation -----------------*/
+	// should re-calculate the centroid, storage and neighborVec for new clusters
+	getHierarchicalClusters(storage, neighborVec, centroid, group, centroidGroup, secondStorage.size());
+
+	std::cout << secondStorage.size() << std::endl;
+	// begin to calculate the evaluation metrics and cluster representatives
 	extractFeatures(storage, neighborVec, centroid);
 
 }
 
 
 /* perform group-labeling information */
-void AffinityPropagation::setLabel(vector<vector<int> >& neighborVec, vector<int>& storage, Eigen::MatrixXf& centroid)
+void AffinityPropagation::setLabel(vector<vector<int> >& neighborVec, vector<int>& storage, Eigen::MatrixXf& centroid,
+		std::vector<int>& groupTag)
 {
-	std::vector<Ensemble> nodeVec(storage.size());
+	std::vector<Ensemble> nodeVec;
+
+	for(int i=0;i<storage.size();++i)
+	{
+		if(storage[i]==0)
+			continue;
+		nodeVec.push_back({storage[i], neighborVec[i]});
+	}
+
+	numberOfClusters = nodeVec.size();
 
 	std::cout << "Cluster label setting begins with " << nodeVec.size() << " clusters..." << std::endl;
-#pragma omp parallel for schedule(static) num_threads(8)
-	for(int i=0;i<nodeVec.size();++i)
-	{
-		nodeVec[i].size = storage[i];
-		nodeVec[i].element = neighborVec[i];
-	}
 
 	/* sort group index by size of elements containd inside */
 	std::sort(nodeVec.begin(), nodeVec.end(), [](const Ensemble& first, const Ensemble& second)
@@ -234,7 +211,7 @@ void AffinityPropagation::setLabel(vector<vector<int> >& neighborVec, vector<int
 		{
 			tempVec+=ds.dataMatrix.row(i).transpose();
 			/* don't forget to re-compute the group tag */
-			group[neighborVec[i][j]]=i;
+			groupTag[neighborVec[i][j]]=i;
 		}
 		centroid.row(i) = tempVec/storage[i];
 	}
@@ -479,7 +456,7 @@ void AffinityPropagation::getParameterUserInput()
 
 
 /* get matrix S from distance matrix */
-void AffinityPropagation::getMatrixS(Eigen::MatrixXf& matrixS)
+void AffinityPropagation::getMatrixS(Eigen::MatrixXf& matrixS, float** distMatrix, const Eigen::MatrixXf& coordinates)
 {
 	std::cout << "Start initializing matrix S..." << std::endl;
 
@@ -497,10 +474,10 @@ void AffinityPropagation::getMatrixS(Eigen::MatrixXf& matrixS)
 	{
 		for(int j=i+1;j<rows;++j)
 		{
-			if(distanceMatrix)
-				tempDist = distanceMatrix[i][j];
+			if(distMatrix)
+				tempDist = distMatrix[i][j];
 			else
-				tempDist = getDisimilarity(ds.dataMatrix, i, j, normOption, object);
+				tempDist = getDisimilarity(coordinates, i, j, normOption, object);
 
 			/* conventionally we assign -d*d as non-diagonal entries for matrix S */
 			matrixS(i,j) = -tempDist;
@@ -553,15 +530,12 @@ void AffinityPropagation::getMatrixS(Eigen::MatrixXf& matrixS)
 
 /* initialize matrix S, R, A */
 void AffinityPropagation::initializeMatrices(Eigen::MatrixXf& matrixS, Eigen::MatrixXf& matrixR,
-											Eigen::MatrixXf& matrixA)
+											Eigen::MatrixXf& matrixA, const int& rows)
 {
-	const int& rows = ds.dataMatrix.rows();
-
 	/* initialize all three matrices as zero entry */
 	matrixS = Eigen::MatrixXf::Zero(rows, rows);
 	matrixR = Eigen::MatrixXf::Zero(rows, rows);
 	matrixA = Eigen::MatrixXf::Zero(rows, rows);
-
 }
 
 
@@ -633,7 +607,7 @@ void AffinityPropagation::updateAvailability(Eigen::MatrixXf& matrixA, const Eig
 /* get assignment by three matrices */
 void AffinityPropagation::getGroupAssignment(const Eigen::MatrixXf& matrixR, const Eigen::MatrixXf& matrixA,
 			  	  	  	  	const Eigen::MatrixXf& matrixS, std::vector<std::vector<int> >& neighborVec,
-							std::vector<int>& storage)
+							std::vector<int>& storage, std::vector<int>& groupTag)
 {
 	std::vector<int> centerVec;
 	const int& rows = matrixR.rows();
@@ -665,7 +639,7 @@ void AffinityPropagation::getGroupAssignment(const Eigen::MatrixXf& matrixR, con
 				index = element;
 			}
 		}
-		group[i]=index;
+		groupTag[i]=index;
 	}
 
 	/* output group information and cluster size */
@@ -673,8 +647,10 @@ void AffinityPropagation::getGroupAssignment(const Eigen::MatrixXf& matrixR, con
 	for(int i=0;i<rows;++i)
 	{
 		/* group tag not int the hash map */
-		if(groupMap.find(group[i])==groupMap.end())
-			groupMap.insert(make_pair(group[i],0));
+		if(groupMap.find(groupTag[i])==groupMap.end())
+		{
+			groupMap.insert(make_pair(groupTag[i],0));
+		}
 	}
 
 	/* give them new index starting from 0 */
@@ -696,5 +672,158 @@ void AffinityPropagation::getGroupAssignment(const Eigen::MatrixXf& matrixR, con
 	}
 
 	for(int i=0;i<storage.size();++i)
+	{
 		storage[i] = neighborVec[i].size();
+	}
+}
+
+
+/* get distance matrix for centroids given norm option */
+void AffinityPropagation::getDistMatrixForCentroids(float*** centroidDistMatrix, const int& norm,
+		const Eigen::MatrixXf& centroid)
+{
+	const int& rows = centroid.rows();
+	*centroidDistMatrix = new float*[rows];
+
+	/* in order to calculate the distance matrix given norm, we need to calculate the object first. This object
+	 * is to pre-calculate some preliminary stuff for distance matrix computation. I know it is redundant but in
+	 * practice it can help to accelerate the performance a little bit
+	 */
+
+	MetricPreparation centroidObj = MetricPreparation(centroid.rows(), centroid.cols());
+	centroidObj.preprocessing(centroid, centroid.rows(), centroid.cols(), norm);
+
+#pragma omp parallel for schedule(static) num_threads(8)
+	for(int i=0; i<rows; ++i)
+	{
+		(*centroidDistMatrix)[i] = new float[rows];
+		for(int j=0; j<rows; ++j)
+		{
+			(*centroidDistMatrix)[i][j] = getDisimilarity(centroid, i, j, norm, centroidObj);
+		}
+	}
+}
+
+
+/* get distance matrix information from the txt or store them to save time */
+void AffinityPropagation::getDistanceMatrixFromFile(const int& norm)
+{
+	normOption = norm;
+
+	/* very hard to decide whether needed to perform such pre-processing */
+	object = MetricPreparation(ds.dataMatrix.rows(), ds.dataMatrix.cols());
+	object.preprocessing(ds.dataMatrix, ds.dataMatrix.rows(), ds.dataMatrix.cols(), normOption);
+
+	/* would store distance matrix instead because it would save massive time */
+	struct timeval start, end;
+	double timeTemp;
+	gettimeofday(&start, NULL);
+
+	deleteDistanceMatrix(ds.dataMatrix.rows());
+
+	std::ifstream distFile(("../dataset/"+to_string(normOption)).c_str(), ios::in);
+	if(distFile.fail())
+	{
+		distFile.close();
+		getDistanceMatrix(ds.dataMatrix, normOption, object);
+		std::ofstream distFileOut(("../dataset/"+to_string(normOption)).c_str(), ios::out);
+		for(int i=0;i<ds.dataMatrix.rows();++i)
+		{
+			for(int j=0;j<ds.dataMatrix.rows();++j)
+			{
+				distFileOut << distanceMatrix[i][j] << " ";
+			}
+			distFileOut << std::endl;
+		}
+		distFileOut.close();
+	}
+	else
+	{
+		std::cout << "read distance matrix..." << std::endl;
+
+		distanceMatrix = new float*[ds.dataMatrix.rows()];
+	#pragma omp parallel for schedule(static) num_threads(8)
+		for (int i = 0; i < ds.dataMatrix.rows(); ++i)
+		{
+			distanceMatrix[i] = new float[ds.dataMatrix.rows()];
+		}
+		int i=0, j;
+		string line;
+		stringstream ss;
+		while(getline(distFile, line))
+		{
+			j=0;
+			ss.str(line);
+			while(ss>>line)
+			{
+				if(i==j)
+					distanceMatrix[i][j]=0;
+				else
+					distanceMatrix[i][j] = std::atof(line.c_str());
+				++j;
+			}
+			++i;
+			ss.str("");
+			ss.clear();
+		}
+		distFile.close();
+	}
+
+	gettimeofday(&end, NULL);
+	timeTemp = ((end.tv_sec  - start.tv_sec) * 1000000u
+			   + end.tv_usec - start.tv_usec) / 1.e6;
+	activityList.push_back("Distance matrix computing for norm "+to_string(normOption)+" takes: ");
+	timeList.push_back(to_string(timeTemp)+" s");
+}
+
+
+/* perform affinity propagation clustering with several input and output */
+void AffinityPropagation::performAPClustering(Eigen::MatrixXf& matrixS, Eigen::MatrixXf& matrixR,
+		Eigen::MatrixXf& matrixA, float** distMatrix, const Eigen::MatrixXf& coordinates)
+{
+	/* initialize S, R, A */
+	initializeMatrices(matrixS, matrixR, matrixA, coordinates.rows());
+
+	/* get S */
+	getMatrixS(matrixS, distMatrix, coordinates);
+
+	int current = 0;
+	while(current++<maxIteration)
+	{
+		std::cout << "Iteration " << current << std::endl;
+
+		/* update responsibility */
+		updateResponsibility(matrixR, matrixA, matrixS);
+
+		/* update availability */
+		updateAvailability(matrixA, matrixR);
+
+	}
+}
+
+
+// should re-calculate the centroid, storage and neighborVec for new clusters
+void AffinityPropagation::getHierarchicalClusters(std::vector<int>& storage, std::vector<std::vector<int> >& neighborVec,
+		Eigen::MatrixXf& centroid, std::vector<int>& groupTag, const std::vector<int>& centroidGroup,
+		const int& groupSize)
+{
+	neighborVec.resize(groupSize);
+	storage.resize(groupSize);
+	centroid = Eigen::MatrixXf::Zero(groupSize, centroid.cols());
+
+	int groupID;
+	for(int i=0; i<group.size(); ++i)
+	{
+		groupID = centroidGroup[group[i]];
+		groupTag[i] = groupID;
+		neighborVec[groupID].push_back(i);
+		centroid.row(groupID)+=ds.dataMatrix.row(i);
+	}
+
+#pragma omp parallel for schedule(static) num_threads(8)
+	for(int i=0; i<groupSize; ++i)
+	{
+		centroid.row(i)/=neighborVec[i].size();
+		storage[i] = neighborVec[i].size();
+	}
 }

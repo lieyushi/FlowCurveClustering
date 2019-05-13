@@ -112,7 +112,8 @@ private:
 	void clusterByNorm(const int& norm);
 
 /* perform group-labeling information */
-	void setLabel(vector<vector<int> >& neighborVec, vector<int>& storage, Eigen::MatrixXf& centroid);
+	void setLabel(vector<vector<int> >& neighborVec, vector<int>& storage, Eigen::MatrixXf& centroid,
+			std::vector<int>& groupTag);
 
 /* get entropy ratio */
 	void getEntropyRatio(const std::vector<int>& storage, float& EntropyRatio);
@@ -121,11 +122,16 @@ private:
  **************************************   Affinity Propagation Steps   *************************************
  **********************************************************************************************************/
 
+/* perform affinity propagation clustering with several input and output */
+	void performAPClustering(Eigen::MatrixXf& matrixS, Eigen::MatrixXf& matrixR,
+		Eigen::MatrixXf& matrixA, float** distMatrix, const Eigen::MatrixXf& coordinates);
+
 /* get matrix S from distance matrix */
-	void getMatrixS(Eigen::MatrixXf& matrixS);
+	void getMatrixS(Eigen::MatrixXf& matrixS, float** distMatrix, const Eigen::MatrixXf& coordinates);
 
 /* initialize matrix S, R, A */
-	void initializeMatrices(Eigen::MatrixXf& matrixS, Eigen::MatrixXf& matrixR, Eigen::MatrixXf& matrixA);
+	void initializeMatrices(Eigen::MatrixXf& matrixS, Eigen::MatrixXf& matrixR, Eigen::MatrixXf& matrixA,
+			const int& rows);
 
 /* update responsibility matrix R */
 	void updateResponsibility(Eigen::MatrixXf& matrixR, const Eigen::MatrixXf& matrixA,
@@ -137,7 +143,21 @@ private:
 /* get assignment by three matrices */
 	void getGroupAssignment(const Eigen::MatrixXf& matrixR, const Eigen::MatrixXf& matrixA,
 			  	  	  	  	const Eigen::MatrixXf& matrixS, std::vector<std::vector<int> >& neighborVec,
-							std::vector<int>& storage);
+							std::vector<int>& storage, std::vector<int>& groupTag);
+
+/**********************************************************************************************************
+ ******************************   Hierarchical Affinity Propagation   *************************************
+ **********************************************************************************************************/
+/* get distance matrix for centroids given norm option */
+	void getDistMatrixForCentroids(float*** centroidDistMatrix, const int& norm, const Eigen::MatrixXf& centroid);
+
+/* get distance matrix information from the txt or store them to save time */
+	void getDistanceMatrixFromFile(const int& norm);
+
+// should re-calculate the centroid, storage and neighborVec for new clusters
+	void getHierarchicalClusters(std::vector<int>& storage, std::vector<std::vector<int> >& neighborVec,
+		Eigen::MatrixXf& centroid, std::vector<int>& group, const std::vector<int>& centroidGroup,
+		const int& groupSize);
 
 };
 

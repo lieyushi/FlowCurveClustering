@@ -1109,10 +1109,9 @@ void getDistanceMatrix(const MatrixXf& data,
 				distanceMatrix[i][j] = getDisimilarity(data, i, j, normOption, object);
 		}
 	}
-	std::cout << "Distance between 0 and 1 is " << distanceMatrix[0][1] << std::endl;
-	std::cout << "Distance between 0 and 1 is " << distanceMatrix[1][0] << std::endl;
-	std::cout << getDisimilarity(data, 0, 1, normOption, object) << std::endl;
-	std::cout << getDisimilarity(data, 1, 0, normOption, object) << std::endl;
+	std::cout << "Distance between 215 and 132 is " << distanceMatrix[215][132] << std::endl;
+	std::cout << "Distance between 132 and 215 is " << distanceMatrix[132][215] << std::endl;
+
 	std::cout << "Finished computing distance matrix!" << std::endl;
 }
 

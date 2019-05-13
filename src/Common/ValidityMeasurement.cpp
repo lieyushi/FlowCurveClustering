@@ -99,6 +99,12 @@ void ValidityMeasurement::computeValue(const int& normOption, const MatrixXf& ar
 	// compoute f_c
 	f_c = h_DDc*g_Sc;
 
+	if(isnan(f_c) || isinf(f_c))
+	{
+		std::cout << "Error for f_c to have inf or nan values!" << std::endl;
+		exit(1);
+	}
+
 	/* normalization of validity measurement */
 	float min_dist = FLT_MAX, max_dist = -1.0;
 	const int& row = array.rows();
@@ -136,6 +142,7 @@ void ValidityMeasurement::computeValue(const int& normOption, const MatrixXf& ar
 	std::cout << "min dist is " << min_dist << ", and max is " << max_dist << std::endl;
 	f_c/=(max_dist-min_dist)/**(max_dist-min_dist)*/;
 
+	assert(!isnan(f_c) && !isinf(f_c));
 	std::cout << "Validity measurement is " << f_c << std::endl;
 }
 
@@ -220,6 +227,12 @@ void ValidityMeasurement::computeValue(const MatrixXf& array, const std::vector<
 	// compoute f_c
 	f_c = h_DDc*g_Sc;
 
+	if(isnan(f_c) || isinf(f_c))
+	{
+		std::cout << "Error for f_c to have inf or nan values!" << std::endl;
+		exit(1);
+	}
+
 	/* normalization of validity measurement */
 	float min_dist = FLT_MAX, max_dist = -1.0;
 	const int& row = array.rows();
@@ -247,6 +260,7 @@ void ValidityMeasurement::computeValue(const MatrixXf& array, const std::vector<
 	std::cout << "min dist is " << min_dist << ", and max is " << max_dist << std::endl;
 	f_c/=(max_dist-min_dist)/**(max_dist-min_dist)*/;
 
+	assert(!isnan(f_c) && !isinf(f_c));
 	std::cout << "Validity measurement is " << f_c << std::endl;
 }
 
@@ -265,9 +279,10 @@ void ValidityMeasurement::getMST_Parent_Node(std::tuple<float, float, float>& va
 
 	const int& num_nodes = clusterNode.size();
 
-	if(num_nodes==1)
+	if(num_nodes<=1)
 	{
 		values = std::make_tuple(0.0,0.0,0.0);
+		std::cout << "Find 1-candidate cluster!" << std::endl;
 		return;
 	}
 
@@ -344,7 +359,7 @@ void ValidityMeasurement::getMST_Parent_Node(std::tuple<float, float, float>& va
 
 	float variance;
 
-	if(MST_EDGE_NUM==1)
+	if(MST_EDGE_NUM<=1)
 	{
 		variance = 0;
 		average_mst_d = summation;
@@ -385,7 +400,7 @@ void ValidityMeasurement::getMST_Parent_Node(std::tuple<float, float, float>& va
 	typedef std::pair<int, int> E;
 	// get number of points in one cluster
 	const int& num_nodes = clusterNode.size();
-	if(num_nodes==1)
+	if(num_nodes<=1)
 	{
 		values = std::make_tuple(0.0,0.0,0.0);
 		return;
@@ -456,7 +471,7 @@ void ValidityMeasurement::getMST_Parent_Node(std::tuple<float, float, float>& va
 	}
 
 	float variance;
-	if(MST_EDGE_NUM==1)
+	if(MST_EDGE_NUM<=1)
 	{
 		variance = 0;
 		average_mst_d = summation;
