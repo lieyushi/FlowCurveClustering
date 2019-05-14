@@ -167,9 +167,9 @@ void AffinityPropagation::clusterByNorm(const int& norm)
 
 /*------------------------ Get the true group id by hierarchical affinity propagation -----------------*/
 	// should re-calculate the centroid, storage and neighborVec for new clusters
+
 	getHierarchicalClusters(storage, neighborVec, centroid, group, centroidGroup, secondStorage.size());
 
-	std::cout << secondStorage.size() << std::endl;
 	// begin to calculate the evaluation metrics and cluster representatives
 	extractFeatures(storage, neighborVec, centroid);
 
@@ -807,14 +807,15 @@ void AffinityPropagation::getHierarchicalClusters(std::vector<int>& storage, std
 		Eigen::MatrixXf& centroid, std::vector<int>& groupTag, const std::vector<int>& centroidGroup,
 		const int& groupSize)
 {
+	neighborVec.clear();
 	neighborVec.resize(groupSize);
 	storage.resize(groupSize);
 	centroid = Eigen::MatrixXf::Zero(groupSize, centroid.cols());
 
 	int groupID;
-	for(int i=0; i<group.size(); ++i)
+	for(int i=0; i<groupTag.size(); ++i)
 	{
-		groupID = centroidGroup[group[i]];
+		groupID = centroidGroup[groupTag[i]];
 		groupTag[i] = groupID;
 		neighborVec[groupID].push_back(i);
 		centroid.row(groupID)+=ds.dataMatrix.row(i);
