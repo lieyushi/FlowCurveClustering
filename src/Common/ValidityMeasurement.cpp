@@ -80,7 +80,6 @@ void ValidityMeasurement::computeValue(const int& normOption, const MatrixXf& ar
 	if(g1_Sc<0)
 	{
 		std::cout << "Negative number for g1_Sc computation!" << std::endl;
-		exit(1);
 	}
 	g1_Sc = aver_sigma*sqrt(g1_Sc);
 
@@ -89,7 +88,6 @@ void ValidityMeasurement::computeValue(const int& normOption, const MatrixXf& ar
 	if(g2_Sc<0)
 	{
 		std::cout << "Negative number for g2_Sc computation!" << std::endl;
-		exit(1);
 	}
 	g2_Sc = aver_sigma/sqrt(g2_Sc);
 
@@ -102,7 +100,6 @@ void ValidityMeasurement::computeValue(const int& normOption, const MatrixXf& ar
 	if(isnan(f_c) || isinf(f_c))
 	{
 		std::cout << "Error for f_c to have inf or nan values!" << std::endl;
-		exit(1);
 	}
 
 	/* normalization of validity measurement */
@@ -142,7 +139,6 @@ void ValidityMeasurement::computeValue(const int& normOption, const MatrixXf& ar
 	std::cout << "min dist is " << min_dist << ", and max is " << max_dist << std::endl;
 	f_c/=(max_dist-min_dist)/**(max_dist-min_dist)*/;
 
-	assert(!isnan(f_c) && !isinf(f_c));
 	std::cout << "Validity measurement is " << f_c << std::endl;
 }
 
@@ -208,7 +204,6 @@ void ValidityMeasurement::computeValue(const MatrixXf& array, const std::vector<
 	if(g1_Sc<0)
 	{
 		std::cout << "Negative number for g1_Sc computation!" << std::endl;
-		exit(1);
 	}
 	g1_Sc = aver_sigma*sqrt(g1_Sc);
 
@@ -217,7 +212,6 @@ void ValidityMeasurement::computeValue(const MatrixXf& array, const std::vector<
 	if(g2_Sc<0)
 	{
 		std::cout << "Negative number for g2_Sc computation!" << std::endl;
-		exit(1);
 	}
 	g2_Sc = aver_sigma/sqrt(g2_Sc);
 
@@ -230,7 +224,6 @@ void ValidityMeasurement::computeValue(const MatrixXf& array, const std::vector<
 	if(isnan(f_c) || isinf(f_c))
 	{
 		std::cout << "Error for f_c to have inf or nan values!" << std::endl;
-		exit(1);
 	}
 
 	/* normalization of validity measurement */
@@ -260,7 +253,6 @@ void ValidityMeasurement::computeValue(const MatrixXf& array, const std::vector<
 	std::cout << "min dist is " << min_dist << ", and max is " << max_dist << std::endl;
 	f_c/=(max_dist-min_dist)/**(max_dist-min_dist)*/;
 
-	assert(!isnan(f_c) && !isinf(f_c));
 	std::cout << "Validity measurement is " << f_c << std::endl;
 }
 
