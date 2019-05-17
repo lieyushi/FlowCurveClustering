@@ -159,14 +159,10 @@ void AHC::performClustering()
 			}
 			else
 			{
-				if(/*normOption!=0 && normOption!=1 && normOption!=2 && normOption!=4 &&*/ normOption!=12
-				&& normOption!=13 /*&& normOption!=14 && normOption!=15*/)
+				if(normOption!=0 && normOption!=1 && normOption!=2 && normOption!=4 && normOption!=12
+				&& normOption!=13 && normOption!=14 && normOption!=15)
 					continue;
 			}
-
-			/* MCP for pathline datga set */
-			if(normOption==17)
-				IOHandler::expandArray(ds.dataMatrix,ds.dataVec,ds.dimension,ds.maxElements);
 
 			std::cout << "norm " << normOption << " starts......" << std::endl;
 			timeList.clear();
@@ -565,10 +561,15 @@ void AHC::setDataset(const int& argc, char **argv)
 	isPathlines = (PBFjudgement==1);
 
 	int sampleOption;
-    std::cout << "choose a sampling method for the dataset?" << std::endl
-	    	  << "1.directly filling with last vertex; 2. uniform sampling." << std::endl;
-	std::cin >> sampleOption;
-	assert(sampleOption==1||sampleOption==2);
+	if(isPathlines)
+		sampleOption = 1;
+	else
+	{
+		std::cout << "choose a sampling method for the dataset?" << std::endl
+				  << "1.directly filling with last vertex; 2. uniform sampling." << std::endl;
+		std::cin >> sampleOption;
+		assert(sampleOption==1||sampleOption==2);
+	}
 
 	IOHandler::readFile(ds.strName,ds.dataVec,ds.vertexCount,ds.dimension,ds.maxElements);
 

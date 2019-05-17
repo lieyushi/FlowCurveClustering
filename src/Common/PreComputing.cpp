@@ -123,7 +123,7 @@ void getEachFixedSequence(const VectorXf& array,
 		}
 		else
 		{
-			angle = M_PI/2.0;
+			angle = M_PI;
 			meanRotation += angle;
 			deviation += angle*angle;
 		}
@@ -334,14 +334,20 @@ void getSignatureHistSampled(const Eigen::VectorXf& array,
 			firstSeg(j)=array(3*i+3+j)-array(3*i+j);
 			secondSeg(j)=array(3*i+6+j)-array(3*i+3+j);
 		}
-		curva = firstSeg.dot(secondSeg)/firstSeg.norm()/secondSeg.norm();
 
-		/* clip curvature into range [-1.0, 1.0] */
-		curva = std::min(float(1.0), curva);
-		curva = std::max(float(-1.0), curva);
+		float firstSegNorm = firstSeg.norm(), secondSegNorm = secondSeg.norm();
+		if(firstSegNorm<1.0e-8 || secondSegNorm<1.0e-8)
+			curva = 0.0;
+		else
+		{
+			curva = firstSeg.dot(secondSeg)/firstSegNorm/secondSegNorm;
 
-		curva = acos(curva);
+			/* clip curvature into range [-1.0, 1.0] */
+			curva = std::min(float(1.0), curva);
+			curva = std::max(float(-1.0), curva);
 
+			curva = acos(curva);
+		}
 		/* store in the vector */
 		curvatureVec[vecIndex++]=curva;
 
@@ -440,13 +446,19 @@ void getLinearAngularEntropy(const Eigen::VectorXf& array,
 			continue;
 		}
 
-		curva = firstSeg.dot(secondSeg)/firstSeg.norm()/secondSeg.norm();
+		float firstSegNorm = firstSeg.norm(), secondSegNorm = secondSeg.norm();
+		if(firstSegNorm<1.0e-8 || secondSegNorm<1.0e-8)
+			curva = 0.0;
+		else
+		{
+			curva = firstSeg.dot(secondSeg)/firstSegNorm/secondSegNorm;
 
-		/* clip curvature into range [-1.0, 1.0] */
-		curva = std::min(float(1.0), curva);
-		curva = std::max(float(-1.0), curva);
+			/* clip curvature into range [-1.0, 1.0] */
+			curva = std::min(float(1.0), curva);
+			curva = std::max(float(-1.0), curva);
 
-		curva = acos(curva);
+			curva = acos(curva);
+		}
 
 		/* store in the vector */
 		curvatureVec[i]=curva;

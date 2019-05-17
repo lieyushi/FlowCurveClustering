@@ -70,10 +70,6 @@ void AffinityPropagation::performClustering()
 				continue;
 		}
 
-		/* set the sampling for computing MCP between pathlines to be directly filling */
-		if(i==17)
-			IOHandler::expandArray(ds.dataMatrix,ds.dataVec,ds.dimension,ds.maxElements);
-
 		std::cout << "----------------------------------------------------" << std::endl;
 		std::cout << "Experiment on norm " << i << " starts!--------------" << std::endl;
 
@@ -407,13 +403,17 @@ void AffinityPropagation::getEntropyRatio(const std::vector<int>& storage, float
 /* set automatic parameter */
 void AffinityPropagation::setParameterAutomatic(const Para& p)
 {
-
-	if(p.sampled==1)
+	if(isPathlines)
 		IOHandler::expandArray(ds.dataMatrix,ds.dataVec,ds.dimension,ds.maxElements);
-	else if(p.sampled==2)
-		IOHandler::sampleArray(ds.dataMatrix,ds.dataVec,ds.dimension,ds.maxElements);
-	else if(p.sampled==3)
-		IOHandler::uniformArcSampling(ds.dataMatrix,ds.dataVec,ds.dimension,ds.maxElements);
+	else
+	{
+		if(p.sampled==1)
+			IOHandler::expandArray(ds.dataMatrix,ds.dataVec,ds.dimension,ds.maxElements);
+		else if(p.sampled==2)
+			IOHandler::sampleArray(ds.dataMatrix,ds.dataVec,ds.dimension,ds.maxElements);
+		else if(p.sampled==3)
+			IOHandler::uniformArcSampling(ds.dataMatrix,ds.dataVec,ds.dimension,ds.maxElements);
+	}
 
 	group = std::vector<int>(ds.dataMatrix.rows());
 
@@ -434,12 +434,17 @@ void AffinityPropagation::getParameterUserInput()
 	std::cin >> sampleOption;
 	assert(sampleOption==1||sampleOption==2);
 
-	if(sampleOption==1)
+	if(isPathlines)
 		IOHandler::expandArray(ds.dataMatrix,ds.dataVec,ds.dimension,ds.maxElements);
-	else if(sampleOption==2)
-		IOHandler::sampleArray(ds.dataMatrix,ds.dataVec,ds.dimension,ds.maxElements);
-	else if(sampleOption==3)
-		IOHandler::uniformArcSampling(ds.dataMatrix,ds.dataVec,ds.dimension,ds.maxElements);
+	else
+	{
+		if(sampleOption==1)
+			IOHandler::expandArray(ds.dataMatrix,ds.dataVec,ds.dimension,ds.maxElements);
+		else if(sampleOption==2)
+			IOHandler::sampleArray(ds.dataMatrix,ds.dataVec,ds.dimension,ds.maxElements);
+		else if(sampleOption==3)
+			IOHandler::uniformArcSampling(ds.dataMatrix,ds.dataVec,ds.dimension,ds.maxElements);
+	}
 
 	group = std::vector<int>(ds.dataMatrix.rows());
 

@@ -45,11 +45,19 @@ void streamlineQuery(const int& argc,
 	assert(userInput==1||userInput==0);
 	isPathlines = (isPathlines==1);
 
-	/* select sampling strategy, and 2 is often for geometric clustering */
-	std::cout << "Please choose sampling strategy: " << std::endl
-			  << "1.directly filling, 2.uniformly sampling" << std::endl;
 	int samplingMethod;
-	std::cin >> samplingMethod;
+
+	if(isPathlines)
+		samplingMethod = 1;
+	else
+	{
+		/* select sampling strategy, and 2 is often for geometric clustering */
+		std::cout << "Please choose sampling strategy: " << std::endl
+				  << "1.directly filling, 2.uniformly sampling" << std::endl;
+		int samplingMethod;
+		std::cin >> samplingMethod;
+	}
+
 	assert(samplingMethod==1 || samplingMethod==2);
 	if(samplingMethod==1)
 		IOHandler::expandArray(data, dataVec, dimension, maxElements); //directly filling
@@ -84,14 +92,6 @@ void streamlineQuery(const int& argc,
 	{
 		for (int i = 2; i < 17; ++i)
 		{
-			if(i!=12)
-				continue;
-
-			if(i==17)
-			{
-				IOHandler::expandArray(data, dataVec, dimension, maxElements); //directly filling
-				q = Query(data, dataVec.size(), maxElements);
-			}
 			//std::cout << "Wanted to continue the query?" << std::endl
 			//		  << "Y. Yes; N. No" << std::endl;
 			//std::cin >> isContinued;

@@ -166,10 +166,6 @@ void featureExtraction(const int& number,
 				continue;
 		}
 
-		/* MCP distance requires directly filling the sampling */
-		if(i==17)
-			IOHandler::expandArray(data, dataVec, dimension, maxElements);
-
 		if(readCluster)
 			kmedoid.numOfClusters = clusterMap[i];
 		else

@@ -217,6 +217,7 @@ const float getMetric_10(const VectorXf& centroid,
 	const VectorXf& x = unitLength[index];
 	VectorXf y(size*3);
 	getUnitDirection_byEach(centroid,size,y);
+
 	float length = x.dot(y)/x.size();
 	length = min(1.0,(double)length);
 	length = max(-1.0,(double)length);
@@ -326,7 +327,7 @@ const float getNorm(const Eigen::VectorXf& centroid,
 					length+=acos(result);
 				}
 				else
-					length+=M_PI/2.0;
+					length+=M_PI;
 			}
 			length /= pointNum;
 		}
@@ -371,7 +372,7 @@ const float getNorm(const Eigen::VectorXf& centroid,
 						length+=acos(result);
 				}
 				else
-					length+=M_PI/2.0;
+					length+=M_PI;
 			}
 			length /= pointNum;
 			length = abs(length);
@@ -409,7 +410,7 @@ const float getNorm(const Eigen::VectorXf& centroid,
 				}
 				else
 				{
-					angle=M_PI/2.0;
+					angle=M_PI;
 					length+=angle;
 					stdevia+=angle*angle;
 				}
@@ -502,7 +503,7 @@ const float getNorm(const VectorXf& centroid,
 					length+=acos(result);
 				}
 				else
-					length+=M_PI/2.0;
+					length+=M_PI;
 			}
 			length /= pointNum;
 		}
@@ -547,7 +548,7 @@ const float getNorm(const VectorXf& centroid,
 						length+=acos(result);
 				}
 				else
-					length+=M_PI/2.0;
+					length+=M_PI;
 			}
 			length /= pointNum;
 			length = abs(length);
@@ -584,7 +585,7 @@ const float getNorm(const VectorXf& centroid,
 				}
 				else
 				{
-					angle=M_PI/2.0;
+					angle=M_PI;
 					length+=angle;
 					stdevia+=angle*angle;
 				}
@@ -646,7 +647,7 @@ const float getNorm(const Eigen::VectorXf& r1,
 					length+=acos(result);
 				}
 				else
-					length+=M_PI/2.0;
+					length+=M_PI;
 			}
 			length /= pointNum;
 		}
@@ -684,7 +685,7 @@ const float getNorm(const Eigen::VectorXf& r1,
 						length+=acos(result);
 				}
 				else
-					length+=M_PI/2.0;
+					length+=M_PI;
 			}
 			length /= pointNum;
 			length = abs(length);
@@ -714,7 +715,7 @@ const float getNorm(const Eigen::VectorXf& r1,
 				}
 				else
 				{
-					angle=M_PI/2.0;
+					angle=M_PI;
 					length+=angle;
 					stdevia+=angle*angle;
 				}
@@ -1154,10 +1155,15 @@ const float getRotation(const std::vector<vector<float> >& streamline, std::vect
 		{
 			first<<eachLine[3*j+3]-eachLine[3*j],eachLine[3*j+4]-eachLine[3*j+1],eachLine[3*j+5]-eachLine[3*j+2];
 			second<<eachLine[3*j+6]-eachLine[3*j+3],eachLine[3*j+7]-eachLine[3*j+4],eachLine[3*j+8]-eachLine[3*j+5];
-			float angle = first.dot(second)/first.norm()/second.norm();
-			angle = std::max(angle,float(-1.0));
-			angle = std::min(angle,float(1.0));
-			eachSum+=acos(angle);
+
+			float firstNorm = first.norm(), secondNorm = second.norm();
+			if(firstNorm>=1.0e-8 && secondNorm>=1.0e-8)
+			{
+				float angle = first.dot(second)/firstNorm/secondNorm;
+				angle = std::max(angle,float(-1.0));
+				angle = std::min(angle,float(1.0));
+				eachSum+=acos(angle);
+			}
 		}
 		rotation[i]=eachSum;
 		result+=eachSum;
@@ -1387,6 +1393,7 @@ const float getProcrustesMetricSegment(const Eigen::VectorXf& first,
 
 	float result = 0.0;
 
+	int effective = 0;
 	/* for all points, assign to them a point set with size of PROCRUSTES_SIZE neighboring points */
 	for(int i=0;i<vertexChanged;++i)
 	{
@@ -1428,6 +1435,9 @@ const float getProcrustesMetricSegment(const Eigen::VectorXf& first,
 		/* check whether negative or not */
 		assert(ssqX > 0 && ssqY > 0);
 
+		if(ssqX<1.0e-8 || ssqY<1.0e-8)
+			continue;
+
 		ssqX = sqrt(ssqX);
 		ssqY = sqrt(ssqY);
 
@@ -1466,9 +1476,10 @@ const float getProcrustesMetricSegment(const Eigen::VectorXf& first,
 		}
 		/* get the average of P(x,y')^2 */
 		result+=pointDist;
+		++effective;
 	}
 
-	return result/vertexChanged;
+	return result/effective;
 }
 
 

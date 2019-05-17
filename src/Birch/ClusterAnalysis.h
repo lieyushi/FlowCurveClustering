@@ -89,9 +89,14 @@ void getUserInput(const int& argc,
 	assert(clusterInput==0||clusterInput==1);
 	readCluster = (clusterInput==1);
 
-	std::cout << "Please choose the sampling method? " << endl
-	          << "1.filling, 2.uniform sampling." << std::endl;
-	std::cin >> samplingMethod;
+	if(isPathlines)
+		samplingMethod = 1;
+	else
+	{
+		std::cout << "Please choose the sampling method? " << endl
+				  << "1.filling, 2.uniform sampling." << std::endl;
+		std::cin >> samplingMethod;
+	}
 	assert(samplingMethod==1||samplingMethod==2);
 
 	dimension = atoi(argv[2]);
@@ -294,9 +299,6 @@ void getBirchClustering(std::vector<item_type<dim> >& items,
 	struct timeval start, end;
 	double timeTemp;
 	gettimeofday(&start, NULL);
-
-	if(isPathlines && normOption==17)
-		IOHandler::expandArray(equalArray,trajectories,dimension, fi.maxElement);
 
 	object = MetricPreparation(equalArray.rows(), equalArray.cols());
 	object.preprocessing(equalArray, equalArray.rows(), equalArray.cols(), normOption);

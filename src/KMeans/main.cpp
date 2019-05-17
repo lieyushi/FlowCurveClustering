@@ -82,11 +82,18 @@ void featureExtraction(const int& number,
 	assert(initializationOption==1 || initializationOption==2 
 		   || initializationOption==3);
 
-	/* select sampling strategy, and 2 is often for geometric clustering */
-	std::cout << "Please choose sampling strategy: " << std::endl
-			  << "1.directly filling, 2.uniformly sampling" << std::endl;
-    int samplingMethod;
-    std::cin >> samplingMethod;
+	int samplingMethod;
+	if(isPathlines)
+		samplingMethod = 1;
+
+	else
+	{
+		/* select sampling strategy, and 2 is often for geometric clustering */
+		std::cout << "Please choose sampling strategy: " << std::endl
+				  << "1.directly filling, 2.uniformly sampling" << std::endl;
+		std::cin >> samplingMethod;
+	}
+
     assert(samplingMethod==1 || samplingMethod==2);
 
     /* whether number of clusters is read from user input or from ../dataset/cluster_number */
@@ -199,9 +206,6 @@ void featureExtraction(const int& number,
 			if(i!=0 && i!=1 && i!=2 && i!=4 && i!=12 && i!=13 && i!=14 && i!=15)
 				continue;
 		}
-
-		if(i==17)
-			IOHandler::expandArray(data, dataVec, dimension, maxElements);
 
 		if(readCluster)
 			cluster = clusterMap[i];

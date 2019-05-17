@@ -91,7 +91,7 @@ void SpectralClustering::performClustering()
 		}
 		else
 		{
-			if(/*i!=0 && i!=1 && i!=2 && i!=4 &&*/ i!=12 && i!=13 /*&& i!=14 && i!=15*/)
+			if(i!=0 && i!=1 && i!=2 && i!=4 && i!=12 && i!=13 && i!=14 && i!=15)
 				continue;
 		}
 
@@ -116,9 +116,6 @@ void SpectralClustering::performClustering()
 
 		activityList.push_back("Preset numOfClusters for norm "+to_string(i) +" is: ");
 		timeList.push_back(to_string(presetNumber));
-
-		if(isPathlines && i==17)
-			IOHandler::expandArray(ds.dataMatrix,ds.dataVec,ds.dimension,ds.maxElements);
 
 		struct timeval start, end;
 		double timeTemp;
@@ -896,13 +893,25 @@ void SpectralClustering::getEigvecRotation(std::vector<int>& storage, std::vecto
 /* set automatic parameter */
 void SpectralClustering::setParameterAutomatic(const Para& p)
 {
+	std::cout << "It is a pathline data set? 1.Yes, 0.No." << std::endl;
+	int pathlineOption;
+	std::cin >> pathlineOption;
+	assert(pathlineOption==1||pathlineOption==0);
+	isPathlines = (pathlineOption==1);
 
-	if(p.sampled==1)
+	if(isPathlines)
+	{
 		IOHandler::expandArray(ds.dataMatrix,ds.dataVec,ds.dimension,ds.maxElements);
-	else if(p.sampled==2)
-		IOHandler::sampleArray(ds.dataMatrix,ds.dataVec,ds.dimension,ds.maxElements);
-	else if(p.sampled==3)
-		IOHandler::uniformArcSampling(ds.dataMatrix,ds.dataVec,ds.dimension,ds.maxElements);
+	}
+	else
+	{
+		if(p.sampled==1)
+			IOHandler::expandArray(ds.dataMatrix,ds.dataVec,ds.dimension,ds.maxElements);
+		else if(p.sampled==2)
+			IOHandler::sampleArray(ds.dataMatrix,ds.dataVec,ds.dimension,ds.maxElements);
+		else if(p.sampled==3)
+			IOHandler::uniformArcSampling(ds.dataMatrix,ds.dataVec,ds.dimension,ds.maxElements);
+	}
 
 	group = std::vector<int>(ds.dataMatrix.rows());
 
@@ -917,11 +926,6 @@ void SpectralClustering::setParameterAutomatic(const Para& p)
 
 	extractOption = p.extractOption;
 
-	std::cout << "It is a pathline data set? 1.Yes, 0.No." << std::endl;
-	int pathlineOption;
-	std::cin >> pathlineOption;
-	assert(pathlineOption==1||pathlineOption==0);
-	isPathlines = (pathlineOption==1);
 }
 
 
@@ -929,10 +933,22 @@ void SpectralClustering::setParameterAutomatic(const Para& p)
 /* set parameter */
 void SpectralClustering::getParameterUserInput()
 {
+	std::cout << "It is a pathline data set? 1.Yes, 0.No." << std::endl;
+	int pathlineOption;
+	std::cin >> pathlineOption;
+	assert(pathlineOption==1||pathlineOption==0);
+	isPathlines = (pathlineOption==1);
+
 	int sampleOption;
-	std::cout << "choose a sampling method for the dataset?" << std::endl
-			  << "1.directly filling with last vertex; 2. uniform sampling." << std::endl;
-	std::cin >> sampleOption;
+
+	if(isPathlines)
+		sampleOption = 1;
+	else
+	{
+		std::cout << "choose a sampling method for the dataset?" << std::endl
+				  << "1.directly filling with last vertex; 2. uniform sampling." << std::endl;
+		std::cin >> sampleOption;
+	}
 	assert(sampleOption==1||sampleOption==2);
 
 	if(sampleOption==1)

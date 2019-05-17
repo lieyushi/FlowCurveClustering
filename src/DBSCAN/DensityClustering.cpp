@@ -264,10 +264,16 @@ void DensityClustering::setDataset(const int& argc, char **argv) {
 	isPathlines = (PBFjudgement == 1);
 
 	int sampleOption;
-	std::cout << "choose a sampling method for the dataset?" << std::endl
-			<< "1.directly filling with last vertex; 2. uniform sampling; 3. equal-arc sampling. "
-			<< std::endl;
-	std::cin >> sampleOption;
+
+	if(isPathlines)
+		sampleOption = 1;
+	else
+	{
+		std::cout << "choose a sampling method for the dataset?" << std::endl
+				<< "1.directly filling with last vertex; 2. uniform sampling; 3. equal-arc sampling. "
+				<< std::endl;
+		std::cin >> sampleOption;
+	}
 	assert(sampleOption == 1 || sampleOption == 2 || sampleOption == 3);
 
 	IOHandler::readFile(ds.strName, ds.dataVec, ds.vertexCount, ds.dimension,
@@ -322,8 +328,6 @@ void DensityClustering::setNormOption() {
 	 17: time-series MCP distance from https://www.sciencedirect.com/science/article/pii/S0097849318300128
 			for pathlines only
 	 */
-	if(isPathlines && normOption==17)
-		IOHandler::expandArray(ds.dataMatrix, ds.dataVec, ds.dimension, ds.maxElements);
 }
 
 void DensityClustering::getDistRange(float& minDist, float& maxDist) {
