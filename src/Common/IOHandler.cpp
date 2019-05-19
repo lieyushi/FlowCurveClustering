@@ -57,12 +57,12 @@ void IOHandler::readFile(const string& fileName,
 				if(count==3)
 				{
 					int size = tempVec.size();
-					if(!(abs(vec[0]-tempVec[size-3])<1.0e-5&&abs(vec[1]-tempVec[size-2])<1.0e-5&&abs(vec[2]-tempVec.back())<1.0e-5))
-					{
-						tempVec.push_back(vec[0]);
-						tempVec.push_back(vec[1]);
-						tempVec.push_back(vec[2]);
-					}
+					//if(!(abs(vec[0]-tempVec[size-3])<1.0e-5&&abs(vec[1]-tempVec[size-2])<1.0e-5&&abs(vec[2]-tempVec.back())<1.0e-5))
+					//{
+					tempVec.push_back(vec[0]);
+					tempVec.push_back(vec[1]);
+					tempVec.push_back(vec[2]);
+					//}
 					count = 0;
 				}
 				continue;

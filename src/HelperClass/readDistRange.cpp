@@ -119,11 +119,24 @@ void setDataset(Dataset& ds, const int& argc, char **argv)
 	ds.dataName = string(argv[1]);
 	ds.dimension = atoi(argv[2]);
 
+	int pathlineOption;
+	std::cout << "It is a pathline dataset? 1.Yes, 0.No" << std::endl;
+	std::cin >> pathlineOption;
+	assert(pathlineOption==1||pathlineOption==0);
+	bool isPathlines = (pathlineOption==1);
+
 	int sampleOption;
-    std::cout << "choose a sampling method for the dataset?" << std::endl
-	    	  << "1.directly filling with last vertex; 2. uniform sampling." << std::endl;
-	std::cin >> sampleOption;
-	assert(sampleOption==1||sampleOption==2);
+
+	if(isPathlines)
+		sampleOption = 1;
+
+	else
+	{
+		std::cout << "choose a sampling method for the dataset?" << std::endl
+				  << "1.directly filling with last vertex; 2. uniform sampling." << std::endl;
+		std::cin >> sampleOption;
+		assert(sampleOption==1||sampleOption==2);
+	}
 
 	IOHandler::readFile(ds.strName,ds.dataVec,ds.vertexCount,ds.dimension,ds.maxElements);
 
