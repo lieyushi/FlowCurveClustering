@@ -833,7 +833,8 @@ const float getDisimilarity(const VectorXf& others,
 	/* adapted Procrustes distance */
 	case 15:
 		//length = getProcrustesMetric(others, data.row(index));
-		length = getProcrustesMetricSegment(others, data.row(index));
+		length = (getProcrustesMetricSegment(others, data.row(index))+
+				getProcrustesMetricSegment(data.row(index), others))/2.0;
 		break;
 
 	case 16:
@@ -918,7 +919,7 @@ const float getDisimilarity(const VectorXf& first,
 
 	case 15:
 		//length = getProcrustesMetric(first, second);
-		length = getProcrustesMetricSegment(first,second);
+		length = (getProcrustesMetricSegment(first,second)+getProcrustesMetricSegment(second,first))/2.0;
 		break;
 
 	case 16:
@@ -1094,7 +1095,6 @@ void getDistanceMatrix(const MatrixXf& data,
 					   const MetricPreparation& object)
 {
 	const int& Row = data.rows();
-
 	distanceMatrix = new float*[Row];
 
 #pragma omp parallel for schedule(static) num_threads(8)
@@ -1110,6 +1110,7 @@ void getDistanceMatrix(const MatrixXf& data,
 				distanceMatrix[i][j] = getDisimilarity(data, i, j, normOption, object);
 		}
 	}
+
 	std::cout << "Distance between 215 and 132 is " << distanceMatrix[215][132] << std::endl;
 	std::cout << "Distance between 132 and 215 is " << distanceMatrix[132][215] << std::endl;
 
@@ -1435,11 +1436,14 @@ const float getProcrustesMetricSegment(const Eigen::VectorXf& first,
 		/* check whether negative or not */
 		assert(ssqX > 0 && ssqY > 0);
 
-		if(ssqX<1.0e-8 || ssqY<1.0e-8)
+		if(ssqX<1.0e-12 || ssqY<1.0e-12)
 			continue;
 
 		ssqX = sqrt(ssqX);
 		ssqY = sqrt(ssqY);
+
+		if(ssqX<1.0e-8 || ssqY<1.0e-8)
+			continue;
 
 		/* scaling for the point set */
 		firstSegment/=ssqX;
@@ -1478,7 +1482,6 @@ const float getProcrustesMetricSegment(const Eigen::VectorXf& first,
 		result+=pointDist;
 		++effective;
 	}
-
 	return result/effective;
 }
 
