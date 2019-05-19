@@ -30,6 +30,8 @@
 using namespace std;
 using namespace Eigen;
 
+#define MULTIPLIER 8.0
+
 // the pathline point with coordinate and time
 struct PathlinePoint
 {
@@ -247,7 +249,7 @@ void performInterpolation(const std::vector<std::vector<PathlinePoint> >& pathli
 	// use the time information of timeRange to perform time-based sampling for the pathlines
 	const float& starting = std::get<0>(timeRange);
 	const float& ending = std::get<1>(timeRange);
-	const float& aveSlice = 8.0*std::get<2>(timeRange);
+	const float& aveSlice = MULTIPLIER*std::get<2>(timeRange);
 	interpolatedLine.resize(pathlines.size());
 
 #pragma omp parallel for schedule(static) num_threads(8)
