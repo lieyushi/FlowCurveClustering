@@ -833,8 +833,8 @@ const float getDisimilarity(const VectorXf& others,
 	/* adapted Procrustes distance */
 	case 15:
 		//length = getProcrustesMetric(others, data.row(index));
-		length = (getProcrustesMetricSegment(others, data.row(index))+
-				getProcrustesMetricSegment(data.row(index), others))/2.0;
+		length = std::min(getProcrustesMetricSegment(others, data.row(index)),
+				getProcrustesMetricSegment(data.row(index), others));
 		break;
 
 	case 16:
@@ -919,7 +919,7 @@ const float getDisimilarity(const VectorXf& first,
 
 	case 15:
 		//length = getProcrustesMetric(first, second);
-		length = (getProcrustesMetricSegment(first,second)+getProcrustesMetricSegment(second,first))/2.0;
+		length = std::min(getProcrustesMetricSegment(first,second),getProcrustesMetricSegment(second,first));
 		break;
 
 	case 16:
@@ -1361,7 +1361,13 @@ const float getProcrustesMetric(const Eigen::VectorXf& first,
 		}
 
 		/* get the average of P(x,y')^2 */
-		result+=pointDist;
+
+		// either by computing the matrix
+		//result+=pointDist;
+
+		// or directly using trace of the matrix
+		float requiredD = 1.0-traceA*traceA;
+		result+=requiredD*requiredD;
 	}
 
 	return result/vertexChanged;
