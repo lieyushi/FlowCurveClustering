@@ -59,8 +59,6 @@ DensityClustering::DensityClustering(const int& argc, char **argv) {
 				ss.str(line);
 				while(ss>>line)
 				{
-					if(i==0)
-						std::cout << line << " ";
 					if(i==j)
 						distanceMatrix[i][j] = 0;
 					else
