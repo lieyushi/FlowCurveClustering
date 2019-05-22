@@ -26,7 +26,7 @@ It is the released source code for one TVCG submission (to appear).
 		- The implementation is directly borrowed from one [C++ github implementation](https://github.com/fedyura/birch-clustering-algorithm)
 		- The clustering requires a distance value as input, which is pretty hard to handle especially for unknown data sets. Instead, I implemented a binary-search to find approximately cluster numbers if the input is how many clusters
 		- **Important Note** Since the dimension of tree is statically fixed, every time the user should try to replace the dimensions with that of the customized data sets, in src/Birch/main.cpp, src/Birch/ClusterAnalysis.h, src/Birch/CFTree.h. 
-		- For example, if the new data set has 1000 dimensions for each line, please manually replace 4824u with 1000u in src/Birch/main.cpp, src/Birch/ClusterAnalysis.h, src/Birch/CFTree.h
+			- For example, if the new data set has 1000 dimensions for each line, please manually replace 4824u with 1000u in src/Birch/main.cpp, src/Birch/ClusterAnalysis.h, src/Birch/CFTree.h
 
 	- [Agglomerative hierarchical clustering](https://en.wikipedia.org/wiki/Hierarchical_clustering)
 		- Provide **single**, **average** and **complete** linkage option
