@@ -2,7 +2,8 @@
 This provides an unsupervised machine learning techniques for clustering integral curves in flow visualization community.
 It is the released source code for one TVCG submission (to appear).
 
-**Author**: Lieyu Shi, University of Houston,
+**Author**: Lieyu Shi, University of Houston
+
 **Email**: shilieyu91@gmail.com
 
 1. **Implemented clustering algorithms**
