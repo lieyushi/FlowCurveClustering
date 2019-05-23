@@ -1442,7 +1442,7 @@ const float getProcrustesMetricSegment(const Eigen::VectorXf& first,
 		/* check whether negative or not */
 		assert(ssqX > 0 && ssqY > 0);
 
-		if(ssqX<1.0e-12 || ssqY<1.0e-12)
+		if(ssqX<1.0e-14 || ssqY<1.0e-14)
 			continue;
 
 		ssqX = sqrt(ssqX);
@@ -1488,7 +1488,13 @@ const float getProcrustesMetricSegment(const Eigen::VectorXf& first,
 		result+=pointDist;
 		++effective;
 	}
-	return result/effective;
+
+	if(effective==0)
+	{
+		return 1.0e-8;
+	}
+	else
+		return result/effective;
 }
 
 

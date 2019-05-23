@@ -166,20 +166,25 @@ const float Silhouette::getA_i(const std::vector<std::vector<int> >& storage,
 						 	   const int& normOption)
 {
 	const std::vector<int>& clusterSet = storage[group[index]];
-	float inClusterDist = 0.0;
+	float inClusterDist = 0.0, dist;
 	for (int j = 0; j < clusterSet.size(); ++j)
 	{
 		if(clusterSet[j]!=index)
 		{
 			if(distanceMatrix)
-				inClusterDist += distanceMatrix[index][clusterSet[j]];
+			{
+				dist = distanceMatrix[index][clusterSet[j]];
+			}
 			else
-				inClusterDist += getDist(index, clusterSet[j], object, array, normOption);
+			{
+				dist = getDist(index, clusterSet[j], object, array, normOption);
+			}
+			inClusterDist += dist;
 		}
 	}
 	if(std::isnan(inClusterDist))
 	{
-		std::cout << "a_i has nan error!" << std::endl;
+		std::cout << "a_i has nan error! " << inClusterDist << std::endl;
 		exit(1);
 	}
 	float a_i;
@@ -240,6 +245,11 @@ const float Silhouette::getDist(const int& first,
 	if(distance<0)
 	{
 		std::cout << "Error for negative distance!" << std::endl;
+		exit(1);
+	}
+	if(isnan(distance) || isinf(distance))
+	{
+		std::cout << "Error for distance value that is nan or inf!" << std::endl;
 		exit(1);
 	}
 	return distance;
