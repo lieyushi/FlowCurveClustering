@@ -76,9 +76,14 @@ void featureExtraction(const int& number,
     else if(sampleOption==2)
     	pm.isSample = false;
 
-    std::cout << "choose a sampling method for the dataset?" << std::endl
-	    	  << "1.directly filling with last vertex; 2. uniform sampling." << std::endl;
-	std::cin >> sampleOption;
+	if(isPathlines)
+		sampleOption = 1;
+	else
+	{
+		std::cout << "choose a sampling method for the dataset?" << std::endl
+				  << "1.directly filling with last vertex; 2. uniform sampling." << std::endl;
+		std::cin >> sampleOption;
+	}
 	assert(sampleOption==1||sampleOption==2);
 
     std::cout << "Please choose cluster number method, 0.user input, 1.read clustering: " << std::endl;
