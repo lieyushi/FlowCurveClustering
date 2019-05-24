@@ -671,20 +671,6 @@ void Silhouette::computeGammaStatistic(const Eigen::MatrixXf& distM,
 {
 	const int& Row = distM.rows();
 
-	std::ofstream distM_file("../dataset/distM"), ideaDistM_file("../dataset/idealDistM");
-	for(int i=0; i<Row-1; ++i)
-	{
-		for(int j=i+1; j<Row; ++j)
-		{
-			distM_file << distM(i,j) << " ";
-			ideaDistM_file << idealDistM(i,j) << " ";
-		}
-	}
-
-	distM_file.close();
-	ideaDistM_file.close();
-
-
 	const int& totalNum = Row*(Row-1)/2;
 	/* mean of values */
 	double u_1 = 0.0, u_2 = 0.0;
