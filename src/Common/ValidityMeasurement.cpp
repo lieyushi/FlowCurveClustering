@@ -139,6 +139,19 @@ void ValidityMeasurement::computeValue(const int& normOption, const MatrixXf& ar
 	std::cout << "min dist is " << min_dist << ", and max is " << max_dist << std::endl;
 	f_c/=(max_dist-min_dist)/**(max_dist-min_dist)*/;
 
+	// try to place the distance range into the file for further batch processing
+	std::ofstream fout("../dataset/dist_range", ios::app);
+	if(fout.fail())
+	{
+		std::cout << "Error for file operation!" << std::endl;
+		exit(1);
+	}
+
+	fout << "For norm " << normOption << ", min is " << min_dist << ", max is " << max_dist << ", and" <<
+			" (max - min) is " << (max_dist-min_dist) << std::endl;
+	fout << std::endl;
+	fout.close();
+
 	std::cout << "Validity measurement is " << f_c << std::endl;
 }
 
@@ -252,6 +265,19 @@ void ValidityMeasurement::computeValue(const MatrixXf& array, const std::vector<
 	}
 	std::cout << "min dist is " << min_dist << ", and max is " << max_dist << std::endl;
 	f_c/=(max_dist-min_dist)/**(max_dist-min_dist)*/;
+
+	// try to place the distance range into the file for further batch processing
+	std::ofstream fout("../dataset/dist_range", ios::app);
+	if(fout.fail())
+	{
+		std::cout << "Error for file operation!" << std::endl;
+		exit(1);
+	}
+
+	fout << "For PCA, min is " << min_dist << ", max is " << max_dist << ", and" <<
+			" (max - min) is " << (max_dist-min_dist) << std::endl;
+	fout << std::endl;
+	fout.close();
 
 	std::cout << "Validity measurement is " << f_c << std::endl;
 }
