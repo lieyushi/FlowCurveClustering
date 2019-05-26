@@ -163,7 +163,7 @@ void AHC::performClustering()
 				&& normOption!=13 && normOption!=14 && normOption!=15)
 					continue;
 			}
-
+			std::cout << "----------------------------------------------------------" << std::endl;
 			std::cout << "norm " << normOption << " starts......" << std::endl;
 			timeList.clear();
 			activityList.clear();
