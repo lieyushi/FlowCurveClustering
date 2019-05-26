@@ -533,10 +533,11 @@ void PCA_Cluster::performFullK_MeansByClusters(const Eigen::MatrixXf& data,
 			increasingOrder[it->second] = (groupNo++);
 		}
 	}
+	std::cout << "There are " << groupNo << " groups generated!" << std::endl;
 	/* finish tagging for each group */
 
 	/* record labeling information */
-	IOHandler::generateGroups(neighborVec);
+	// IOHandler::generateGroups(neighborVec);
 
 	// set cluster group number and size number 
 #pragma omp parallel for schedule(static) num_threads(8)

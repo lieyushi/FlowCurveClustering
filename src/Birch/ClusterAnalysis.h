@@ -480,7 +480,7 @@ void getClusterAnalysis(const vector<vector<float> >& trajectories,
 		storage[item_cids[i]].push_back(i);
 
 	/* record labeling information */
-	IOHandler::generateGroups(storage);
+	// IOHandler::generateGroups(storage);
 
 
 	IOHandler::printClusters(trajectories,item_cids,container, 

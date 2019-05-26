@@ -225,7 +225,7 @@ void AffinityPropagation::extractFeatures(const std::vector<int>& storage, const
 	const int& Column = ds.dataMatrix.cols();
 
 	/* record labeling information */
-	IOHandler::generateGroups(neighborVec);
+	// IOHandler::generateGroups(neighborVec);
 
 
 	std::cout << "Final group number information: " << std::endl;

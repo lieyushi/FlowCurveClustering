@@ -479,7 +479,7 @@ void DensityClustering::extractFeatures(const float& radius_eps,
 
 
 	/* record labeling information */
-	IOHandler::generateGroups(storage);
+	// IOHandler::generateGroups(storage);
 
 	/* compute the centroid coordinates of each clustered group */
 

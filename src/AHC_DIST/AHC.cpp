@@ -306,7 +306,7 @@ void AHC::extractFeatures(const std::vector<int>& storage,
 	std::cout << std::endl;
 
 	/* record labeling information */
-	IOHandler::generateGroups(neighborVec);
+	// IOHandler::generateGroups(neighborVec);
 
 	IOHandler::printClusters(ds.dataVec, group, storage,
 			"norm" + to_string(normOption), ds.fullName, ds.dimension);

@@ -141,7 +141,7 @@ void KMedoids::getMedoids(FeatureLine& fline,
 	/* finish tagging for each group */
 
 	/* record labeling information */
-	IOHandler::generateGroups(neighborVec);
+	// IOHandler::generateGroups(neighborVec);
 
 
 	// set cluster group number and size number 
