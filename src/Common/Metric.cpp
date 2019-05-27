@@ -1,6 +1,6 @@
 #include "Metric.h"
 
-const int& BIN_SIZE = 25;
+const int& BIN_SIZE = 20;
 
 const int& BUNDLE_SIZE = 20;
 
