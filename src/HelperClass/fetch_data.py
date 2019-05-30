@@ -39,7 +39,7 @@ def get_distance_limit(file_position):
 # read optimal clustering and inside you've multiple clustering algorithm
 def extract_evaluation_data(distance_range, data_folder):
 	evaluation = {}
-	norm_list = ['0','1','2','4','12','13','14','15']
+	norm_list = ['0','1','2','4','12','13','14','15','17']
 	for d_folder in listdir(data_folder):
 		readme = data_folder+'/'+d_folder+'/README'
 		with open(readme) as r:
@@ -158,7 +158,7 @@ def extract_evaluation_data(distance_range, data_folder):
 						else:
 							evaluation[d_folder][norm]['validity'] = float(x[start_pos:end_pos])/distance_range[norm]
 
-				pca_time_tag = x.find('PCA+K_Means operation takes:')
+				pca_time_tag = x.find('PCA+KMeans takes:')
 				kmeans_time_tag = x.find('K-means on norm')
 				kmedoid_time_tag = x.find('Direct K_Means operation time for norm')
 
@@ -187,10 +187,16 @@ def extract_evaluation_data(distance_range, data_folder):
 						while x[end_pos]!=',' and x[end_pos]!='\n' and end_pos<=len(x)-1 and x[end_pos]!=' ' and x[end_pos]!='s':
 							end_pos+=1
 						val_str = x[start_pos:end_pos]
-						if evaluation[d_folder][norm]['time']<=-9999.0:
-							evaluation[d_folder][norm]['time'] = float(x[start_pos:end_pos])
+						if norm=='PCA':
+							if evaluation[norm]['0']['time']<=-9999.0:
+								evaluation[norm]['0']['time'] = float(x[start_pos:end_pos])
+							else:
+								evaluation[norm]['0']['time'] += float(x[start_pos:end_pos])
 						else:
-							evaluation[d_folder][norm]['time'] += float(x[start_pos:end_pos])
+ 							if evaluation[d_folder][norm]['time']<=-9999.0:
+								evaluation[d_folder][norm]['time'] = float(x[start_pos:end_pos])
+							else:
+								evaluation[d_folder][norm]['time'] += float(x[start_pos:end_pos])
 		
 	return evaluation
 
@@ -198,7 +204,7 @@ def extract_evaluation_data(distance_range, data_folder):
 # read AP and sc_eigen that only has one README file inside
 def extract_single_readme(distance_range, data_folder):
 	evaluation = {data_folder:{}}
-	norm_list = ['0','1','2','4','12','13','14','15']
+	norm_list = ['0','1','2','4','12','13','14','15','17']
 	for val in norm_list:
 		evaluation[data_folder][val] = {'silhouette':-10000.0, 'gamma':-10000.0, 'db index':-10000.0, 'validity':-10000.0, 'time':-10000.0}
 		
@@ -313,7 +319,7 @@ def extract_single_readme(distance_range, data_folder):
 # read some data files like birch, dbscan, optics
 def extract_norm_readme(distance_range, data_folder):
 	evaluation = {data_folder:{}}
-	norm_list = ['0','1','2','4','12','13','14','15']
+	norm_list = ['0','1','2','4','12','13','14','15','17']
 	for val in norm_list:
 		evaluation[data_folder][val] = {'silhouette':-10000.0, 'gamma':-10000.0, 'db index':-10000.0, 'validity':-10000.0, 'time':-10000.0}
 	
@@ -431,7 +437,7 @@ def get_average(lmethod_evaluation, sc_eigen_evaluation):
 def generate_text(evaluation_data, storage_name):
 	storage = open(storage_name, 'w')
 	clustering_algorithms = ['kmeans', 'kmedoids', 'AHC_single', 'AHC_average', 'birch', 'dbscan', 'optics', 'sc_kmeans', 'sc_eigen', 'AP', 'PCA']
-	norm_order = ['0', '1', '2', '4', '12', '13', '14', '15']
+	norm_order = ['0', '1', '2', '4', '12', '13', '14', '15', '17']
 	for clustering in clustering_algorithms:
 		if clustering in evaluation_data.keys():
 			first=[]
@@ -471,7 +477,7 @@ def generate_text(evaluation_data, storage_name):
 def generate_time(evaluation_data, storage_name):
 	storage = open(storage_name, 'w')
 	clustering_algorithms = ['kmeans', 'kmedoids', 'AHC_single', 'AHC_average', 'birch', 'dbscan', 'optics', 'sc_kmeans', 'sc_eigen', 'AP', 'PCA']
-	norm_order = ['0', '1', '2', '4', '12', '13', '14', '15']
+	norm_order = ['0', '1', '2', '4', '12', '13', '14', '15', '17']
 	for clustering in clustering_algorithms:
 		if clustering in evaluation_data.keys():
 			first=[]
