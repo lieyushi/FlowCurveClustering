@@ -329,7 +329,7 @@ void PCA_Cluster::performPC_KMeans(const MatrixXf& cArray,
 	tr.timeList.push_back(to_string(delta)+"s");
 
 	/* write value of the silhouette class */
-	IOHandler::writeReadme(entropy, sil, "For PCA");
+	IOHandler::writeReadme(entropy, sil, "");
 
 }
 
@@ -854,7 +854,7 @@ void PCA_Cluster::perform_AHC(const Eigen::MatrixXf& cArray, const int& PC_Numbe
 	tr.timeList.push_back(to_string(delta)+"s");
 
 	/* write value of the silhouette class */
-	IOHandler::writeReadme(entropy, sil, "For PCA");
+	IOHandler::writeReadme(entropy, sil, "");
 }
 
 
