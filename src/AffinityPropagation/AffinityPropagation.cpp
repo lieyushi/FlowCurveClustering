@@ -117,54 +117,58 @@ void AffinityPropagation::clusterByNorm(const int& norm)
 	activityList.push_back("First-level affinity propagation generates: ");
 	timeList.push_back(to_string(storage.size())+" groups");
 
-/*----------------------Second-level Affinity Propagation --------------------------------------------
- * Use the centroid of the first level and then apply affinipty propagation once again ---------------
- */
-	gettimeofday(&start, NULL);
-
-	/* get distance matrix for the centroids */
-	float** centroidDistMatrix = NULL;
-	getDistMatrixForCentroids(&centroidDistMatrix, normOption, centroid);
-
-	// perform second-level Affinity Propagation on centroids of the streamlines/pathlines
-	performAPClustering(matrixS, matrixR, matrixA, centroidDistMatrix, centroid);
-
-	// release the memory of centroidDistMatrix
-#pragma omp parallel for schedule(static) num_threads(8)
-	for(int i=0; i<centroid.rows(); ++i)
+	if(useTwoStage)	// two-staged AP is activated
 	{
-		delete[] centroidDistMatrix[i];
-		centroidDistMatrix[i] = NULL;
+
+	/*----------------------Second-level Affinity Propagation --------------------------------------------
+	 * Use the centroid of the first level and then apply affinipty propagation once again ---------------
+	 */
+		gettimeofday(&start, NULL);
+
+		/* get distance matrix for the centroids */
+		float** centroidDistMatrix = NULL;
+		getDistMatrixForCentroids(&centroidDistMatrix, normOption, centroid);
+
+		// perform second-level Affinity Propagation on centroids of the streamlines/pathlines
+		performAPClustering(matrixS, matrixR, matrixA, centroidDistMatrix, centroid);
+
+		// release the memory of centroidDistMatrix
+	#pragma omp parallel for schedule(static) num_threads(8)
+		for(int i=0; i<centroid.rows(); ++i)
+		{
+			delete[] centroidDistMatrix[i];
+			centroidDistMatrix[i] = NULL;
+		}
+		delete[] centroidDistMatrix;
+		centroidDistMatrix = NULL;
+
+		// record the time into the README
+		gettimeofday(&end, NULL);
+		timeTemp = ((end.tv_sec  - start.tv_sec) * 1000000u+ end.tv_usec - start.tv_usec) / 1.e6;
+		activityList.push_back("Second-level affinity propagation takes: ");
+		timeList.push_back(to_string(timeTemp)+" s");
+
+		/* extract the group information */
+		std::vector<std::vector<int> > secondNeighborVec;
+		std::vector<int> secondStorage;
+		Eigen::MatrixXf secondCentroid;
+
+		std::vector<int> centroidGroup(centroid.rows());
+		/* get exemplary examples */
+		getGroupAssignment(matrixR, matrixA, matrixS, secondNeighborVec, secondStorage, centroidGroup);
+
+		setLabel(secondNeighborVec, secondStorage, secondCentroid, centroidGroup);
+
+		secondNeighborVec.clear();
+
+		activityList.push_back("Second-level affinity propagation generates: ");
+		timeList.push_back(to_string(secondStorage.size())+" groups");
+
+	/*------------------------ Get the true group id by hierarchical affinity propagation -----------------*/
+		// should re-calculate the centroid, storage and neighborVec for new clusters
+
+		getHierarchicalClusters(storage, neighborVec, centroid, group, centroidGroup, secondStorage.size());
 	}
-	delete[] centroidDistMatrix;
-	centroidDistMatrix = NULL;
-
-	// record the time into the README
-	gettimeofday(&end, NULL);
-	timeTemp = ((end.tv_sec  - start.tv_sec) * 1000000u+ end.tv_usec - start.tv_usec) / 1.e6;
-	activityList.push_back("Second-level affinity propagation takes: ");
-	timeList.push_back(to_string(timeTemp)+" s");
-
-	/* extract the group information */
-	std::vector<std::vector<int> > secondNeighborVec;
-	std::vector<int> secondStorage;
-	Eigen::MatrixXf secondCentroid;
-
-	std::vector<int> centroidGroup(centroid.rows());
-	/* get exemplary examples */
-	getGroupAssignment(matrixR, matrixA, matrixS, secondNeighborVec, secondStorage, centroidGroup);
-
-	setLabel(secondNeighborVec, secondStorage, secondCentroid, centroidGroup);
-
-	secondNeighborVec.clear();
-
-	activityList.push_back("Second-level affinity propagation generates: ");
-	timeList.push_back(to_string(secondStorage.size())+" groups");
-
-/*------------------------ Get the true group id by hierarchical affinity propagation -----------------*/
-	// should re-calculate the centroid, storage and neighborVec for new clusters
-
-	getHierarchicalClusters(storage, neighborVec, centroid, group, centroidGroup, secondStorage.size());
 
 	// begin to calculate the evaluation metrics and cluster representatives
 	extractFeatures(storage, neighborVec, centroid);
@@ -421,6 +425,13 @@ void AffinityPropagation::setParameterAutomatic(const Para& p)
 
 	maxIteration = p.maxIteration;
 
+	/* whether activate two-staged AP or not, see Jun Tao FlowString TVCG 2016 paper for details */
+	std::cout << "Whether to activate two-staged AP or not? 1.Yes, 2.No," << std::endl;
+	int twoStageOption;
+	std::cin >> twoStageOption;
+	assert(twoStageOption==1 || twoStageOption==0);
+	useTwoStage = (twoStageOption==1);
+	std::cout << (useTwoStage? "True!":"False!") << std::endl;
 }
 
 

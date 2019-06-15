@@ -855,6 +855,7 @@ void PCA_Cluster::perform_AHC(const Eigen::MatrixXf& cArray, const int& PC_Numbe
 
 	/* write value of the silhouette class */
 	IOHandler::writeReadme(entropy, sil, "");
+
 }
 
 
