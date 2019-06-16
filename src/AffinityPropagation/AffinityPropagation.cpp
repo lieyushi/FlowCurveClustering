@@ -429,9 +429,8 @@ void AffinityPropagation::setParameterAutomatic(const Para& p)
 	std::cout << "Whether to activate two-staged AP or not? 1.Yes, 2.No," << std::endl;
 	int twoStageOption;
 	std::cin >> twoStageOption;
-	assert(twoStageOption==1 || twoStageOption==0);
+	assert(twoStageOption==1 || twoStageOption==2);
 	useTwoStage = (twoStageOption==1);
-	std::cout << (useTwoStage? "True!":"False!") << std::endl;
 }
 
 
