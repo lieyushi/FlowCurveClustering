@@ -66,7 +66,7 @@ void PCA_Cluster::performSVD(MatrixXf& cArray,
 	gettimeofday(&end, NULL);
 	const double& delta = ((end.tv_sec  - start.tv_sec) * 1000000u + end.tv_usec - start.tv_usec) / 1.e6;
 
-	tr.eventList.push_back("SVD takes ");
+	tr.eventList.push_back("SVD takes: ");
 	tr.timeList.push_back(to_string(delta)+"s");
 
 	/* compute new attribute space based on principal component */
@@ -213,7 +213,7 @@ void PCA_Cluster::performPC_KMeans(const MatrixXf& cArray,
 	
 	float delta = ((end.tv_sec  - start.tv_sec) * 1000000u + end.tv_usec - start.tv_usec) / 1.e6;
 
-	tr.eventList.push_back("k-means iteration for PC takes ");
+	tr.eventList.push_back("k-means iteration for PC takes: ");
 	tr.timeList.push_back(to_string(delta)+"s");
 
 	std::multimap<int,int> groupMap;
@@ -501,11 +501,7 @@ void PCA_Cluster::performFullK_MeansByClusters(const Eigen::MatrixXf& data,
 		std::cout << "K-means iteration " << ++tag << " completed, and moving is " << moving << "!" << std::endl;
 	}while(abs(moving-before)/before >= 1.0e-2 && tag < 20 && moving > 0.01);
 	
-	gettimeofday(&end, NULL);
-	double delta = ((end.tv_sec - start.tv_sec) * 1000000u + end.tv_usec - start.tv_usec) / 1.e6;
-
-	tr.eventList.push_back("k-means iteration of norm "+to_string(normOption)+" takes ");
-	tr.timeList.push_back(to_string(delta)+"s");
+	double delta;
 
 	std::multimap<int,int> groupMap;
 
@@ -671,6 +667,9 @@ void PCA_Cluster::performFullK_MeansByClusters(const Eigen::MatrixXf& data,
 
 	gettimeofday(&end, NULL);
 	delta = ((end.tv_sec  - start.tv_sec) * 1000000u + end.tv_usec - start.tv_usec) / 1.e6;
+
+	tr.eventList.push_back("For norm ");
+	tr.timeList.push_back(to_string(normOption)+"\n");
 
 	tr.eventList.push_back("Clustering evaluation computing takes: ");
 	tr.timeList.push_back(to_string(delta)+"s");

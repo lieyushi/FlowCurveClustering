@@ -134,7 +134,7 @@ void featureExtraction(const int& number,
 	}
 	else
 	{
-		cluster = clusterMap[0]+1;
+		cluster = clusterMap[0];
 	}
 
 	stringstream ss;

@@ -108,11 +108,10 @@ void KMedoids::getMedoids(FeatureLine& fline,
 				  << "!" << std::endl;
 	}while(abs(moving-before)/before >= 1.0e-2 && tag < 20/* && moving > 5.0*/);
 	
-	gettimeofday(&end, NULL);
-	double delta = ((end.tv_sec  - start.tv_sec) * 1000000u + end.tv_usec - start.tv_usec) / 1.e6;
+	double delta;
 
-	tr.eventList.push_back("K-medoids iteration takes: ");
-	tr.timeList.push_back(to_string(delta)+"s");
+	tr.eventList.push_back("For norm ");
+	tr.timeList.push_back(to_string(normOption)+"\n");
 
 	std::multimap<int,int> groupMap;
 	float entropy = 0.0;
