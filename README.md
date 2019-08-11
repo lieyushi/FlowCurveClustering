@@ -52,11 +52,11 @@ This code folder provides unsupervised machine learning techniques with similari
 - [Spectral Clustering](https://en.wikipedia.org/wiki/Spectral_clustering) with two post-processing techniques (SC)
 	- k-means as proposed by [the tutorial](https://www.cs.cmu.edu/~aarti/Class/10701/readings/Luxburg06_TR.pdf) and [On Spectral Clustering: Analysis and an Algorithm](https://ai.stanford.edu/~ang/papers/nips01-spectral.pdf) by Ng et al. (NIPS 2001)
 	- Eigenrotation minimization proposed by [self-tuning spectral clustering](https://papers.nips.cc/paper/2619-self-tuning-spectral-clustering.pdf)
-		- The local scaling factor is set 5% as suggested by [Blood Flow Clustering and Applications in Virtual Stenting of Intracranial Aneurysms](https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=6702500)
-		
+		- The local scaling factor is set 5% as suggested by [Blood Flow Clustering and Applications in Virtual Stenting of Intracranial Aneurysms](https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=6702500) (TVCG 2014)
+
 - [Affinity propagation](https://en.wikipedia.org/wiki/Affinity_propagation) (AP)
 	- Linux binary of AP can be obtained in [Frey Lab webpage](http://genes.toronto.edu/index.php?q=affinity%20propagation). We use OpenMP to implement the C++ version similar to the [github sample](https://github.com/nojima/affinity-propagation-sparse) and test on simple point-cloud data set and get the exactly same result
-	- However, Tao. et al. [FlowString paper](https://ieeexplore.ieee.org/document/6787131) used two-level hierarchical affinity propagation for streamline segment clustering. So we also implemented this hierarchical AP clustering
+	- However, Tao. et al. [FlowString paper](https://ieeexplore.ieee.org/document/6787131) (TVCG 2014) used two-level hierarchical affinity propagation for streamline segment clustering. So we also implemented this hierarchical AP clustering
 		- The initial value is set to the minimal similarity as the preference value
 
 
