@@ -8,11 +8,8 @@ This code folder provides unsupervised machine learning techniques with similari
 
 **Email**: shilieyu91@gmail.com
 
-## Function Decription
 
-We provide the necessary documentation for the decription of how the functions work and are organized.
-
-### Implemented Clustering Algorithms
+## Implemented Clustering Algorithms
 
 	- k-means, with option of [k-means++](https://en.wikipedia.org/wiki/K-means%2B%2B)
 
