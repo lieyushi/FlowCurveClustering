@@ -57,10 +57,12 @@ This code folder provides unsupervised machine learning techniques with similari
 
 ## How to run?
 
-> sudo chmod +x build.sh
+```
+sudo chmod +x build.sh
 
-> ./build.sh
+./build.sh
 
-> cd Release
+cd Release
 
-> ./kmeans dataSetName(must be put in ../dataset/) dimension(e.g.,3)
+./kmeans dataSetName(must be put in ../dataset/) dimension(e.g.,3)
+```
