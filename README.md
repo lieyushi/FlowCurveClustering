@@ -60,6 +60,50 @@ This code folder provides unsupervised machine learning techniques with similari
 		- The initial value is set to the minimal similarity as the preference value
 
 
+## Similarity Measures
+
+There are just so many similarity measures, and even before the submission we already tried several similarity measures in the code (**as many as 17**!). However, in the TVCG submission, we only compared these following similarity measures. The **number** in the parenthesis marks the similarity measure option in the code.
+
+- Euclidean distance d_E (**0**)
+
+- Fraction norm d_F (**1**) with p=0.5 for L_P norm
+	- It is claimed to have better performance in high-dimensional space than Euclidean distance (L_2)
+
+- Geometric similarity measure d_G (**2**) from [my own short paper](http://www2.cs.uh.edu/~chengu/Publications/3DFlowVis/curveClustering.pdf)
+	- It requires equal number of points between two integral lines
+	- The implementation needs to handle the corner case of **zero** cosine values
+
+- Accumulated rotation difference d_R (**4**)
+	- It is a streamline attribute based similarity measure
+	
+- Mean-of-Closest-Point (MCP) d_M (**12**)
+	- It is the **state-of-the-art** similarity measure for streamlines (possibly pathlines)
+
+- Hausdorff distance d_H (**13**) from [Streamline Embedding for 3D Vector Field Exploration](https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=5753894) (TVCG 2012)
+	- It can preserve topologic structure in streamlines
+
+- Signature-based similarity d_S (**14**) from [Similarity Measures for Enhancing Interactive Streamline Seeding](https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=6231627)
+	- Since our input of streamlines/pathlines only have `discrete curvatures` as signature, we only use `discrete curvatures` for [Chi-test](https://en.wikipedia.org/wiki/Chi-squared_test)
+	- It is a linear combination of chi-test of streamline signature and MCP distance
+	- Number of segments for computing chi-test of signature is an arguable issue. 
+		- To avoid confusion, we select a fixed value for the experimented data sets since our focus is not discussing the similarity measure itself, but the comparisons of different clustering techniques with different similarity measures.
+		- Optimal parameter tuning is tedious and endless, so I let it go
+
+- Adapted Procrustes distance d_P (**15**) proposed by [A Vocabulary Approach to Partial Streamline Matching and Exploratory Flow Visualization](https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=7117453) (TVCG 2016)
+	- Calculated [Procrustes distance](https://en.wikipedia.org/wiki/Procrustes_analysis) between every 7 points of streamlines
+		- Implementation is difficult. I directly write C++ code based on procrustes.m in Matlab and verify the result
+	- The original paper performs streamline segment clustering and the distance between two streamlines are decided by complicated strategy similar to string distance
+		- To make it simple, I directly choose the **average of Proscrutes distance among all segments** for two streamlines
+	- Let go of parameter tuning and optimal parameter pairs.
+
+- Time-series MCP d_T (**17**) by [Exploration of Blood Flow Patterns in Cerebral Aneurysms during the Cardiac Cycle](https://www.sciencedirect.com/science/article/pii/S0097849318300128?via%3Dihub) (C && G 2018)
+	- It is a similarity measure for pathlines considering time matching and overlapping, and claimed better than MCP
+	- In our implementation, since our input pathlines have **exact time matching** for each time step, then the calculation is simplified a lot
+		- Users can try the original d_T with time overlapping and mismatching
+
+### Note that we ignore all the parameter tuning issues and **only consider the most basic parameter pairs**. Parameter tuning is always a nightmare for designing similarity measures in flow visualization every body tries to avoid, so I guess why MCP is still regards the state-of-the-art similarity measure is simply due to that **it is parameter-free**!
+
+
 ## Before running?
 1. Should adjust the BIN_SIZE in src/Common/Metric.cpp/Line 3 which is related to Chi-test distance computation
 2. Could adjust k (size of compressed eigen-vector) in src/SpectralClustering/SpectralClustering.cpp/Line 522
