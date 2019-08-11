@@ -10,12 +10,12 @@ This code folder provides unsupervised machine learning techniques with similari
 
 
 ## Implemented Clustering Algorithms
-- k-means, with option of [k-means++](https://en.wikipedia.org/wiki/K-means%2B%2B)
-- PCA clustering, borrowed from [Streamline Variability Plots for Characterizing the Uncertainty in Vector Field Ensembles](https://ieeexplore.ieee.org/abstract/document/7192675) (TVCG 2016)
+- **k-means**, with option of [k-means++](https://en.wikipedia.org/wiki/K-means%2B%2B)
+- **PCA** clustering, borrowed from [Streamline Variability Plots for Characterizing the Uncertainty in Vector Field Ensembles](https://ieeexplore.ieee.org/abstract/document/7192675) (TVCG 2016)
 	- The original paper adopts [average-linkage AHC](https://en.wikipedia.org/wiki/Hierarchical_clustering) as clustering the lower-dimensional representation of streamlines, but in our experiments we find [k-means](https://en.wikipedia.org/wiki/K-means_clustering) works better
 	- Additionally, due to high overload of AHC, k-means is better recommended to be used for PCA-based clustering
 - [k-medoids](https://en.wikipedia.org/wiki/K-medoids)
-- DBSCAN, a conventional [density-based clustering algorithm](https://en.wikipedia.org/wiki/DBSCAN)
+- **DBSCAN**, a conventional [density-based clustering algorithm](https://en.wikipedia.org/wiki/DBSCAN)
 	- Parameter tuning is pretty difficult, and in implementation we either rely on user to set the parameters, or directly set minPts to be 6, and eps as the average 6-th smallest distance of the neighboring streamlines
 	- It also provides user input for minPts and eps in case user feel interested. However, it is not easy to find the so-called optimal pair of parameters for each flow data sets. 
 - [OPTICS](https://en.wikipedia.org/wiki/OPTICS_algorithm)
@@ -30,20 +30,20 @@ This code folder provides unsupervised machine learning techniques with similari
 		- src/Birch/CFTree.h. 
 		
 		For example, if the new data set has 1000 dimensions for each line, please **manually replace** 4824u with 1000u in ___src/Birch/main.cpp___, ___src/Birch/ClusterAnalysis.h___, ___src/Birch/CFTree.h___
-- [Agglomerative hierarchical clustering](https://en.wikipedia.org/wiki/Hierarchical_clustering)
+- [Agglomerative hierarchical clustering](https://en.wikipedia.org/wiki/Hierarchical_clustering) (AHC)
 	- Provide **single**, **average** and **complete** linkage option
 		- **Why Ward's method is not provided?**
 
 			Because Ward's method has not been used in flow visualization
 	- Optimized by a [tree pre-processing technique](https://www.cs.cornell.edu/~kb/publications/IRT08.pdf)
-- Agglomerative hierarchical clustering with distance (ahc_dist)
+- **Agglomerative hierarchical clustering** (AHC) with distance (ahc_dist)
 	- The only difference is that the input is distance threshold, similar to BIRCH
 	- It is definitely more **difficult** to determine the parameter than the input of number of clusters
-- [Spectral Clustering](https://en.wikipedia.org/wiki/Spectral_clustering) with two post-processing techniques
+- [Spectral Clustering](https://en.wikipedia.org/wiki/Spectral_clustering) with two post-processing techniques (SC)
 	- k-means as proposed by [the tutorial](https://www.cs.cmu.edu/~aarti/Class/10701/readings/Luxburg06_TR.pdf) and [On Spectral Clustering: Analysis and an Algorithm](https://ai.stanford.edu/~ang/papers/nips01-spectral.pdf) by Ng et al. (NIPS 2001)
 	- Eigenrotation minimization proposed by [self-tuning spectral clustering](https://papers.nips.cc/paper/2619-self-tuning-spectral-clustering.pdf)
 		- The local scaling factor is set 5% as suggested by [Blood Flow Clustering and Applications in Virtual Stenting of Intracranial Aneurysms](https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=6702500)
-- [Affinity propagation](https://en.wikipedia.org/wiki/Affinity_propagation)
+- [Affinity propagation](https://en.wikipedia.org/wiki/Affinity_propagation) (AP)
 	- Linux binary of AP can be obtained in [Frey Lab webpage](http://genes.toronto.edu/index.php?q=affinity%20propagation). We use OpenMP to implement the C++ version similar to the [github sample](https://github.com/nojima/affinity-propagation-sparse) and test on simple point-cloud data set and get the exactly same result
 	- However, Tao. et al. [FlowString paper](https://ieeexplore.ieee.org/document/6787131) used two-level hierarchical affinity propagation for streamline segment clustering. So we also implemented this hierarchical AP clustering
 		- The initial value is set to the minimal similarity as the preference value
