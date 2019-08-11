@@ -10,6 +10,8 @@ This code folder provides unsupervised machine learning techniques with similari
 
 
 ## Implemented Clustering Algorithms
+---
+
 - **k-means**, with option of [k-means++](https://en.wikipedia.org/wiki/K-means%2B%2B)
 - **PCA** clustering, borrowed from [Streamline Variability Plots for Characterizing the Uncertainty in Vector Field Ensembles](https://ieeexplore.ieee.org/abstract/document/7192675) (TVCG 2016)
 	- The original paper adopts [average-linkage AHC](https://en.wikipedia.org/wiki/Hierarchical_clustering) as clustering the lower-dimensional representation of streamlines, but in our experiments we find [k-means](https://en.wikipedia.org/wiki/K-means_clustering) works better
@@ -23,7 +25,7 @@ This code folder provides unsupervised machine learning techniques with similari
 	- It is more difficult to be implemented, especially for determing the final number of clusters. The standard way is [reference paper](http://www.dbs.ifi.lmu.de/Publikationen/Papers/OPTICS.pdf), and we implemente a simple version of the cluster number determination
 - [BIRCH](https://en.wikipedia.org/wiki/BIRCH) from the [BIRCH: A New Data Clustering Algorithm and Its Applications](https://link.springer.com/content/pdf/10.1023/A:1009783824328.pdf)
 	- The implementation is directly borrowed from the [C++ github implementation](https://github.com/fedyura/birch-clustering-algorithm)
-	- The clustering requires a distance value as input, which is pretty hard to handle especially for unknown flow data sets. Instead, I implemented a binary search to find the approximate distance threshold with the input of how many clusters are required to generate. For example, if the required number of clusters is 10, the program will decide which distance threshold is the right input for BIRCH such that the finalized clusters can be around 10
+	- The clustering requires a distance value as input, which is pretty hard to handle especially for unknown flow data sets. Instead, I implemented a `binary search` to find the approximate distance threshold with the input of how many clusters are required to generate. For example, if the required number of clusters is 10, the program will decide which distance threshold is the right input for BIRCH such that the finalized clusters can be around 10
 	- **Important Note** Since the dimension of tree is statically fixed, every time the user should try to replace the dimensions with that of the customized data sets, in 
 		- src/Birch/main.cpp
 		- src/Birch/ClusterAnalysis.h
@@ -50,13 +52,13 @@ This code folder provides unsupervised machine learning techniques with similari
 
 
 ## Before running?
-
+---
 1. Should adjust the BIN_SIZE in src/Common/Metric.cpp/Line 3 which is related to Chi-test distance computation
 2. Could adjust k (size of compressed eigen-vector) in src/SpectralClustering/SpectralClustering.cpp/Line 522
 3. Should adjust item_type<600u> in src/BIRCH/main.cpp, src/BIRCH/ClusterAnalysis.h, to maxDimension of input dataset
 
 ## How to run?
-
+---
 ```
 sudo chmod +x build.sh
 
