@@ -10,7 +10,6 @@ This code folder provides unsupervised machine learning techniques with similari
 
 
 ## Implemented Clustering Algorithms
----
 
 - **k-means**, with option of [k-means++](https://en.wikipedia.org/wiki/K-means%2B%2B)
 - **PCA** clustering, borrowed from [Streamline Variability Plots for Characterizing the Uncertainty in Vector Field Ensembles](https://ieeexplore.ieee.org/abstract/document/7192675) (TVCG 2016)
@@ -52,13 +51,12 @@ This code folder provides unsupervised machine learning techniques with similari
 
 
 ## Before running?
----
 1. Should adjust the BIN_SIZE in src/Common/Metric.cpp/Line 3 which is related to Chi-test distance computation
 2. Could adjust k (size of compressed eigen-vector) in src/SpectralClustering/SpectralClustering.cpp/Line 522
 3. Should adjust item_type<600u> in src/BIRCH/main.cpp, src/BIRCH/ClusterAnalysis.h, to maxDimension of input dataset
 
 ## How to run?
----
+
 ```
 sudo chmod +x build.sh
 
