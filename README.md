@@ -101,7 +101,7 @@ There are just so many similarity measures, and even before the submission we al
 	- In our implementation, since our input pathlines have **exact time matching** for each time step, then the calculation is simplified a lot
 		- Users can try the original d_T with time overlapping and mismatching
 
-##### Note that we ignore all the parameter tuning issues and **only consider the most basic parameter pairs**. Parameter tuning is always a nightmare for designing similarity measures in flow visualization every body tries to avoid, so I guess why MCP is still regards the state-of-the-art similarity measure is simply due to that **it is parameter-free**!
+#### Note that we ignore all the parameter tuning issues and **only consider the most basic parameter pairs**. Parameter tuning is always a nightmare for designing similarity measures in flow visualization every body tries to avoid, so I guess why MCP is still regards the state-of-the-art similarity measure is simply due to that **it is parameter-free**!
 
 
 ## Before running?
