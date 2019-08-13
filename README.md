@@ -133,6 +133,8 @@ There are just so many similarity measures, and even before the submission we al
 
 ## How to compile and run?
 
+Code structures can be seen in [folder structures](src/README.md)
+
 #### Compilation
 
 ```
