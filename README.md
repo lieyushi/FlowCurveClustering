@@ -64,6 +64,20 @@ This code folder provides unsupervised machine learning techniques with similari
 
 There are just so many similarity measures, and even before the submission we already tried several similarity measures in the code (**as many as 17**!). However, in the TVCG submission, we only compared these following similarity measures. The **number** in the parenthesis marks the similarity measure option in the code.
 
+
+| Similarity Tag  | Similarity Name | Similarity Symbole |  Parameter Tuning Difficulty  |  Comment | Complexity |
+| --------------- | ------------- | ------------- | ------------- | ------------- | ------------- |
+| 0  | Euclidean distance  |  d_E  | No parameters | require equal dimensions | linear |
+| 1  | Fraction norm  |  d_F  | No parameters | require equal dimensions | linear |
+| 2  | Geometric similarity measure  |  d_G  | No parameters | require equal dimensions | linear |
+| 4  | Accumulated rotation difference  |  d_R  | No parameters | arbitrary dimensions | linear |
+| 12  | Mean of closest point distance (MCP)  |  d_M  | No parameters |  arbitrary dimensions | quadratic |
+| 13  | Hausdorff distance |  d_H  | No parameters |  arbitrary dimensions | quadratic |
+| 14  | Signature-based similarity  |  d_S  | Parameter sensitive | arbitrary dimensions | quadratic |
+| 15  | Adapted Procrustes distance  |  d_P  | Parameter sensitive |  arbitrary dimensions | more than linear |
+| 17  | Time-series MCP distance  |  d_T  | No parameters | arbitrary dimensions | quadratic |
+
+
 - Euclidean distance d_E (**0**)
 
 - Fraction norm d_F (**1**) with p=0.5 for L_P norm
