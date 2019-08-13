@@ -96,7 +96,7 @@ There are just so many similarity measures, and even before the submission we al
 - Hausdorff distance d_H (**13**) from [Streamline Embedding for 3D Vector Field Exploration](https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=5753894) (TVCG 2012)
 	- It can preserve topologic structure in streamlines
 
-- Signature-based similarity d_S (**14**) from [Similarity Measures for Enhancing Interactive Streamline Seeding](https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=6231627)
+- Signature-based similarity d_S (**14**) from [Similarity Measures for Enhancing Interactive Streamline Seeding](https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=6231627) (TVCG 12)
 	- Since our input of streamlines/pathlines only have `discrete curvatures` as signature, we only use `discrete curvatures` for [Chi-test](https://en.wikipedia.org/wiki/Chi-squared_test)
 	- It is a linear combination of chi-test of streamline signature and MCP distance
 	- Number of segments for computing chi-test of signature is an arguable issue. 
@@ -110,7 +110,7 @@ There are just so many similarity measures, and even before the submission we al
 		- To make it simple, I directly choose the **average of Proscrutes distance among all segments** for two streamlines
 	- Let go of parameter tuning and optimal parameter pairs.
 
-- Time-series MCP d_T (**17**) by [Exploration of Blood Flow Patterns in Cerebral Aneurysms during the Cardiac Cycle](https://www.sciencedirect.com/science/article/pii/S0097849318300128?via%3Dihub) (C && G 2018)
+- Time-series MCP d_T (**17**) by [Exploration of Blood Flow Patterns in Cerebral Aneurysms during the Cardiac Cycle](https://www.sciencedirect.com/science/article/pii/S0097849318300128?via%3Dihub) (C && G 2018, TVCG 2018)
 	- It is a similarity measure for pathlines considering time matching and overlapping, and claimed better than MCP
 	- In our implementation, since our input pathlines have **exact time matching** for each time step, then the calculation is simplified a lot
 		- Users can try implementing the original d_T with time overlapping and mismatching
