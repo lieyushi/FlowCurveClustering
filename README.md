@@ -147,18 +147,19 @@ cd Release
 
 
 #### Dataset file format
-	- The data sets can be seen in ./dataset folder
-	- The data sets are .txt files with the following data format
-		- Each line is the coordinates of one streamline/pathline
-		- Each line is arranged like
+- The data sets can be seen in ./dataset folder
+- The data sets are .txt files with the following data format
+	- Each line is the coordinates of one streamline/pathline
+	- Each line is arranged like
 
-		> x1 y1 z1 x2 y2 z2 x3 y3 z3 ...
+	> x1 y1 z1 x2 y2 z2 x3 y3 z3 ...
 
-		where (x1, y1, z1) is the 3D coordinate of the point constituting the streamlines/pathlines
-	- The data sets can support duplicate point coordinates for one streamline/pathline
-		- For example, it is possible for one pathline that, its first 100 points are exactly the same point with 100 repeating point coordinates
-		- It is possible because in our experiments we require the input of pathline points have exact time matching, e.g., the first points of two pathlines must be sampled at the same time step
-		- Pathlines can be of different size due to different time slides, e.g., the first pathline has 1000 samples of points (0s->1000s), and the second pathline has 500 samples of points (0s->500s). Our program will direct use **repeating** to fill the pathline points for the second pathline with the last point similar to [Streamline variability plots for characterizing the uncertainty in vector field ensembles](https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=7192675) (TVCG 2016)
+	where (x1, y1, z1) is the 3D coordinate of the point constituting the streamlines/pathlines
+- The data sets can support duplicate point coordinates for one streamline/pathline
+	- For example, it is possible for one pathline that, its first 100 points are exactly the same point with 100 repeating point coordinates
+	- It is possible because in our experiments we require the input of pathline points have exact time matching, e.g., the first points of two pathlines must be sampled at the same time step
+	- Pathlines can be of different size due to different time slides, e.g., the first pathline has 1000 samples of points (0s->1000s), and the second pathline has 500 samples of points (0s->500s). Our program will direct use **repeating** to fill the pathline points for the second pathline with the last point similar to [Streamline variability plots for characterizing the uncertainty in vector field ensembles](https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=7192675) (TVCG 2016)
+
 
 
 ## Refactoring Plan for the Project
