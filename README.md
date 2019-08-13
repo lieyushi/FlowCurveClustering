@@ -99,17 +99,25 @@ There are just so many similarity measures, and even before the submission we al
 - Time-series MCP d_T (**17**) by [Exploration of Blood Flow Patterns in Cerebral Aneurysms during the Cardiac Cycle](https://www.sciencedirect.com/science/article/pii/S0097849318300128?via%3Dihub) (C && G 2018)
 	- It is a similarity measure for pathlines considering time matching and overlapping, and claimed better than MCP
 	- In our implementation, since our input pathlines have **exact time matching** for each time step, then the calculation is simplified a lot
-		- Users can try the original d_T with time overlapping and mismatching
+		- Users can try implementing the original d_T with time overlapping and mismatching
 
 #### Note that we ignore all the parameter tuning issues and **only consider the most basic parameter pairs**. Parameter tuning is always a nightmare for designing similarity measures in flow visualization every body tries to avoid, so I guess why MCP is still regards the state-of-the-art similarity measure is simply due to that **it is parameter-free**!
 
 
 ## Before running?
-1. Should adjust the BIN_SIZE in src/Common/Metric.cpp/Line 3 which is related to Chi-test distance computation
-2. Could adjust k (size of compressed eigen-vector) in src/SpectralClustering/SpectralClustering.cpp/Line 522
-3. Should adjust item_type<600u> in src/BIRCH/main.cpp, src/BIRCH/ClusterAnalysis.h, to maxDimension of input dataset
 
-## How to run?
+* Adjust the BIN_SIZE in src/Common/Metric.cpp/Line 3 which is related to **Chi-test** calculation of signatures
+	- It controls how many segments considered for **Chi-test**, the default value is 20 
+
+* Adjust k (size of compressed eigenvectors) in src/SpectralClustering/SpectralClustering.cpp/Line 522
+	- The default value k is equal to the input number of clusters
+	- [Streamline Embedding for 3D Vector Field Exploration](https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=5753894) chooses k as 3 so that each streamline is represented by **a point in 3D space**, so that a nicely illustration of 3D clustering can be used to demonstrate the effectiveness of spectral clustering for streamlines
+
+* Ajust 'item_type<4824u>' in 'src/Birch/main.cpp', 'src/Birch/ClusterAnalysis.h', 'src/Birch/CFTree.h', to maxDimension of input dataset
+	- For example, if the new data sets have 200 points on each line, then adjust to 'item_type<600u>'
+
+
+## How to compile and run?
 
 ```
 sudo chmod +x build.sh
@@ -120,3 +128,29 @@ cd Release
 
 ./kmeans dataSetName(must be put in ../dataset/) dimension(e.g.,3)
 ```
+- Dataset file format
+	- The data sets can be seen in ./dataset folder
+	- The data sets are .txt files with the following data format
+		- Each line is the coordinates of one streamline/pathline
+		- Each line is arranged like
+
+		> x1 y1 z1 x2 y2 z2 x3 y3 z3 ...
+
+		where (x1, y1, z1) is the 3D coordinate of the point constituting the streamlines/pathlines
+	- The data sets can support duplicate point coordinates for one streamline/pathline
+		- For example, it is possible for one pathline that, its first 100 points are exactly the same point with 100 repeating point coordinates
+		- It is possible because in our experiments we require the input of pathline points have exact time matching, e.g., the first points of two pathlines must be sampled at the same time step
+		- Pathlines can be of different size due to different time slides, e.g., the first pathline has 1000 samples of points (0s->1000s), and the second pathline has 500 samples of points (0s->500s). Our program will direct use **repeating** to fill the pathline points for the second pathline with the last point similar to [Streamline variability plots for characterizing the uncertainty in vector field ensembles](https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=7192675) (TVCG 2016)
+
+
+## Refactoring Plan for the Project
+
+This project lasted for two years and it was originally started from an explorative clustering work on fluid simulation data, hence many of the structures are not well organized from perspective of software engineering and system design. However, we provide not only the implementation of **clustering techniques** and **similarity measures**, but also **clustering evaluation metrics** (silhouette, Gamma statistics, DB index and validity measurement) and **two general ways** to detect optimal number of clusters (SC eigenrotation minimization and the hierarchical L-method). It should be (if not easy) not hard for users to extract the individual components for specific applications, and it is extensible for adding more **similarity measures** in the project.
+
+**Future refactoring would go into:**
+- [x] Add documentation for the I/O and file requirement
+- [x] Comment on the necessary functions and parameters
+- [ ] Re-organize the code with inheritance and factory pattern
+- [ ] Provide a template-based class implementation
+- [ ] Optimize the parameter input by the configure file
+- [ ] Release the library under GNU lisense
