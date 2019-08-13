@@ -160,6 +160,9 @@ cd Release
 	- It is possible because in our experiments we require the input of pathline points have exact time matching, e.g., the first points of two pathlines must be sampled at the same time step
 	- Pathlines can be of different size due to different time slides, e.g., the first pathline has 1000 samples of points (0s->1000s), and the second pathline has 500 samples of points (0s->500s). Our program will direct use **repeating** to fill the pathline points for the second pathline with the last point similar to [Streamline variability plots for characterizing the uncertainty in vector field ensembles](https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=7192675) (TVCG 2016)
 
+- **Special requirement for blood flow**
+	- We provide the original blood flow pathlines in the data set (.vtp)
+	- Any one who uses the blood flow should read the **ReadMe.txt** in the dataset/ folder
 
 
 ## Refactoring Plan for the Project
