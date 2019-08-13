@@ -65,7 +65,7 @@ This code folder provides unsupervised machine learning techniques with similari
 There are just so many similarity measures, and even before the submission we already tried several similarity measures in the code (**as many as 17**!). However, in the TVCG submission, we only compared these following similarity measures. The **number** in the parenthesis marks the similarity measure option in the code.
 
 
-| Similarity Tag  | Similarity Name | Similarity Symbole |  Parameter Tuning Difficulty  |  Comment | Complexity |
+| Similarity Tag  | Similarity Name | Similarity Symbol |  Parameter Tuning Difficulty  |  Comment | Complexity |
 | --------------- | ------------- | ------------- | ------------- | ------------- | ------------- |
 | 0  | Euclidean distance  |  d_E  | No parameters | require equal dimensions | linear |
 | 1  | Fraction norm  |  d_F  | No parameters | require equal dimensions | linear |
