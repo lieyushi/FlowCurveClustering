@@ -133,6 +133,8 @@ There are just so many similarity measures, and even before the submission we al
 
 ## How to compile and run?
 
+#### Compilation
+
 ```
 sudo chmod +x build.sh
 
@@ -142,7 +144,9 @@ cd Release
 
 ./kmeans dataSetName(must be put in ../dataset/) dimension(e.g.,3)
 ```
-- Dataset file format
+
+
+#### Dataset file format
 	- The data sets can be seen in ./dataset folder
 	- The data sets are .txt files with the following data format
 		- Each line is the coordinates of one streamline/pathline
