@@ -57,7 +57,7 @@ This code folder provides unsupervised machine learning techniques with similari
 		- The local scaling factor is set 5% as suggested by [Blood Flow Clustering and Applications in Virtual Stenting of Intracranial Aneurysms](https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=6702500) (TVCG 2014)
 
 - [Affinity propagation](https://en.wikipedia.org/wiki/Affinity_propagation) (AP)
-	- Linux binary of AP can be obtained in [Frey Lab webpage](http://genes.toronto.edu/index.php?q=affinity%20propagation). We use OpenMP to implement the C++ version similar to the [github sample](https://github.com/nojima/affinity-propagation-sparse) and test on simple point-cloud data set and get the exactly same result
+	- Linux binary of AP can be obtained in [Frey Lab webpage](http://genes.toronto.edu/index.php?q=affinity%20propagation). We use OpenMP to implement the C++ version similar to the [github sample](https://github.com/nojima/affinity-propagation-sparse) and test and compare the results to [Frey Lab webpage](http://genes.toronto.edu/index.php?q=affinity%20propagation) on simple point-cloud data set. The results are exactly the same
 	- However, Tao. et al. [FlowString paper](https://ieeexplore.ieee.org/document/6787131) (TVCG 2014) used two-level hierarchical affinity propagation for streamline segment clustering. So we also implemented this hierarchical AP clustering
 		- The initial value is set to the minimal similarity as the preference value
 
