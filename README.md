@@ -178,3 +178,4 @@ This project lasted for two years and it was originally started from an explorat
 - [ ] Provide a template-based class implementation
 - [ ] Optimize the parameter input by the configure file
 - [ ] Release the library under GNU lisense
+- [ ] Automatic code documentation by Doxygen
