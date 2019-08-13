@@ -75,7 +75,7 @@ There are just so many similarity measures, and even before the submission we al
 | 13  | Hausdorff distance |  d_H  | No parameters |  arbitrary dimensions | quadratic |
 | 14  | Signature-based similarity  |  d_S  | Parameter sensitive | arbitrary dimensions | quadratic |
 | 15  | Adapted Procrustes distance  |  d_P  | Parameter sensitive |  arbitrary dimensions | more than linear |
-| 17  | Time-series MCP distance  |  d_T  | No parameters | arbitrary dimensions | quadratic |
+| 17  | Time-series MCP distance  |  d_T  | No parameters | arbitrary dimensions and only for pathlines | quadratic |
 
 
 - Euclidean distance d_E (**0**)
