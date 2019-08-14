@@ -186,8 +186,8 @@ This project lasted for two years and it was originally started from an explorat
 **Future refactoring would go into:**
 - [x] Add documentation for the I/O and file requirement
 - [x] Comment on the necessary functions and parameters
+- [x] Automatic code documentation by Doxygen
 - [ ] Re-organize the code with inheritance and factory pattern
 - [ ] Provide a template-based class implementation
 - [ ] Optimize the parameter input by the configure file
 - [ ] Release the library under GNU lisense
-- [ ] Automatic code documentation by Doxygen
