@@ -176,7 +176,7 @@ cd Release
 
 - **Special requirement for blood flow**
 	- We provide the original blood flow pathlines in the data set (.vtp)
-	- Any one who uses the blood flow should read the **ReadMe.txt** in the dataset/ folder
+	- Any one who uses the blood flow should read the **ReadMe.txt** in the dataset/ folder and **follow required references**
 
 
 ## Refactoring Plan for the Project
