@@ -122,6 +122,10 @@ There are just so many similarity measures, and even before the submission we al
 
 ## Before running?
 
+#### Dependency
+This program only relies on [CMake](https://cmake.org/)>=2.6, [Eigen](http://eigen.tuxfamily.org/index.php?title=Main_Page) and [C++ boost library](https://www.boost.org/) since it is most for clustering and calculation. The posterior rendering relies on [Paraview](https://www.paraview.org/)
+
+#### Necessary Code Adjusting
 * Adjust the BIN_SIZE in src/Common/Metric.cpp/Line 3 which is related to **Chi-test** calculation of signatures
 	- It controls how many segments considered for **Chi-test**, the default value is 20 
 
