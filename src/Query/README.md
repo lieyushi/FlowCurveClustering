@@ -1,0 +1,2 @@
+## Query
+The program is focused on streamline/pathline query given a candidate line. It is similar to line matching and pattern search, and will output the required number of lines that have minimal dissimilarity measure towards a given candidate (either by spatial proxity or shape similarity).

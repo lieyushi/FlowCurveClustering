@@ -1,0 +1,2 @@
+## k-medoids
+It includes the iterative or median-based medoid refinement similar to what k-medoids defined. To confirm to the regulations of other clustering techniques and cluster representatives, we choose the **iterative medoid refinement**.

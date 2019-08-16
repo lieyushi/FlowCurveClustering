@@ -1,0 +1,2 @@
+## ReadClustering
+The program will read from a generated .vtk file with clustering results (i.e., geometric coordinates and cluster labels of integral lines) to re-calculate the clustering evaluation metrics of the current result in case of miscalculated result.
