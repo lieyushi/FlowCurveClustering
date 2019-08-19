@@ -11,7 +11,9 @@
 #include "Silhouette.h"
 
 
-
+/*
+ * @brief The class that contains necessary information for the data set
+ */
 struct DataSet
 {
 	vector<vector<float> > dataVec;	//original dataset
@@ -27,6 +29,9 @@ struct DataSet
 };
 
 
+/*
+ * @brief The class of cluster that contains candidates
+ */
 struct Ensemble
 {
 	int size;
@@ -45,7 +50,14 @@ void mySwap(T& a, T& b)
 }
 
 
-/* my template-based partition function */
+/*
+ * @brief The partition function for quick-median-computation
+ * @param array: The array to calculate the median value
+ * @param left: The left index
+ * @param right: The right index
+ * @param pivotIndex: The pivot index for partition function
+ * @return Nothing
+ */
 template <class T>
 int partition(std::vector<T>& array, const int& left, const int& right, const int& pivotIndex)
 {
@@ -65,7 +77,14 @@ int partition(std::vector<T>& array, const int& left, const int& right, const in
 }
 
 
-/* return k-th element in the unsorted array with quicks-selection algorithm, pseudocode referrenced at https://en.wikipedia.org/wiki/Quickselect */
+/*
+ * @brief return k-th element in the unsorted array with quicks-selection algorithm, pseudocode referrenced at https://en.wikipedia.org/wiki/Quickselect
+ * @param array: The array for input
+ * @param left: The left index
+ * @param right: The right index
+ * @param k: The partition index
+ * @return the k-th element in the unsorted array
+ */
 template <class T>
 /* left is left index while right is right index */
 T select(std::vector<T>& array, int left, int right, const int& k)
