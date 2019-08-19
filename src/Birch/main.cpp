@@ -31,6 +31,13 @@
 
 #include "ClusterAnalysis.h"
 
+
+/*
+ * @brief The driver main function
+ * @param argc: count of arguments
+ * @param argv: char* array of arguments
+ * @return 0 if successful
+ */
 int main( int argc, char** argv)
 {
 	std::vector<std::vector<float> > trajectories;
@@ -42,15 +49,16 @@ int main( int argc, char** argv)
 	string fullName;
 	MetricPreparation object;
 
+	// get user input for birch clustering
 	getUserInput(argc, argv, trajectories, equalArray, items, dimension, fi);
 
-	getBirchClustering(items,argv,trajectories,fi,equalArray,
-					   dimension, item_cids, maxGroup,normOption,
-					   fullName, object);
+	// perform birch clustering
+	getBirchClustering(items,argv,trajectories,fi,equalArray, dimension, item_cids, maxGroup,
+			normOption, fullName, object);
 
-	getClusterAnalysis(trajectories,fi,equalArray,dimension, 
-					   item_cids, maxGroup, normOption, fullName,
-					   object);
+	// perform the clustering analysis and cluster representative extraction
+	getClusterAnalysis(trajectories, fi, equalArray, dimension, item_cids, maxGroup, normOption,
+			fullName, object);
 	return 0;
 }
 

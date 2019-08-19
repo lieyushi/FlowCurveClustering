@@ -1,28 +1,51 @@
+/*
+ * This is the source cpp for implementing the member functions for the class AHC
+ */
+
 #include "AHC.h"
 
-/* default constructor */
+
+/*
+ * @brief The default constructor
+ * @param No
+ * @return Nothing
+ */
 AHC::AHC()
 {
 
 }
 
-/* argument constructor with argc and argv */
+
+/*
+ * @brief A constructor with parameters
+ * @param argc: The count of argv
+ * @param argv: The argument string line
+ * @return Nothing, set the data set from argument
+ */
 AHC::AHC(const int& argc, char **argv)
 {
 	setDataset(argc, argv);
 }
 
-/* destructor */
+
+/*
+ * @brief The destructor of the class AHC
+ */
 AHC::~AHC()
 {
 	deleteDistanceMatrix(ds.dataMatrix.rows());
 }
 
 
-/* perform clustering on normOption */
+/*
+ * @brief The function to perform AHC clustering by a given norm
+ */
 void AHC::performClustering_by_norm()
 {
-	/* very hard to decide whether needed to perform such pre-processing */
+	/* very hard to decide whether needed to perform such pre-processing, but still create a
+	 * MetricPreparation object in case some pre-calculation for similarity meaures can be ready
+	 * before the pairwise distance matrix calculation
+	 */
 	object = MetricPreparation(ds.dataMatrix.rows(), ds.dataMatrix.cols());
 	object.preprocessing(ds.dataMatrix, ds.dataMatrix.rows(), ds.dataMatrix.cols(), normOption);
 
@@ -31,11 +54,14 @@ void AHC::performClustering_by_norm()
 	double timeTemp;
 	gettimeofday(&start, NULL);
 
+	// check whether the file for distance matrix exists or not
 	std::ifstream distFile(("../dataset/"+to_string(normOption)).c_str(), ios::in);
-	if(distFile.fail())
+	if(distFile.fail())	// not exist, will calculate the distance matrix and store them in local files
 	{
 		distFile.close();
+		// calculate the distance matrix
 		getDistanceMatrix(ds.dataMatrix, normOption, object);
+		// store the distance matrix values in the local files
 		std::ofstream distFileOut(("../dataset/"+to_string(normOption)).c_str(), ios::out);
 		for(int i=0;i<ds.dataMatrix.rows();++i)
 		{
@@ -47,7 +73,7 @@ void AHC::performClustering_by_norm()
 		}
 		distFileOut.close();
 	}
-	else
+	else	// the file for distance matrix exists, then directly reads in the pair-wise values
 	{
 		std::cout << "read distance matrix..." << std::endl;
 
@@ -58,6 +84,7 @@ void AHC::performClustering_by_norm()
 			distanceMatrix[i] = new float[ds.dataMatrix.rows()];
 		}
 
+		// read the distance values from the .txt file
 		int i=0, j;
 		string line;
 		stringstream ss;
@@ -80,13 +107,14 @@ void AHC::performClustering_by_norm()
 		distFile.close();
 	}
 
+	// record the time for distance matrix computation time
 	gettimeofday(&end, NULL);
 	timeTemp = ((end.tv_sec  - start.tv_sec) * 1000000u
 			   + end.tv_usec - start.tv_usec) / 1.e6;
 	activityList.push_back("Distance matrix computing for norm "+to_string(normOption)+" takes: ");
 	timeList.push_back(to_string(timeTemp)+" s");
 
-
+	// create node-related parameters for AHC clustering
 	std::unordered_map<int, Ensemble> node_map;
 	std::vector<DistNode> dNodeVec;
 	std::vector<Ensemble> nodeVec;
@@ -97,7 +125,7 @@ void AHC::performClustering_by_norm()
 	/* perform hiarchical clustering where within each step would merge two nodes */
 	hierarchicalMerging(node_map, dNodeVec, nodeVec);
 
-	if(!lMethod)
+	if(!lMethod)	// perform the AHC clustering with lMethod not activated
 	{
 		vector<vector<int>> neighborVec(numberOfClusters);
 		// element size for all groups
@@ -116,7 +144,9 @@ void AHC::performClustering_by_norm()
 }
 
 
-/* perform clustering function */
+/*
+ * @brief Perform the clustering for related similarity measure labels
+ */
 void AHC::performClustering()
 {
 	/*  0: Euclidean Norm
@@ -139,6 +169,8 @@ void AHC::performClustering()
 		17: time-series MCP distance from https://www.sciencedirect.com/science/article/pii/S0097849318300128
 			for pathlines only
 	*/
+
+	// read the input number for different similarity measures from the file "cluster_number"
 	std::unordered_map<int,int> clusterMap;
 	if(readCluster)
 	{
@@ -151,13 +183,13 @@ void AHC::performClustering()
 		//cluster_array.push_back(i);
 		for(normOption=0;normOption<=17;++normOption)
 		{
-			if(isPathlines)
+			if(isPathlines)	// for pathlines, will consider d_T (17)
 			{
 				if(normOption!=0 && normOption!=1 && normOption!=2 && normOption!=4 && normOption!=12
 				   && normOption!=13 && normOption!=14 && normOption!=15 && normOption!=17)
 					continue;
 			}
-			else
+			else	// for streamlines, will not consider d_T (17)
 			{
 				if(normOption!=0 && normOption!=1 && normOption!=2 && normOption!=4 && normOption!=12
 				&& normOption!=13 && normOption!=14 && normOption!=15)
@@ -191,7 +223,7 @@ void AHC::performClustering()
 			{
 				numberOfClusters = 1;
 			}
-
+			// perform clustering by given input of norm option
 			performClustering_by_norm();
 		}
 	//}
@@ -209,7 +241,12 @@ void AHC::performClustering()
 }
 
 
-/* perform AHC merging by given a distance threshold */
+/*
+ * @brief Perform hierarchical merge for the trees by a given required cluster number
+ * @param node_map: The initial node with each node representing one streamline/pathline
+ * @param dNodeVec: The DistNode vector which has the indices of two nodes and their distance
+ * @param nodeVec: The vector of Ensemble which has candidate index of the cluster
+ */
 void AHC::hierarchicalMerging(std::unordered_map<int, Ensemble>& node_map, std::vector<DistNode>& dNodeVec,
 							  std::vector<Ensemble>& nodeVec)
 {
@@ -235,12 +272,14 @@ void AHC::hierarchicalMerging(std::unordered_map<int, Ensemble>& node_map, std::
 			minDist = dNodeVec[i].distance;
 		}
 	}
+
+	// find which distNode is to be popped
 	poped = dNodeVec[target];
 
 	int index = Row, currentNumber;
-	do
+	do	// perform iterative hierarchical merging until the final cluster reaches the given input number
 	{
-		if(lMethod)
+		if(lMethod)	// if the l-method is enabled, record the number of clusters and merged distance
 		{
 			dist_map.insert(std::make_pair(node_map.size(), poped.distance));
 		}
@@ -269,8 +308,10 @@ void AHC::hierarchicalMerging(std::unordered_map<int, Ensemble>& node_map, std::
 
 		target = -1, minDist = FLT_MAX;
 
+		// create new distNode vector
 		std::vector<DistNode> tempVec(currentNumber*(currentNumber-1)/2);
 
+		// update and find the minimal distance for next merging
 		int current = 0, i_first, i_second;
 		for(int i=0;i<dNodeVec.size();++i)
 		{
@@ -288,6 +329,7 @@ void AHC::hierarchicalMerging(std::unordered_map<int, Ensemble>& node_map, std::
 			}
 		}
 
+		// merge two nodes and update the node-distance relative to these two nodes
 		for (auto iter=node_map.begin();iter!=node_map.end();++iter)
 		{
 			if((*iter).first!=newNode.index)
@@ -318,7 +360,7 @@ void AHC::hierarchicalMerging(std::unordered_map<int, Ensemble>& node_map, std::
 
 	}while(node_map.size()!=numberOfClusters);	//merging happens whenever requested cluster is not met
 
-	if(lMethod)
+	if(lMethod)	// invoke the l-method to find the optimal number of clusters
 	{
 		/* perform L-method computation to detect optimal number of AHC */
 		DetermClusterNum dcn;
@@ -327,7 +369,7 @@ void AHC::hierarchicalMerging(std::unordered_map<int, Ensemble>& node_map, std::
 		dcn.recordLMethodResult(normOption);
 	}
 
-	else
+	else	// otherwise, just perform the AHC clustering
 	{
 		nodeVec=std::vector<Ensemble>(node_map.size());
 		int tag = 0;
@@ -343,14 +385,20 @@ void AHC::hierarchicalMerging(std::unordered_map<int, Ensemble>& node_map, std::
 		/* task completed, would delete memory contents */
 		dNodeVec.clear();
 		node_map.clear();
-		/* use alpha function to sort the group by its size */
+		/* use alpha function to sort the group by its size in ascending order */
 		std::sort(nodeVec.begin(), nodeVec.end(), [](const Ensemble& e1, const Ensemble& e2)
 		{return e1.element.size()<e2.element.size()||(e1.element.size()==e2.element.size()&&e1.index<e2.index);});
 	}
 }
 
 
-/* perform group-labeling information */
+/*
+ * @brief Set the labels and compute the centroid and cluster information
+ * @param nodeVec: The remained node vector
+ * @param neighborVec: The candidate vector of each cluster to be updated
+ * @param storage: The size of each cluster to be updated
+ * @param centroid: The centroid coordinates to be updated
+ */
 void AHC::setLabel(const std::vector<Ensemble>& nodeVec, vector<vector<int> >& neighborVec,
 			      vector<int>& storage, Eigen::MatrixXf& centroid)
 {
@@ -370,8 +418,10 @@ void AHC::setLabel(const std::vector<Ensemble>& nodeVec, vector<vector<int> >& n
 		#pragma omp for nowait
 			for(int i=0;i<eachContainment.size();++i)
 			{
+				// update the label index for each streamline candidates
 				group[eachContainment[i]] = groupID;
 			#pragma omp critical
+				// update the centroid coordinates of the cluster
 				centroid.row(groupID) += ds.dataMatrix.row(eachContainment[i]);
 			}
 		}
@@ -384,7 +434,12 @@ void AHC::setLabel(const std::vector<Ensemble>& nodeVec, vector<vector<int> >& n
 
 
 
-/* extract features from datasets as representative curves */
+/*
+ * @brief Extract the features and calculate the evaluation metrics for clustering results
+ * @param storage: The size of each cluster as input as input
+ * @param neighborVec: The candidate vector for each cluster as input
+ * @param centroid: The centroid for each cluster as input
+ */
 void AHC::extractFeatures(const std::vector<int>& storage, const std::vector<std::vector<int> >& neighborVec,
 		                  const Eigen::MatrixXf& centroid)
 {
@@ -414,7 +469,6 @@ void AHC::extractFeatures(const std::vector<int>& storage, const std::vector<std
 	vector<vector<float> > furthest(numberOfClusters);
 
 	/* extract the closest and furthest streamlines to centroid */
-
 #pragma omp parallel for schedule(static) num_threads(8)
 	for (int i=0;i<numberOfClusters;++i)
 	{
@@ -441,6 +495,7 @@ void AHC::extractFeatures(const std::vector<int>& storage, const std::vector<std
 		furthest[i] = ds.dataVec[maxIndex];
 	}
 
+	// re-assign centroid coordinates to the vector<vector<float>>
 	std::vector<std::vector<float> > center_vec(numberOfClusters, vector<float>(Column));
 #pragma omp parallel for schedule(static) num_threads(8)
 	for (int i = 0; i < center_vec.size(); ++i)
@@ -451,17 +506,20 @@ void AHC::extractFeatures(const std::vector<int>& storage, const std::vector<std
 		}
 	}
 
+	// calculate the normalized entropy
 	float EntropyRatio;
 	getEntropyRatio(storage, EntropyRatio);
 
 	std::cout << "Entropy ratio is: " << EntropyRatio << std::endl;
 
+	// record the time for feature extraction
 	gettimeofday(&end, NULL);
 	timeTemp = ((end.tv_sec  - start.tv_sec) * 1000000u 
 			   + end.tv_usec - start.tv_usec) / 1.e6;
 	activityList.push_back("Feature extraction for norm "+to_string(normOption)+ " takes: ");
 	timeList.push_back(to_string(timeTemp)+" s");
 
+	// calculate the normalized validity measurement
 	ValidityMeasurement vm;
 	vm.computeValue(normOption, ds.dataMatrix, group, object, isPBF);
 	activityList.push_back("AHC Validity measure is: ");
@@ -469,6 +527,7 @@ void AHC::extractFeatures(const std::vector<int>& storage, const std::vector<std
 	fc_ss << vm.f_c;
 	timeList.push_back(fc_ss.str());
 
+	// calculate the silhouette, the Gamma statistics and DB index
 	gettimeofday(&start, NULL);
 	Silhouette sil;
 	sil.computeValue(normOption,ds.dataMatrix,ds.dataMatrix.rows(),ds.dataMatrix.cols(),
@@ -484,17 +543,17 @@ void AHC::extractFeatures(const std::vector<int>& storage, const std::vector<std
 	stringstream ss;
 	ss << "norm_" << normOption;
 
-
-/* measure closest and furthest rotation */
+	/* measure closest and furthest rotation */
 	std::vector<float> closestRotation, furthestRotation;
 	const float& closestAverage = getRotation(closest, closestRotation);
 	const float& furthestAverage = getRotation(furthest, furthestRotation);
 
-
+	// record the linkage type, norm option and normalized entropy
 	string linkage = getLinkageStr();
 	string normStr = getNormStr();
 	string entropyStr = getEntropyStr(EntropyRatio);
 
+	// create the .vtk for streamline labels and cluster representatives
 	IOHandler::printFeature(ds.dataName+"_AHC_"+linkage+"_closest_"+ss.str()+".vtk", closest, sil.sCluster,
 			                closestRotation, ds.dimension);
 	IOHandler::printFeature(ds.dataName+"_AHC_"+linkage+"_furthest_"+ss.str()+".vtk", furthest, sil.sCluster,
@@ -504,6 +563,7 @@ void AHC::extractFeatures(const std::vector<int>& storage, const std::vector<std
 	IOHandler::printToFull(ds.dataVec, sil.sData, "AHC_SValueLine_"+ss.str(), ds.fullName, ds.dimension);
 	IOHandler::printToFull(ds.dataVec, group, sil.sCluster, "AHC_SValueCluster_"+ss.str(), ds.fullName, ds.dimension);
 
+	// generate README for evaluation metrics
 	activityList.push_back("numCluster is: ");
 	timeList.push_back(to_string(numberOfClusters));
 
@@ -517,14 +577,11 @@ void AHC::extractFeatures(const std::vector<int>& storage, const std::vector<std
 	timeList.push_back(to_string(furthestAverage));
 
 	IOHandler::generateReadme(activityList,timeList);
-
 	IOHandler::writeReadme("Linkage: "+linkage+", "+"norm option is "+normStr+", ");
-
 	IOHandler::writeGroupSize(storage);
 
-/* print entropy value for the clustering algorithm */
+	/* print entropy value for the clustering algorithm */
 	IOHandler::writeReadme(EntropyRatio, sil, "For norm "+to_string(normOption));
-
 	IOHandler::writeReadme(closestAverage, furthestAverage);
 
 	//curveValue[0].push_back(sil.sAverage);
@@ -533,7 +590,12 @@ void AHC::extractFeatures(const std::vector<int>& storage, const std::vector<std
 	//curveValue[3].push_back(vm.f_c);
 }
 
-/* set dataset from user command */
+
+/*
+ * @brief Set the data set and perform necessary operations with user parameter input
+ * @param argc: The count of argument string
+ * @param argv: The char* array for argument
+ */
 void AHC::setDataset(const int& argc, char **argv)
 {
 	if(argc!=3)
@@ -543,27 +605,29 @@ void AHC::setDataset(const int& argc, char **argv)
 		          << "data_dimension(3)" << endl;
 		exit(1);
 	}
+	// get the attribute for data set
 	ds.strName = string("../dataset/")+string(argv[1]);
 	ds.dataName = string(argv[1]);
 	ds.dimension = atoi(argv[2]);
 
-/* get the bool tag for isPBF */
+	/* get the bool tag for isPBF */
 	std::cout << "It is a PBF dataset? 1.Yes, 0.No" << std::endl;
 	int PBFjudgement;
 	std::cin >> PBFjudgement;
 	assert(PBFjudgement==1||PBFjudgement==0);
 	isPBF = (PBFjudgement==1);
 
-/* get the bool tag for isPBF */
+	/* get the bool tag for isPBF */
 	std::cout << "It is a pathline dataset? 1.Yes, 0.No" << std::endl;
 	std::cin >> PBFjudgement;
 	assert(PBFjudgement==1||PBFjudgement==0);
 	isPathlines = (PBFjudgement==1);
 
+	// set up the sample option by user input and data set type (pathlines or streamlines)
 	int sampleOption;
-	if(isPathlines)
+	if(isPathlines)	// default direct-repeating for pathlines to match the time steps
 		sampleOption = 1;
-	else
+	else	// streamline sample option can be versatile
 	{
 		std::cout << "choose a sampling method for the dataset?" << std::endl
 				  << "1.directly filling with last vertex; 2. uniform sampling." << std::endl;
@@ -571,28 +635,35 @@ void AHC::setDataset(const int& argc, char **argv)
 		assert(sampleOption==1||sampleOption==2);
 	}
 
+	// read the coordinates into the member variales
 	IOHandler::readFile(ds.strName,ds.dataVec,ds.vertexCount,ds.dimension,ds.maxElements);
 
+	// get the path of full name and print the streamlines vtk
 	ds.fullName = ds.strName+"_full.vtk";
 	IOHandler::printVTK(ds.fullName, ds.dataVec, ds.vertexCount, ds.dimension);
 
+	// perform sampling operation with user parameters
 	if(sampleOption==1)
 		IOHandler::expandArray(ds.dataMatrix,ds.dataVec,ds.dimension,ds.maxElements);
 	else if(sampleOption==2)
 		IOHandler::sampleArray(ds.dataMatrix,ds.dataVec,ds.dimension,ds.maxElements);
 
+	// create the label index for each individual streamline/pathline
 	group = std::vector<int>(ds.dataMatrix.rows());
 
+	// whether to activate the L-method or not
 	std::cout << "Perform L-method to detect optimal num of clusters? 0: No, 1: Yes! " << std::endl;
 	std::cin >> lMethod;
 	assert(lMethod==0 || lMethod==1);
 	lMethod = (lMethod==1);
 
+	// which linkage type to be selected
 	std::cout << "---------------------------" << std::endl;
 	std::cout << "Input linkage option: 0.single linkage, 1.complete linkage, 2.average linkage" << std::endl;
 	std::cin >> linkageOption;
 	assert(linkageOption==0||linkageOption==1||linkageOption==2);
 
+	// lMethod is not activated, so will ask for number of cluster as input
 	if(!lMethod)
 	{
 		std::cout << "---------------------------" << std::endl;
@@ -605,6 +676,13 @@ void AHC::setDataset(const int& argc, char **argv)
 }
 
 
+/*
+ * @brief Get the distance between two nodes with linkage type
+ * @param firstList: The first node with candidates
+ * @param secondList: The second node with candidates
+ * @param Linkage: The linkage type, 0 for single, 1 for complete and 2 for average
+ * @return The distance value between two nodes in AHC clustering
+ */
 const float AHC::getDistAtNodes(const vector<int>& firstList, const vector<int>& secondList, const int& Linkage)
 {
 	const int& m = firstList.size();
@@ -654,7 +732,7 @@ const float AHC::getDistAtNodes(const vector<int>& firstList, const vector<int>&
 		}
 		break;
 
-	case 2:
+	case 2:	// average linkage
 		{
 			result = 0;
 		#pragma omp parallel for reduction(+:result) num_threads(8)
@@ -673,7 +751,7 @@ const float AHC::getDistAtNodes(const vector<int>& firstList, const vector<int>&
 		}
 		break;
 
-	default:
+	default:	// no linkage option, should print "Error" information and exit the program
 		std::cout << "error!" << std::endl;
 		exit(1);
 	}
@@ -681,7 +759,10 @@ const float AHC::getDistAtNodes(const vector<int>& firstList, const vector<int>&
 }
 
 
-/* get string for linkage type */
+/*
+ * @brief Get the string for linkage type
+ * @return A string type for linkage
+ */
 string AHC::getLinkageStr()
 {
 	string result;
@@ -703,7 +784,11 @@ string AHC::getLinkageStr()
 }
 
 
-/* get entropy ratio, lower value tells dinstinguishable cluster while higher value tells a more uniformality. */
+/*
+ * @brief Calculate the normalized entropy
+ * @param storage: The size of different clusters
+ * @param EntropyRatio: The normalized entropy to be updated
+ */
 void AHC::getEntropyRatio(const std::vector<int>& storage, float& EntropyRatio)
 {
 	EntropyRatio = 0;
@@ -717,8 +802,10 @@ void AHC::getEntropyRatio(const std::vector<int>& storage, float& EntropyRatio)
 }
 
 
-
-/* get norm string */
+/*
+ * @brief Get the string type of input similarity measure
+ * @return A string type
+ */
 string AHC::getNormStr()
 {
 	stringstream ss;
@@ -727,7 +814,11 @@ string AHC::getNormStr()
 }
 
 
-/* get entropy ratio string */ 
+/*
+ * @brief Get the string type for entropy value
+ * @param EntropyRatio: The normalized entropy value
+ * @return The string of the float value
+ */
 string AHC::getEntropyStr(const float& EntropyRatio)
 {
 	stringstream ss;
@@ -736,7 +827,11 @@ string AHC::getEntropyStr(const float& EntropyRatio)
 }	
 
 
-/* set a vector for min-heap */
+/*
+ * @brief Set the merged nodes and perform necessary merge operations
+ * @param dNodeVec: The node vector to be updated
+ * @param node_map: The map to record the index and node
+ */
 void AHC::setValue_merge(std::vector<DistNode>& dNodeVec, std::unordered_map<int, Ensemble>& node_map)
 {
 	const int& Row = ds.dataMatrix.rows();
@@ -768,6 +863,7 @@ void AHC::setValue_merge(std::vector<DistNode>& dNodeVec, std::unordered_map<int
 
 	std::vector<bool> isIn(Row, false);
 
+	// update the map for node
 	int tag = 0;
 	for(int i=0;i<Row;++i)
 	{
@@ -792,6 +888,7 @@ void AHC::setValue_merge(std::vector<DistNode>& dNodeVec, std::unordered_map<int
 		}
 	}
 
+	// update the dNodeVec from the newly create nodes
 	const int& mapSize = node_map.size();
 	dNodeVec = std::vector<DistNode>(mapSize*(mapSize-1)/2);
 
@@ -810,12 +907,17 @@ void AHC::setValue_merge(std::vector<DistNode>& dNodeVec, std::unordered_map<int
 }
 
 
-/* set a vector for min-heap */
+/*
+ * @brief Set value for the dNodeVec and node_map as initialization of the AHC procedure
+ * @param dNodeVec: The vector of nodes to be updated
+ * @param node_map: The map for recording index and candidate streamlines in the cluster
+ */
 void AHC::setValue(std::vector<DistNode>& dNodeVec, std::unordered_map<int, Ensemble>& node_map)
 {
 	const int& Row = ds.dataMatrix.rows();
 	dNodeVec = std::vector<DistNode>(Row*(Row-1)/2);
 	int tag = 0;
+	// record the node i, node j and their distance into the vector
 	for(int i=0;i<Row-1;++i)
 	{
 		for(int j=i+1;j<Row;++j)
@@ -830,6 +932,7 @@ void AHC::setValue(std::vector<DistNode>& dNodeVec, std::unordered_map<int, Ense
 		}
 	}
 	assert(tag==dNodeVec.size());
+	// record the index of the node
 	for(int i=0;i<Row;++i)
 	{
 		node_map[i].element.push_back(i);

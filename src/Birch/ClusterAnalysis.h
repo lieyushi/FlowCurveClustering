@@ -1,3 +1,9 @@
+/*
+ * The original birch C++ code is directly borrowed from github and is hard to documentation. We only
+ * provide basic documentation for calling the functions directly from the code
+ */
+
+
 #ifndef _CLUSTERANALYSIS_H_
 #define _CLUSTERANALYSIS_H_
 
@@ -19,10 +25,13 @@
 std::vector<string> activityList;
 std::vector<double> timeList;
 
+// whether it is PBF dataset
 bool isPBF;
 
+// whether read cluster from local file
 bool readCluster;
 
+// whether the data set is pathline or not
 bool isPathlines;
 
 template<boost::uint32_t dim>
@@ -39,7 +48,7 @@ typedef CFTree<4824u> cftree_type;
 cftree_type::float_type birch_threshold;
 
 
-
+// the vertex count and max dimension of the data set
 struct FileIndex
 {
 	int vertexCount, maxElement;
@@ -51,6 +60,15 @@ struct FileIndex
 };
 
 
+/*
+ * @brief Get user input from console
+ * @param argc: count of argument
+ * @param argv: argv* string of argument
+ * @param trajectories: The input line coordinates
+ * @param equalArray: The matrix of coordinates after sampling with equal size of vertices
+ * @param dimension: The max dimension
+ * @param fi: An FileIndex object
+ */
 template<boost::uint32_t dim>
 void getUserInput(const int& argc, 
 				  char **argv,
@@ -69,19 +87,20 @@ void getUserInput(const int& argc,
 	stringstream ss;
 	ss << "../dataset/" << argv[1];
 
-
-/* get the bool tag for isPBF */
+	/* get the bool tag for isPBF */
 	std::cout << "It is a PBF dataset? 1.Yes, 0.No" << std::endl;
 	int PBFjudgement;
 	std::cin >> PBFjudgement;
 	assert(PBFjudgement==1||PBFjudgement==0);
 	isPBF = (PBFjudgement==1);
 
+	// whether it is pathline
 	std::cout << "It is a pathline dataset? 1.Yes, 0.No" << std::endl;
 	std::cin >> PBFjudgement;
 	assert(PBFjudgement==1||PBFjudgement==0);
 	isPathlines = (PBFjudgement==1);
 
+	// how to get input number of clusters
 	std::cout << "---------------------------" << std::endl;
 	std::cout << "Choose cluster number input method: 0.user input, 1.read from file: " << std::endl;
 	int clusterInput;
@@ -89,6 +108,7 @@ void getUserInput(const int& argc,
 	assert(clusterInput==0||clusterInput==1);
 	readCluster = (clusterInput==1);
 
+	// sampling
 	if(isPathlines)
 		samplingMethod = 1;
 	else
@@ -104,16 +124,16 @@ void getUserInput(const int& argc,
 	struct timeval start, end;
 	double timeTemp;
 
+	// read coordinates from the txt file
 	gettimeofday(&start, NULL);
-	IOHandler::readFile(ss.str(), trajectories, fi.vertexCount, 
-					    dimension, fi.maxElement);
+	IOHandler::readFile(ss.str(), trajectories, fi.vertexCount, dimension, fi.maxElement);
 	gettimeofday(&end, NULL);
 	timeTemp = ((end.tv_sec  - start.tv_sec) * 1000000u 
 			   + end.tv_usec - start.tv_usec) / 1.e6;
 	activityList.push_back("Read file takes: ");
 	timeList.push_back(timeTemp);
 
-
+	// perform sampling on the data sets
 	gettimeofday(&start, NULL);
 	if(samplingMethod==1)
 		IOHandler::expandArray(equalArray,trajectories,dimension,
@@ -126,10 +146,14 @@ void getUserInput(const int& argc,
 			   + end.tv_usec - start.tv_usec) / 1.e6;
 	activityList.push_back("Pre-processing takes: ");
 	timeList.push_back(timeTemp);
-
 }
 
 
+/*
+ * @brief Find the maximal number of clusters
+ * @param fname: the file name
+ * @param items: T type of object
+ */
 template<typename T>
 static void print_items( const std::string fname, T& items )
 {
@@ -139,6 +163,7 @@ static void print_items( const std::string fname, T& items )
 		const { return lhs.cid() < rhs.cid(); }
 	};
 
+	// find the max group index
 	int maxGroup = INT_MIN;
 	int belongGroup;
 	for( std::size_t i = 0 ; i < items.size() ; i++ )
@@ -152,6 +177,11 @@ static void print_items( const std::string fname, T& items )
 }
 
 
+/*
+ * @brief Load items into the global tree object
+ * @param matrixData: The matrix of the line coordinates
+ * @param items: The vector information to be updated
+ */
 template<boost::uint32_t dim>
 static void load_items( const Eigen::MatrixXf& matrixData,
 						std::vector<item_type<dim> >& items)
@@ -167,10 +197,18 @@ static void load_items( const Eigen::MatrixXf& matrixData,
 }
 
 
+/*
+ * @brief Get the max distance
+ * @param equalArray: The coordinate matrix
+ * @param object: The MetricPreparation object for distance matrix computation
+ * @param normOption: The norm
+ * @return The max distance
+ */
 const float getMaxDist(const Eigen::MatrixXf& equalArray, 
 					   const MetricPreparation& object, 
 					   const int& normOption)
 {
+	// find the maximal distance value
 	const float& Percentage = 0.1;
 	const int& chosen = int(Percentage*equalArray.rows());
 	float result = -0.1;
@@ -186,8 +224,7 @@ const float getMaxDist(const Eigen::MatrixXf& equalArray,
 			if(distanceMatrix)
 				dist = distanceMatrix[i][j];
 			else
-				dist = getDisimilarity(equalArray.row(i),
-						 equalArray.row(j),i,j,normOption,object);
+				dist = getDisimilarity(equalArray.row(i), equalArray.row(j),i,j,normOption,object);
 			if(dist>result)
 				result=dist;
 		}
@@ -195,6 +232,16 @@ const float getMaxDist(const Eigen::MatrixXf& equalArray,
 	return result;
 }
 
+
+/*
+ * @brief Perform the binary search to find the distance threshold to get approximately the clusters
+ * @param object: The MetricPreparation object for distance matrix computation
+ * @param normOption the norm option
+ * @param items: The item vector type
+ * @param distThreshold: The distance threshold
+ * @param maxGroup: The finalized cluster number
+ * @param item_cids: The cluster formalized
+ */
 template<boost::uint32_t dim>
 void getBirchClusterTrial(const MetricPreparation& object,
 						  const int& normOption,
@@ -236,6 +283,8 @@ void getBirchClusterTrial(const MetricPreparation& object,
 	//tree.redist_kmeans( items, entries, 0 );
     tree.redist(items.begin(), items.end(), entries, item_cids);
     maxGroup = INT_MIN;
+
+    // assign the group labels
     for (std::size_t i = 0; i < item_cids.size(); i++)
     {
     	int& itemCID = items[i].cid(); 
@@ -246,7 +295,20 @@ void getBirchClusterTrial(const MetricPreparation& object,
 }
 								
 
-
+/*
+ * @brief Perform birch clustering with iterative binary search for the optimal distance threshold
+ * @param items: The item vector
+ * @param argv: The data set name and position
+ * @param trajectories: The read-in data set
+ * @param fi: The FileIndex
+ * @param equalArray: The matrix coordinate
+ * @param dimension: The max dimension
+ * @param item_cids: The cluster labels
+ * @param maxGroup: The max group
+ * @param normOption: The norm option
+ * @param fullName: The .vtk file position
+ * @param object: The MetricPreparation class object
+ */
 template<boost::uint32_t dim>
 void getBirchClustering(std::vector<item_type<dim> >& items,
 						char **argv,
@@ -260,7 +322,7 @@ void getBirchClustering(std::vector<item_type<dim> >& items,
 						string& fullName,
 						MetricPreparation& object)
 {
-
+	// select norm
 	std::cout << std::endl;
 	if(isPathlines)
 	{
@@ -300,10 +362,11 @@ void getBirchClustering(std::vector<item_type<dim> >& items,
 	double timeTemp;
 	gettimeofday(&start, NULL);
 
+	// create MetricPreparation object
 	object = MetricPreparation(equalArray.rows(), equalArray.cols());
 	object.preprocessing(equalArray, equalArray.rows(), equalArray.cols(), normOption);
 
-
+	// load the array into B+ tree
 	load_items(equalArray, items);
 	std::cout << items.size() << " items loaded" << std::endl;
 
@@ -313,7 +376,7 @@ void getBirchClustering(std::vector<item_type<dim> >& items,
 		deleteDistanceMatrix(equalArray.rows());
 
 		std::ifstream distFile(("../dataset/"+to_string(normOption)).c_str(), ios::in);
-		if(distFile.fail())
+		if(distFile.fail())	// file does not exist, calculate distance matrix and store it into file
 		{
 			distFile.close();
 			getDistanceMatrix(equalArray, normOption, object);
@@ -328,7 +391,7 @@ void getBirchClustering(std::vector<item_type<dim> >& items,
 			}
 			distFileOut.close();
 		}
-		else
+		else	// file exists, directly read in from the file
 		{
 			std::cout << "read distance matrix..." << std::endl;
 
@@ -361,17 +424,18 @@ void getBirchClustering(std::vector<item_type<dim> >& items,
 			distFile.close();
 		}
 	}
-
+	// get max distance
 	const float distThreshold = getMaxDist(equalArray, object, normOption);
 
+	// get the input cluster number
 	int requiredClusters;
-	if(readCluster)
+	if(readCluster)	// from the file "cluster_number"
 	{
 		std::unordered_map<int,int> clusterMap;
 		IOHandler::readClusteringNumber(clusterMap, "cluster_number");
 		requiredClusters = clusterMap[normOption];
 	}
-	else
+	else	// or from user input on the console
 	{
 		std::cout << "Enter approximate number of clusters: " << std::endl;
 		std::cin >> requiredClusters;
@@ -382,12 +446,12 @@ void getBirchClustering(std::vector<item_type<dim> >& items,
 	std::cout << "Sampled max distance is: " << distThreshold << std::endl;
 
 	float left = 0, right, middle;
-
 	if(normOption==15)
 		right = 0.2;
 	else
 		right = 0.5;
 
+	// 10 times of binary search on the distance
 	int iteration = 0;
 	while(true&&iteration<10)
 	{
@@ -395,8 +459,7 @@ void getBirchClustering(std::vector<item_type<dim> >& items,
 				  << std::endl;
 		middle = (left+right)/2.0;
 		std::cout << "Weight is " << middle << std::endl;
-		getBirchClusterTrial(object,normOption,items,middle*distThreshold,
-							 maxGroup,item_cids);
+		getBirchClusterTrial(object,normOption,items,middle*distThreshold,maxGroup,item_cids);
 		std::cout << maxGroup << std::endl;
 		if(maxGroup<=upperClusters && maxGroup>=lowerClusters)
 			break;
@@ -407,6 +470,7 @@ void getBirchClustering(std::vector<item_type<dim> >& items,
 	}
 	birch_threshold = middle;
 
+	// finish the birch clustering
 	gettimeofday(&end, NULL);
 	timeTemp = ((end.tv_sec  - start.tv_sec) * 1000000u 
 			   + end.tv_usec - start.tv_usec) / 1.e6;
@@ -420,10 +484,23 @@ void getBirchClustering(std::vector<item_type<dim> >& items,
     fullName = ss.str();
 
     IOHandler::printVTK(fullName, trajectories, fi.vertexCount, dimension); 
-
 }
 
 
+/*
+ * @brief Get the cluster analysis for Birch clustering result
+ * @param items: The item vector
+ * @param argv: The data set name and position
+ * @param trajectories: The read-in data set
+ * @param fi: The FileIndex
+ * @param equalArray: The matrix coordinate
+ * @param dimension: The max dimension
+ * @param item_cids: The cluster labels
+ * @param maxGroup: The max group
+ * @param normOption: The norm option
+ * @param fullName: The .vtk file position
+ * @param object: The MetricPreparation class object
+ */
 void getClusterAnalysis(const vector<vector<float> >& trajectories,
 						const FileIndex& fi,
 						const MatrixXf& equalArray,
@@ -434,6 +511,7 @@ void getClusterAnalysis(const vector<vector<float> >& trajectories,
 					    const string& fullName,
 					    const MetricPreparation& object)
 {
+	// get the size of clusters
 	int numClusters = maxGroup+1;
 	std::vector<int> container(numClusters,0);
 	for (int i = 0; i < item_cids.size(); ++i)
@@ -445,6 +523,7 @@ void getClusterAnalysis(const vector<vector<float> >& trajectories,
 	for (int i = 0; i < numClusters; ++i)
 		groupMap.insert(std::pair<int,int>(container[i],i));
 
+	// find how many clusters are formed
 	std::fill(container.begin(), container.end(), 0);
 	int groupNo = 0;
 	for (std::multimap<int,int>::iterator it=groupMap.begin();it!=groupMap.end();++it)
@@ -458,8 +537,7 @@ void getClusterAnalysis(const vector<vector<float> >& trajectories,
 	}
 
 	numClusters = groupNo;
-
-/* compute balanced Entropy value for the clustering algorithm */
+	/* compute balanced Entropy value for the clustering algorithm */
 	const int& Row = equalArray.rows();
 	float entropy = 0.0, probability;
 	for(int i=0;i<container.size();++i)
@@ -469,8 +547,7 @@ void getClusterAnalysis(const vector<vector<float> >& trajectories,
 	}
 	entropy = -entropy/log2f(numClusters);
 
-
-
+	// re-assign the cluster label in ascending order
 #pragma omp parallel for schedule(static) num_threads(8)
 	for (int i = 0; i < item_cids.size(); ++i)
 		item_cids[i]=increasingOrder[item_cids[i]];
@@ -483,21 +560,23 @@ void getClusterAnalysis(const vector<vector<float> >& trajectories,
 	// IOHandler::generateGroups(storage);
 
 
-	IOHandler::printClusters(trajectories,item_cids,container, 
-		 "norm"+to_string(normOption), fullName,dimension);
+	IOHandler::printClusters(trajectories,item_cids,container,"norm"+to_string(normOption),
+			fullName,dimension);
 
 	struct timeval start, end;
 	double timeTemp;
 
+	// calculate the normalized validity measurement
 	ValidityMeasurement vm;
 	vm.computeValue(normOption, equalArray, item_cids, object, isPBF);
 	activityList.push_back("Validity measure is: ");
 	timeList.push_back(vm.f_c);
 
+	// calculate the silhouette, gamma statistics and DB index
 	gettimeofday(&start, NULL);
 	Silhouette sil;
-	sil.computeValue(normOption,equalArray,equalArray.rows(),
-		equalArray.cols(),item_cids,object,numClusters,isPBF);
+	sil.computeValue(normOption,equalArray,equalArray.rows(),equalArray.cols(),item_cids,
+			object,numClusters,isPBF);
 	gettimeofday(&end, NULL);
 	timeTemp = ((end.tv_sec  - start.tv_sec) * 1000000u 
 			   + end.tv_usec - start.tv_usec) / 1.e6;
@@ -520,9 +599,9 @@ void getClusterAnalysis(const vector<vector<float> >& trajectories,
 		cenVec[i] = vector<float>(vec.data(), vec.data()+equalArray.cols());
 	}
 
+	// calculate the closest and further representative for each cluster
 	vector<vector<float> > closest(numClusters);
 	vector<vector<float> > furthest(numClusters);
-
 #pragma omp parallel for schedule(static) num_threads(8)
 	for (int i=0;i<numClusters;++i)
 	{
@@ -549,6 +628,7 @@ void getClusterAnalysis(const vector<vector<float> >& trajectories,
 		furthest[i] = trajectories[maxIndex];
 	}
 
+	// print the representative in .vtk format
 	std::cout << "Finishing extracting features!" << std::endl;	
 	IOHandler::printFeature("norm"+to_string(normOption)+"_closest.vtk", 
 			closest, sil.sCluster, dimension);
@@ -565,19 +645,22 @@ void getClusterAnalysis(const vector<vector<float> >& trajectories,
 	IOHandler::generateReadme(activityList,timeList,normOption,
 				numClusters,sil.sAverage,birch_threshold);
 
-/* print entropy value for the clustering algorithm */
+	/* print entropy value for the clustering algorithm */
 	IOHandler::writeReadme(entropy,sil,"For norm "+to_string(normOption));
 
-/* measure closest and furthest rotation */
+	/* measure closest and furthest rotation */
 	std::vector<float> closestRot, furthestRot;
 	const float& closestAverage = getRotation(closest, closestRot);
 	const float& furthestAverage = getRotation(furthest, furthestRot);
 
 	IOHandler::writeReadme(closestAverage, furthestAverage);
-
 }
 
 
+/*
+ * @brief Get randome float (0,1)
+ * @return A float value
+ */
 static float randf()
 {
 	return float(rand()/(double)RAND_MAX);

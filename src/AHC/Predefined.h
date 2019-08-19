@@ -6,7 +6,7 @@
 #include "Silhouette.h"
 
 
-
+// the data set class to store relevant information
 struct DataSet
 {
 	vector<vector<float> > dataVec;	//original dataset
@@ -20,6 +20,7 @@ struct DataSet
 	string dataName;
 
 };
+
 
 // define a treeNode structure to store AHC clustering tree
 struct Ensemble
@@ -35,6 +36,7 @@ struct Ensemble
 	Ensemble()
 	{}
 };
+
 
 // remove two elements in template vector
 template <class T>

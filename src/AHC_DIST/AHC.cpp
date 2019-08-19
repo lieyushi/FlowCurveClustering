@@ -1,16 +1,31 @@
+/*
+ * This is the source cpp for the AHC clustering with distance threshold as input
+ */
+
 #include "AHC.h"
 
-/* default constructor */
+/*
+ * @brief The default constructor
+ */
 AHC::AHC() {
 
 }
 
-/* argument constructor with argc and argv */
+
+/*
+ * @brief The constructor with parameters
+ * @param argc: count of argument
+ * @param argv: char* array of argument
+ */
 AHC::AHC(const int& argc, char **argv) {
+
+	// set the data set and norm option
 	setDataset(argc, argv);
 	setNormOption();
 
-	/* very hard to decide whether needed to perform such pre-processing */
+	/* very hard to decide whether needed to perform such pre-processing but still create a class
+	 * object as cached before the pairwise distance matrix computation
+	 */
 	object = MetricPreparation(ds.dataMatrix.rows(), ds.dataMatrix.cols());
 	object.preprocessing(ds.dataMatrix, ds.dataMatrix.rows(),
 			ds.dataMatrix.cols(), normOption);
@@ -20,6 +35,7 @@ AHC::AHC(const int& argc, char **argv) {
 	double timeTemp;
 	gettimeofday(&start, NULL);
 
+	// calculate the distance matrix
 	getDistanceMatrix(ds.dataMatrix, normOption, object);
 
 	gettimeofday(&end, NULL);
@@ -31,13 +47,21 @@ AHC::AHC(const int& argc, char **argv) {
 	getDistRange();
 }
 
-/* destructor */
+
+/*
+ * @brief The destructor for the class
+ */
 AHC::~AHC() {
+	// delete the distance matrix
 	deleteDistanceMatrix(ds.dataMatrix.rows());
 }
 
-/* perform clustering function */
+
+/*
+ * @brief Perform AHC clustering with distance input
+ */
 void AHC::performClustering() {
+
 	std::vector<Ensemble> nodeVec;
 
 	/* perform hierarchical clustering */
@@ -49,6 +73,7 @@ void AHC::performClustering() {
 	std::cin >> clusteringOption;
 	assert(clusteringOption == 1 || clusteringOption == 2);
 
+	// choose AHC by distance threshold or fixed group
 	if (clusteringOption == 1)
 		bottomUp_byGroup(nodeVec);
 	else if (clusteringOption == 2)
@@ -70,7 +95,11 @@ void AHC::performClustering() {
 	extractFeatures(storage, neighborVec, centroid);
 }
 
-/* perform hierarchical clustering by given a group */
+
+/*
+ * @breif Perform bottom-up clustering with cluster number as input
+ * @param nodeVec: A vector for Ensemble objects
+ */
 void AHC::bottomUp_byGroup(std::vector<Ensemble>& nodeVec) {
 	const int& Row = ds.dataMatrix.rows();
 	std::cout
@@ -85,6 +114,7 @@ void AHC::bottomUp_byGroup(std::vector<Ensemble>& nodeVec) {
 	double timeTemp;
 	gettimeofday(&start, NULL);
 
+	// perform the clustering algorithm until the approximate clusters are reached
 	int clusterCount = 0;
 	const int& minExpected = 0.8 * expectedClusters;
 	const int& maxExpected = 1.2 * expectedClusters;
@@ -107,6 +137,7 @@ void AHC::bottomUp_byGroup(std::vector<Ensemble>& nodeVec) {
 			minDist = distanceThreshold;
 	}
 
+	// record relevant information
 	gettimeofday(&end, NULL);
 	timeTemp = ((end.tv_sec - start.tv_sec) * 1000000u + end.tv_usec
 			- start.tv_usec) / 1.e6;
@@ -117,14 +148,17 @@ void AHC::bottomUp_byGroup(std::vector<Ensemble>& nodeVec) {
 	ss.str("");
 	ss << iteration;
 
-	activityList.push_back(
-			"To achieve " + cluster_str + " groups will take " + ss.str()
+	activityList.push_back("To achieve " + cluster_str + " groups will take " + ss.str()
 					+ " binary search and take: ");
 	timeList.push_back(to_string(timeTemp) + " s");
 
 }
 
-/* perform hierarchical clustering by given a threshold */
+
+/*
+ * @brief Perform the bottom-up clustering by threshold
+ * @param nodeVec: The Ensemble vector to be updated
+ */
 void AHC::bottomUp_byThreshold(std::vector<Ensemble>& nodeVec) {
 	std::cout
 			<< "-------------------------------------------------------------------------------"
@@ -132,36 +166,38 @@ void AHC::bottomUp_byThreshold(std::vector<Ensemble>& nodeVec) {
 	std::cout << "Input threshold: [" << distRange[0] << "," << distRange[1]
 			<< "]: ";
 	std::cin >> distanceThreshold;
-	assert(
-			distanceThreshold > distRange[0]
-					&& distanceThreshold < distRange[1]);
+	assert(distanceThreshold > distRange[0] && distanceThreshold < distRange[1]);
 
 	/* would store distance matrix instead because it would save massive time */
 	struct timeval start, end;
 	double timeTemp;
 	gettimeofday(&start, NULL);
 
+	// merge the nodes
 	hierarchicalMerging(nodeVec);
 
+	// record relevant information
 	gettimeofday(&end, NULL);
 	timeTemp = ((end.tv_sec - start.tv_sec) * 1000000u + end.tv_usec
 			- start.tv_usec) / 1.e6;
 	stringstream ss;
 	ss << distanceThreshold;
-	activityList.push_back(
-			"To cluster by distance " + ss.str() + " will take: ");
+	activityList.push_back("To cluster by distance " + ss.str() + " will take: ");
 	timeList.push_back(to_string(timeTemp) + " s");
-
 }
 
-/* perform AHC merging by given a distance threshold */
+
+/*
+ * @brief Perform hierarchical merging for AHC
+ * @param nodeVec: The Ensemble vector to be updated
+ */
 void AHC::hierarchicalMerging(std::vector<Ensemble>& nodeVec) {
 	const int Row = ds.dataMatrix.rows();
 
 	nodeVec.clear();
-//could have used vector, but since there're too many operations inside so should use set
+	//could have used vector, but since there're too many operations inside so should use set
 	nodeVec = std::vector<Ensemble>(Row);
-//create node in forest structure
+	//create node in forest structure
 #pragma omp parallel for schedule(static) num_threads(8)
 	for (int i = 0; i < nodeVec.size(); ++i) {
 		nodeVec[i].index = i;
@@ -257,15 +293,21 @@ void AHC::hierarchicalMerging(std::vector<Ensemble>& nodeVec) {
 	numberOfClusters = nodeVec.size();
 
 	/* use alpha function to sort the group by its size */
-	std::sort(nodeVec.begin(), nodeVec.end(),
-			[](const Ensemble& e1, const Ensemble& e2)
+	std::sort(nodeVec.begin(), nodeVec.end(), [](const Ensemble& e1, const Ensemble& e2)
 			{	return e1.element.size()<e2.element.size() ||(e1.element.size()==e2.element.size()&&e1.index<e2.index);});
 }
 
-/* perform group-labeling information */
-void AHC::setLabel(const std::vector<Ensemble>& nodeVec,
-		vector<vector<int> >& neighborVec, vector<int>& storage,
-		Eigen::MatrixXf& centroid) {
+
+/*
+ * @brief Set label for streamlines from the hierarchical tree
+ * @param nodeVec: The Ensemble vector as input
+ * @param neighborVec: The candidate vector for each cluster
+ * @param storage: The size of clusters to be updated
+ * @param centroid: The centroids of streamlines to be updated
+ */
+void AHC::setLabel(const std::vector<Ensemble>& nodeVec, vector<vector<int> >& neighborVec,
+		vector<int>& storage, Eigen::MatrixXf& centroid)
+{
 // group tag by increasing order
 	int groupID = 0;
 
@@ -273,15 +315,16 @@ void AHC::setLabel(const std::vector<Ensemble>& nodeVec,
 	vector<int> eachContainment;
 
 	// find group id and neighboring vec
-	for (auto iter = nodeVec.begin(); iter != nodeVec.end(); ++iter) {
+	for (auto iter = nodeVec.begin(); iter != nodeVec.end(); ++iter)
+	{
 		eachContainment = (*iter).element;
 		neighborVec[groupID] = eachContainment;
-#pragma omp parallel num_threads(8)
+	#pragma omp parallel num_threads(8)
 		{
-#pragma omp for nowait
+		#pragma omp for nowait
 			for (int i = 0; i < eachContainment.size(); ++i) {
 				group[eachContainment[i]] = groupID;
-#pragma omp critical
+			#pragma omp critical
 				centroid.row(groupID) += ds.dataMatrix.row(eachContainment[i]);
 			}
 		}
@@ -292,10 +335,16 @@ void AHC::setLabel(const std::vector<Ensemble>& nodeVec,
 	}
 }
 
-/* extract features from datasets as representative curves */
-void AHC::extractFeatures(const std::vector<int>& storage,
-		const std::vector<std::vector<int> >& neighborVec,
-		const Eigen::MatrixXf& centroid) {
+
+/*
+ * @brief Extract the features and compute the evaluation metrics
+ * @param storage: size of clusters as input
+ * @param neighborVec: candidate vectors for each cluster
+ * @param centroid: The centroids for each cluster
+ */
+void AHC::extractFeatures(const std::vector<int>& storage, const std::vector<std::vector<int> >& neighborVec,
+		const Eigen::MatrixXf& centroid)
+{
 	const int& Row = ds.dataMatrix.rows();
 	const int& Column = ds.dataMatrix.cols();
 
@@ -308,17 +357,17 @@ void AHC::extractFeatures(const std::vector<int>& storage,
 	/* record labeling information */
 	// IOHandler::generateGroups(neighborVec);
 
-	IOHandler::printClusters(ds.dataVec, group, storage,
-			"norm" + to_string(normOption), ds.fullName, ds.dimension);
+	IOHandler::printClusters(ds.dataVec, group, storage, "norm" + to_string(normOption),
+			ds.fullName, ds.dimension);
 
 	struct timeval start, end;
 	double timeTemp;
 
+	// calculate the evaluation metrics
 	gettimeofday(&start, NULL);
 	Silhouette sil;
-	sil.computeValue(normOption, ds.dataMatrix, ds.dataMatrix.rows(),
-			ds.dataMatrix.cols(), group, object, numberOfClusters, isPBF,
-			neighborVec);
+	sil.computeValue(normOption, ds.dataMatrix, ds.dataMatrix.rows(), ds.dataMatrix.cols(), group,
+			object, numberOfClusters, isPBF, neighborVec);
 	gettimeofday(&end, NULL);
 	timeTemp = ((end.tv_sec - start.tv_sec) * 1000000u + end.tv_usec
 			- start.tv_usec) / 1.e6;
@@ -326,7 +375,6 @@ void AHC::extractFeatures(const std::vector<int>& storage,
 	timeList.push_back(to_string(timeTemp) + " s");
 
 	/* compute the centroid coordinates of each clustered group */
-
 	gettimeofday(&start, NULL);
 
 	vector<vector<float> > closest(numberOfClusters);
@@ -366,6 +414,7 @@ void AHC::extractFeatures(const std::vector<int>& storage,
 		}
 	}
 
+	// calculate the normalized entropy ratio
 	float EntropyRatio;
 	getEntropyRatio(storage, EntropyRatio);
 
@@ -375,6 +424,7 @@ void AHC::extractFeatures(const std::vector<int>& storage,
 	activityList.push_back("Feature extraction takes: ");
 	timeList.push_back(to_string(timeTemp) + " s");
 
+	// calculate the normalized validity measurement
 	ValidityMeasurement vm;
 	vm.computeValue(normOption, ds.dataMatrix, group, object, isPBF);
 	activityList.push_back("AHC Validity measure is: ");
@@ -384,12 +434,14 @@ void AHC::extractFeatures(const std::vector<int>& storage,
 
 	std::cout << "Finishing extracting features!" << std::endl;
 
+	// record relevant information
 	stringstream ss;
 	ss << "norm_" << normOption;
 
 	string linkage = getLinkageStr();
 	string normStr = getNormStr();
 
+	// print the featured information as result
 	IOHandler::printFeature(
 			ds.dataName + "_AHC_Dist_" + linkage + "_closest_" + ss.str()
 					+ ".vtk", closest, sil.sCluster, ds.dimension);
@@ -405,6 +457,7 @@ void AHC::extractFeatures(const std::vector<int>& storage,
 	IOHandler::printToFull(ds.dataVec, group, sil.sCluster,
 			"AHC_Dist_SValueCluster_" + ss.str(), ds.fullName, ds.dimension);
 
+	// generate necessary readme file
 	activityList.push_back("numCluster is: ");
 	timeList.push_back(std::to_string(numberOfClusters));
 
@@ -424,10 +477,14 @@ void AHC::extractFeatures(const std::vector<int>& storage,
 	const float& furthestAverage = getRotation(furthest, furthestRot);
 
 	IOHandler::writeReadme(closestAverage, furthestAverage);
-
 }
 
-/* set dataset from user command */
+
+/*
+ * @brief Set data set and perform necessary operations with user parameters
+ * @param argc: count of arguments
+ * @param argv: char* array of arguments
+ */
 void AHC::setDataset(const int& argc, char **argv) {
 	if (argc != 3) {
 		std::cout << "Input argument should have 3!" << endl
@@ -446,6 +503,7 @@ void AHC::setDataset(const int& argc, char **argv) {
 	assert(PBFjudgement == 1 || PBFjudgement == 0);
 	isPBF = (PBFjudgement == 1);
 
+	// set the sampling option
 	int sampleOption;
 	std::cout << "choose a sampling method for the dataset?" << std::endl
 			<< "1.directly filling with last vertex; 2. uniform sampling."
@@ -453,12 +511,14 @@ void AHC::setDataset(const int& argc, char **argv) {
 	std::cin >> sampleOption;
 	assert(sampleOption == 1 || sampleOption == 2);
 
+	// read from the file
 	IOHandler::readFile(ds.strName, ds.dataVec, ds.vertexCount, ds.dimension,
 			ds.maxElements);
 
 	ds.fullName = ds.strName + "_full.vtk";
 	IOHandler::printVTK(ds.fullName, ds.dataVec, ds.vertexCount, ds.dimension);
 
+	// perform sampling
 	if (sampleOption == 1)
 		IOHandler::expandArray(ds.dataMatrix, ds.dataVec, ds.dimension,
 				ds.maxElements);
@@ -468,6 +528,7 @@ void AHC::setDataset(const int& argc, char **argv) {
 
 	group = std::vector<int>(ds.dataMatrix.rows());
 
+	// choose linkage type
 	std::cout << "---------------------------" << std::endl;
 	std::cout
 			<< "Input linkage option: 0.single linkage, 1.complete linkage, 2.average linkage"
@@ -476,7 +537,10 @@ void AHC::setDataset(const int& argc, char **argv) {
 	assert(linkageOption == 0 || linkageOption == 1 || linkageOption == 2);
 }
 
-/* set norm option, must be within 0-12 */
+
+/*
+ * @brief Set norm option
+ */
 void AHC::setNormOption() {
 	std::cout << "Input a norm option 0-12!" << std::endl;
 	std::cin >> normOption;
@@ -516,7 +580,10 @@ void AHC::setNormOption() {
 	}
 }
 
-/* set threshold for AHC function */
+
+/*
+ * @brief Calculate the range of distance matrix
+ */
 void AHC::getDistRange() {
 	const float& Percentage = 0.05;
 	const int& Row = ds.dataMatrix.rows();
@@ -526,7 +593,7 @@ void AHC::getDistRange() {
 	const int& totalSize = int(Percentage * Row);
 #pragma omp parallel num_threads(8)
 	{
-#pragma omp for nowait
+	#pragma omp for nowait
 		for (int i = 0; i < totalSize; ++i) {
 			float tempDist, i_min = FLT_MAX, i_max = FLT_MIN;
 			for (int j = 0; j < Row; ++j) {
@@ -542,8 +609,7 @@ void AHC::getDistRange() {
 					i_max = tempDist;
 				}
 			}
-
-#pragma omp critical
+	#pragma omp critical
 			{
 				distRange[0] = std::min(distRange[0], i_min);
 				distRange[1] = std::max(distRange[1], i_max);
@@ -551,12 +617,21 @@ void AHC::getDistRange() {
 		}
 	}
 
-	std::cout << "Distance threshold is: [" << distRange[0] << ", "
-			<< distRange[1] << "]." << std::endl;
+	std::cout << "Distance threshold is: [" << distRange[0] << ", " << distRange[1] << "]."
+			<< std::endl;
 }
 
-const float AHC::getDistAtNodes(const vector<int>& firstList,
-		const vector<int>& secondList, const int& Linkage) {
+
+/*
+ * @brief Get distance between nodes by linkage type
+ * @param firstList: The first node
+ * @param secondList: The second node
+ * @param Linkage: The linkage type
+ * @return A float value for the distance
+ */
+const float AHC::getDistAtNodes(const vector<int>& firstList, const vector<int>& secondList,
+		const int& Linkage)
+{
 	const int& m = firstList.size();
 	const int& n = secondList.size();
 	assert(m != 0);
@@ -566,69 +641,77 @@ const float AHC::getDistAtNodes(const vector<int>& firstList,
 	 * 2: average linkage, sum/x_i/y_j
 	 */
 	float result, value;
-	switch (Linkage) {
-	case 0:	//single linkage
+	switch (Linkage)
 	{
-		result = FLT_MAX;
-#pragma omp parallel for reduction(min:result) num_threads(8)
-		for (int i = 0; i < m; ++i) {
-			for (int j = 0; j < n; ++j) {
-				if (distanceMatrix)
-					value = distanceMatrix[firstList[i]][secondList[j]];
-				else
-					value = getDisimilarity(ds.dataMatrix, firstList[i],
-							secondList[j], normOption, object);
-				result = std::min(result, value);
+	case 0:	//single linkage
+		{
+			result = FLT_MAX;
+		#pragma omp parallel for reduction(min:result) num_threads(8)
+			for (int i = 0; i < m; ++i) {
+				for (int j = 0; j < n; ++j) {
+					if (distanceMatrix)
+						value = distanceMatrix[firstList[i]][secondList[j]];
+					else
+						value = getDisimilarity(ds.dataMatrix, firstList[i],
+								secondList[j], normOption, object);
+					result = std::min(result, value);
+				}
 			}
 		}
-	}
 		break;
 
 	case 1:	//complete linkage
-	{
-		result = FLT_MIN;
-#pragma omp parallel for reduction(max:result) num_threads(8)
-		for (int i = 0; i < m; ++i) {
-			for (int j = 0; j < n; ++j) {
-				if (distanceMatrix)
-					value = distanceMatrix[firstList[i]][secondList[j]];
-				else
-					value = getDisimilarity(ds.dataMatrix, firstList[i],
-							secondList[j], normOption, object);
-				result = std::max(result, value);
+		{
+			result = FLT_MIN;
+		#pragma omp parallel for reduction(max:result) num_threads(8)
+			for (int i = 0; i < m; ++i) {
+				for (int j = 0; j < n; ++j) {
+					if (distanceMatrix)
+						value = distanceMatrix[firstList[i]][secondList[j]];
+					else
+						value = getDisimilarity(ds.dataMatrix, firstList[i],
+								secondList[j], normOption, object);
+					result = std::max(result, value);
+				}
 			}
 		}
-	}
 		break;
 
-	case 2: {
-		result = 0;
-#pragma omp parallel for reduction(+:result) num_threads(8)
-		for (int i = 0; i < m; ++i) {
-			for (int j = 0; j < n; ++j) {
-				if (distanceMatrix)
-					value = distanceMatrix[firstList[i]][secondList[j]];
-				else
-					value = getDisimilarity(ds.dataMatrix, firstList[i],
-							secondList[j], normOption, object);
-				result += value;
+	case 2: 	// average linkage
+		{
+			result = 0;
+		#pragma omp parallel for reduction(+:result) num_threads(8)
+			for (int i = 0; i < m; ++i) {
+				for (int j = 0; j < n; ++j) {
+					if (distanceMatrix)
+						value = distanceMatrix[firstList[i]][secondList[j]];
+					else
+						value = getDisimilarity(ds.dataMatrix, firstList[i],
+								secondList[j], normOption, object);
+					result += value;
+				}
 			}
+			result /= m * n;
 		}
-		result /= m * n;
-	}
 		break;
 
-	default:
+	default:	// error
 		std::cout << "error!" << std::endl;
 		exit(1);
 	}
 	return result;
 }
 
-/* get string for linkage type */
-string AHC::getLinkageStr() {
+
+/*
+ * @brief Get string for the linkage type
+ * @return String of linkage type
+ */
+string AHC::getLinkageStr()
+{
 	string result;
-	switch (linkageOption) {
+	switch (linkageOption)
+	{
 	case 0:
 		result = "single";
 		break;
@@ -644,9 +727,14 @@ string AHC::getLinkageStr() {
 	return result;
 }
 
-/* get entropy ratio, lower value tells dinstinguishable cluster while higher value tells a more uniformality. */
-void AHC::getEntropyRatio(const std::vector<int>& storage,
-		float& EntropyRatio) {
+
+/*
+ * @brief Get entropy ratio
+ * @param storage: size of clusters
+ * @param EntropyRatio: The normalized entropy to be updated
+ */
+void AHC::getEntropyRatio(const std::vector<int>& storage, float& EntropyRatio)
+{
 	EntropyRatio = 0;
 	const int& Row = ds.dataMatrix.rows();
 	for (int i = 0; i < storage.size(); ++i) {
@@ -656,15 +744,25 @@ void AHC::getEntropyRatio(const std::vector<int>& storage,
 	EntropyRatio /= log2f(storage.size());
 }
 
-/* get norm string */
+
+/*
+ * @brief Get string for norm
+ * @return String of norm
+ */
 string AHC::getNormStr() {
 	stringstream ss;
 	ss << normOption;
 	return ss.str();
 }
 
-/* get entropy ratio string */
-string AHC::getEntropyStr(const float& EntropyRatio) {
+
+/*
+ * @brief Get the string for entropy value
+ * @param EntropyRatio: The entropy value
+ * @return String type
+ */
+string AHC::getEntropyStr(const float& EntropyRatio)
+{
 	stringstream ss;
 	ss << EntropyRatio;
 	return ss.str();
