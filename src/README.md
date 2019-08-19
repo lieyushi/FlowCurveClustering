@@ -7,6 +7,7 @@ As can be seen from the names of the folders, each folder represents the related
 	- similarity measure calculation 
 	- optimal cluster number search 
 	- clustering evaluation metric calculation
+	- a global pointer variable **called distanceMatrix**
 
 - **HelperClass** [folder instruction](HelperClass/README.md) includes:
 	- pathline resampling for blood flow that restrictly obeys the time matching criterion
@@ -35,3 +36,10 @@ As can be seen from the names of the folders, each folder represents the related
 	- PCA-based clustering
 	- K-means with different similarity measures
 
+- **Different clustering folders** includes
+	- Clustering algorithm code for the given distance matrix
+	- Clustering evaluation metric value calculation
+	- Cluster representative calculation
+	- In order to further accelerate the distance matrix caluation, for distance matrix of each similarity measure, if the **file** contains the distance matrix values in **../dataset/** (e.g., 0 file for Euclidean distance)
+		- exists, it will **read the distance matrix from the local file**
+		- does not exist, it will **calculate the distance matrix** from scratch and **store the distance values in the local file for further calculation**
