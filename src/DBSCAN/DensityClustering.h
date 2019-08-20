@@ -8,6 +8,7 @@
 #include <queue>
 
 
+// point type in DBSCAN
 enum PointType
 {
 	CORE = 0,
@@ -15,6 +16,8 @@ enum PointType
 	NOISE
 };
 
+
+// point node struct
 struct PointNode
 {
 	int type;
@@ -27,6 +30,8 @@ struct PointNode
 	{}
 };
 
+
+// data set struct
 struct DataSet
 {
 	vector<vector<float> > dataVec;
@@ -46,6 +51,7 @@ struct DataSet
 };
 
 
+// DBSCAN clustering class object
 class DensityClustering
 {
 public:
@@ -73,15 +79,18 @@ private:
 
 	void setNormOption();	//get normOption from user input
 
+	// DBSCAN clustering
 	void DBSCAN(const float& radius_eps,
 				const int& minPts);
 
+	// expand cluster
 	void expandCluster(const int& index,
 					   vector<int>& neighbor,
 					   const int& cluster_id,
 					   const float& radius_eps,
 					   const int& minPts);
 
+	// region query algorithm
 	const vector<int> regionQuery(const int& index,
 								  const float& radius_eps);
 

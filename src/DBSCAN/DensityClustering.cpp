@@ -6,25 +6,34 @@ std::vector<string> timeList;
 float multiTimes;
 int minPts;
 
-DensityClustering::DensityClustering(const int& argc, char **argv) {
 
+/*
+ * @brief DBSCAN constructor with parameters
+ * @param argc: The count of arguments
+ * @param argv: The char* array with data sets
+ */
+DensityClustering::DensityClustering(const int& argc, char **argv)
+{
 	struct timeval start, end;
 	double timeTemp;
 	gettimeofday(&start, NULL);
 
+	// set data set and norm option
 	setDataset(argc, argv);
 	setNormOption();
 
+	// create the object for distance matrix computation
 	object = MetricPreparation(ds.dataMatrix.rows(), ds.dataMatrix.cols());
 	object.preprocessing(ds.dataMatrix, ds.dataMatrix.rows(),
 			ds.dataMatrix.cols(), normOption);
 
 	/* if the dataset is not PBF, then should record distance matrix for Gamma matrix compution */
-	if (!isPBF) {
+	if (!isPBF)
+	{
 		deleteDistanceMatrix(ds.dataMatrix.rows());
 
 		std::ifstream distFile(("../dataset/"+to_string(normOption)).c_str(), ios::in);
-		if(distFile.fail())
+		if(distFile.fail())	// the distance matrix file not exists, will create new one
 		{
 			distFile.close();
 			getDistanceMatrix(ds.dataMatrix, normOption, object);
@@ -39,7 +48,7 @@ DensityClustering::DensityClustering(const int& argc, char **argv) {
 			}
 			distFileOut.close();
 		}
-		else
+		else	// distance matrix file exists, directly read from the file
 		{
 			std::cout << "read distance matrix..." << std::endl;
 
@@ -82,19 +91,29 @@ DensityClustering::DensityClustering(const int& argc, char **argv) {
 	nodeVec = vector<PointNode>(ds.dataMatrix.rows(), PointNode());
 }
 
+
+/*
+ * @brief Destructor
+ */
 DensityClustering::~DensityClustering() {
 
 }
 
+
+/*
+ * @brief Perform DBSCAN clustering
+ */
 void DensityClustering::performClustering() {
 
 	struct timeval start, end;
 	double timeTemp;
 	gettimeofday(&start, NULL);
 
+	// read in the minPts as a parameter
 	minPts = setMinPts();
 	float distThreshold = getDistThreshold(minPts);
 
+	// perform DBSCAN clustering
 	DBSCAN(distThreshold, minPts);
 
 	gettimeofday(&end, NULL);
@@ -103,38 +122,50 @@ void DensityClustering::performClustering() {
 	activityList.push_back("DBSCAN clustering for norm "+to_string(normOption)+" takes: ");
 	timeList.push_back(to_string(timeTemp) + " s");
 
+	// extract features and calculate the clustering evaluation metrics
 	extractFeatures(distThreshold, minPts);
 }
 
-const float DensityClustering::getDistThreshold(const int& minPts) {
-	int distOption = 2;
 
+/*
+ * @brief Get the distance threshold
+ * @param minPts: The min points for the DBSCAN
+ */
+const float DensityClustering::getDistThreshold(const int& minPts)
+{
+	int distOption = 2;	// set the default parameter type
 	/*
 	 std::cout << "Choose distThreshold setup option: 1.user input, 2.minPts-th dist." << std::endl;
 	 std::cin >> distOption;*/
 
 	assert(distOption == 1 || distOption == 2);
 
-	if (distOption == 1) {
+	if (distOption == 1) 	// if input for the radius, should let the user know the distance range
+	{
 		float minDist, maxDist;
 		getDistRange(minDist, maxDist);
 		std::cout << "Distance range is [" << minDist << ", " << maxDist << "]."
 				<< std::endl;
 		multiTimes = setTimesMin(minDist, maxDist);
 		return multiTimes * maxDist;
-	} else if (distOption == 2) {
+	} else if (distOption == 2) {	// otherwise, directly get the average distance
 		/* should be pointed as average distance of minPts-th dist */
 		return getAverageDist(minPts);
 	}
 }
 
-/* compute minPts-th dist for all candidates */
-const float DensityClustering::getAverageDist(const int& minPts) {
+
+/*
+ * @brief Compute the minPts-th dist for all candidates
+ * @param minPts: The min point numbers for the DBSCAN clustering
+ */
+const float DensityClustering::getAverageDist(const int& minPts)
+{
 	float result = 0.0;
 	const int& rowSize = ds.dataMatrix.rows();
 #pragma omp parallel num_threads(8)
 	{
-#pragma omp for nowait
+	#pragma omp for nowait
 		for (int i = 0; i < rowSize; ++i) {
 			/* a linear k*n implementation by directly using a vector for linear mapping */
 			/*
@@ -173,34 +204,51 @@ const float DensityClustering::getAverageDist(const int& minPts) {
 				minDistArray.push(tempDist);
 				if (minDistArray.size() > minPts)
 					minDistArray.pop();
-
 			}
 
-#pragma omp critical
+		#pragma omp critical
 			result += minDistArray.top();
 		}
 	}
 	return result / rowSize;
 }
 
+
+/*
+ * @brief Perform the DBSCAN clustering with given parameters
+ * @param radius_eps: The radius to check the neighboring information
+ * @param minPts: The minPts for the DBSCAN clustering
+ */
 void DensityClustering::DBSCAN(const float& radius_eps, const int& minPts) {
 	int C = 0;
-	for (int i = 0; i < ds.dataMatrix.rows(); ++i) {
+	for (int i = 0; i < ds.dataMatrix.rows(); ++i)
+	{
 		if (nodeVec[i].visited)
 			continue;
 		nodeVec[i].visited = true;
 		vector<int> neighbor = regionQuery(i, radius_eps);
 		if (neighbor.size() < minPts)
 			nodeVec[i].type = NOISE;
-		else {
+		else
+		{
 			expandCluster(i, neighbor, C, radius_eps, minPts);
 			++C;
 		}
 	}
 }
 
+
+/*
+ * @brief Expand the cluster with candidates that lie within range of the target
+ * @param index: The index of candidate streamlines
+ * @param neighbor: The neighborhood candidates found
+ * @param cluster_id: The label for the clusters
+ * @param radius_eps: The radius for searching around the neighborhood
+ * @param minPts: The min number of points for the DBSCAN clustering
+ */
 void DensityClustering::expandCluster(const int& index, vector<int>& neighbor,
-	const int& cluster_id, const float& radius_eps, const int& minPts) {
+	const int& cluster_id, const float& radius_eps, const int& minPts)
+{
 	nodeVec[index].group = cluster_id;
 	int insideElement;
 	for (int i = 0; i < neighbor.size(); ++i) {
@@ -218,6 +266,13 @@ void DensityClustering::expandCluster(const int& index, vector<int>& neighbor,
 	}
 }
 
+
+/*
+ * @brief Perform the region-based query for the target streamline within a given radius
+ * @param index: The index of the target streamlines
+ * @param radius_eps: The radius of neighborhood checking
+ * @return A vector<int> object that contains the region candidates
+ */
 const vector<int> DensityClustering::regionQuery(const int& index,
 		const float& radius_eps) {
 	vector<int> neighborArray;
@@ -239,6 +294,12 @@ const vector<int> DensityClustering::regionQuery(const int& index,
 	return neighborArray;
 }
 
+
+/*
+ * @brief Set the data set from the arguments
+ * @param argc: Count of arguments
+ * @param argv: The argument string type
+ */
 void DensityClustering::setDataset(const int& argc, char **argv) {
 	if (argc != 3) {
 		std::cout << "Input argument should have 3!" << endl
@@ -256,11 +317,13 @@ void DensityClustering::setDataset(const int& argc, char **argv) {
 	assert(PBFjudgement == 1 || PBFjudgement == 0);
 	isPBF = (PBFjudgement == 1);
 
+	// check whether it is pathlines or not
 	std::cout << "It is a pathlines dataset? 1.Yes, 0.No" << std::endl;
 	std::cin >> PBFjudgement;
 	assert(PBFjudgement == 1 || PBFjudgement == 0);
 	isPathlines = (PBFjudgement == 1);
 
+	// decide the sampling strategy and operation for the given data sets
 	int sampleOption;
 
 	if(isPathlines)
@@ -268,29 +331,30 @@ void DensityClustering::setDataset(const int& argc, char **argv) {
 	else
 	{
 		std::cout << "choose a sampling method for the dataset?" << std::endl
-				<< "1.directly filling with last vertex; 2. uniform sampling; 3. equal-arc sampling. "
-				<< std::endl;
+				<< "1.directly filling with last vertex; 2. uniform sampling (recommended!); "
+			    << "3. equal-arc sampling. " << std::endl;
 		std::cin >> sampleOption;
 	}
 	assert(sampleOption == 1 || sampleOption == 2 || sampleOption == 3);
 
-	IOHandler::readFile(ds.strName, ds.dataVec, ds.vertexCount, ds.dimension,
-			ds.maxElements);
+	// read the coordinates from the file
+	IOHandler::readFile(ds.strName, ds.dataVec, ds.vertexCount, ds.dimension, ds.maxElements);
 
 	ds.fullName = ds.strName + "_differentNorm_full.vtk";
 	IOHandler::printVTK(ds.fullName, ds.dataVec, ds.vertexCount, ds.dimension);
 
 	if (sampleOption == 1)
-		IOHandler::expandArray(ds.dataMatrix, ds.dataVec, ds.dimension,
-				ds.maxElements);
+		IOHandler::expandArray(ds.dataMatrix, ds.dataVec, ds.dimension, ds.maxElements);
 	else if (sampleOption == 2)
-		IOHandler::sampleArray(ds.dataMatrix, ds.dataVec, ds.dimension,
-				ds.maxElements);
+		IOHandler::sampleArray(ds.dataMatrix, ds.dataVec, ds.dimension, ds.maxElements);
 	else if (sampleOption == 3)
-		IOHandler::uniformArcSampling(ds.dataMatrix, ds.dataVec, ds.dimension,
-				ds.maxElements);
+		IOHandler::uniformArcSampling(ds.dataMatrix, ds.dataVec, ds.dimension, ds.maxElements);
 }
 
+
+/*
+ * @brief Read the norm option from user input
+ */
 void DensityClustering::setNormOption() {
 
 	if(isPathlines)
@@ -328,7 +392,14 @@ void DensityClustering::setNormOption() {
 	 */
 }
 
-void DensityClustering::getDistRange(float& minDist, float& maxDist) {
+
+/*
+ * @brief Calculate the minimal and maximal distance range for the user input of radius
+ * @param minDist: The minimal distance to be updated
+ * @param maxDist: The maximal distance to be updated
+ */
+void DensityClustering::getDistRange(float& minDist, float& maxDist)
+{
 	const float& Percentage = 0.1;
 	const int& Rows = ds.dataMatrix.rows();
 	const int& chosen = int(Percentage * Rows);
@@ -336,7 +407,7 @@ void DensityClustering::getDistRange(float& minDist, float& maxDist) {
 	maxDist = -1.0;
 #pragma omp parallel num_threads(8)
 	{
-#pragma omp for nowait
+	#pragma omp for nowait
 		for (int i = 0; i < chosen; ++i) {
 			float tempDist;
 			for (int j = 0; j < Rows; ++j) {
@@ -347,7 +418,7 @@ void DensityClustering::getDistRange(float& minDist, float& maxDist) {
 				else
 					tempDist = getDisimilarity(ds.dataMatrix.row(i),
 							ds.dataMatrix.row(j), i, j, normOption, object);
-#pragma omp critical
+				#pragma omp critical
 				{
 					if (tempDist < minDist)
 						minDist = tempDist;
@@ -360,6 +431,10 @@ void DensityClustering::getDistRange(float& minDist, float& maxDist) {
 	std::cout << minDist << " " << maxDist << std::endl;
 }
 
+
+/*
+ * @brief Set the minPts parameter, default value 6 is already enough for our paper
+ */
 const int DensityClustering::setMinPts() {
 	/*std::cout << std::endl;
 	std::cout << "Input the minPts for DBSCAN in [0" << ", "
@@ -373,8 +448,15 @@ const int DensityClustering::setMinPts() {
 	return minPts;
 }
 
-const float DensityClustering::setTimesMin(const float& minDist,
-		const float& maxDist) {
+
+/*
+ * @brief Select a ratio between [0,1] for the radius input
+ * @param minDist: The minimal distance value as input
+ * @param maxDist: The maximal distance value as input
+ * @return A radius for the DBSCAN clustering after the user input
+ */
+const float DensityClustering::setTimesMin(const float& minDist, const float& maxDist)
+{
 	std::cout << std::endl;
 	float lowerBound = minDist / maxDist;
 	std::cout << "Input the multiplication for DBSCAN radius in [" << lowerBound
@@ -388,15 +470,22 @@ const float DensityClustering::setTimesMin(const float& minDist,
 	return multiTimes;
 }
 
-void DensityClustering::extractFeatures(const float& radius_eps,
-		const int& minPts) {
+
+/*
+ * @brief Extract features for the clustering results and calculate the clustering evaluation metrics
+ * @param radius_eps: The radius for DBSCAN clustering
+ * @param minPts: The minPts parameter for DBSCAN
+ */
+void DensityClustering::extractFeatures(const float& radius_eps, const int& minPts)
+{
+	// find the maximal cluster labels with openmp critical operation, could be disabled
 	int maxGroup = -INT_MAX + 1;
 #pragma omp parallel num_threads(8)
 	{
-#pragma omp for nowait
+	#pragma omp for nowait
 		for (int i = 0; i < nodeVec.size(); ++i) {
 			int groupID = nodeVec[i].group;
-#pragma omp critical
+		#pragma omp critical
 			{
 				if (groupID != -1 && groupID > maxGroup)
 					maxGroup = groupID;
@@ -439,7 +528,6 @@ void DensityClustering::extractFeatures(const float& radius_eps,
 	}
 
 	/* in case -1, we use 0 to record number of -1 as noise */
-
 	std::vector<int> item_cids(nodeVec.size());
 	std::vector<std::vector<int> > storage(numClusters);
 	/* -1 group as group[0] */
@@ -459,8 +547,8 @@ void DensityClustering::extractFeatures(const float& radius_eps,
 	}
 	entropy = -entropy / log2f(numClusters);
 
-	IOHandler::printClustersNoise(ds.dataVec, item_cids, container,
-			"norm" + to_string(normOption), ds.fullName, ds.dimension);
+	IOHandler::printClustersNoise(ds.dataVec, item_cids, container, "norm" + to_string(normOption),
+			ds.fullName, ds.dimension);
 
 	struct timeval start, end;
 	double timeTemp;
@@ -477,21 +565,23 @@ void DensityClustering::extractFeatures(const float& radius_eps,
 
 	gettimeofday(&start, NULL);
 
-	Eigen::MatrixXf centroid = MatrixXf::Zero(numClusters,
-			ds.dataMatrix.cols());
+	// compute the centroid coordinates for the clusters
+	Eigen::MatrixXf centroid = MatrixXf::Zero(numClusters, ds.dataMatrix.cols());
 	vector<vector<float> > cenVec(numClusters);
 #pragma omp parallel for schedule(static) num_threads(8)
-	for (int i = 0; i < numClusters; ++i) {
+	for (int i = 0; i < numClusters; ++i)
+	{
 		const std::vector<int>& groupRow = storage[i];
-		for (int j = 0; j < groupRow.size(); ++j) {
+		for (int j = 0; j < groupRow.size(); ++j)
+		{
 			centroid.row(i) += ds.dataMatrix.row(groupRow[j]);
 		}
 		centroid.row(i) /= groupRow.size();
 		const Eigen::VectorXf& vec = centroid.row(i);
-		cenVec[i] = vector<float>(vec.data(),
-				vec.data() + ds.dataMatrix.cols());
+		cenVec[i] = vector<float>(vec.data(), vec.data() + ds.dataMatrix.cols());
 	}
 
+	// extract the streamlines closest and furthest to the centroids for each cluster
 	vector<vector<float> > closest(numClusters);
 	vector<vector<float> > furthest(numClusters);
 
@@ -524,6 +614,7 @@ void DensityClustering::extractFeatures(const float& radius_eps,
 	activityList.push_back("Feature extraction takes: ");
 	timeList.push_back(to_string(timeTemp) + " s");
 
+	// calculate the normalized validity measurement
 	ValidityMeasurement vm;
 	vm.computeValue(normOption, ds.dataMatrix, item_cids, object, isPBF);
 	activityList.push_back("Validity measure is: ");
@@ -531,16 +622,18 @@ void DensityClustering::extractFeatures(const float& radius_eps,
 	fc_ss << vm.f_c;
 	timeList.push_back(fc_ss.str());
 
+	// calculate the silhouette, db index and gamma statistics for the evaluation
 	gettimeofday(&start, NULL);
 	Silhouette sil;
-	sil.computeValue(normOption, ds.dataMatrix, ds.dataMatrix.rows(),
-			ds.dataMatrix.cols(), item_cids, object, numClusters, isPBF);
+	sil.computeValue(normOption, ds.dataMatrix, ds.dataMatrix.rows(), ds.dataMatrix.cols(),
+			item_cids, object, numClusters, isPBF);
 	gettimeofday(&end, NULL);
 	timeTemp = ((end.tv_sec - start.tv_sec) * 1000000u + end.tv_usec
 			- start.tv_usec) / 1.e6;
 	activityList.push_back("Silhouette calculation takes: ");
 	timeList.push_back(to_string(timeTemp) + " s");
 
+	// print the cluster representatives
 	std::cout << "Finishing extracting features!" << std::endl;
 	IOHandler::printFeature("norm" + to_string(normOption) + "_closest.vtk",
 			closest, sil.sCluster, ds.dimension);
@@ -556,6 +649,7 @@ void DensityClustering::extractFeatures(const float& radius_eps,
 			"norm" + to_string(normOption) + "_SValueCluster", ds.fullName,
 			ds.dimension);
 
+	// record some time for readme
 	activityList.push_back("Norm option is: ");
 	timeList.push_back(to_string(normOption));
 
