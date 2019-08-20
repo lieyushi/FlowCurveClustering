@@ -31,6 +31,7 @@ struct MultiVariate
 };
 
 
+// create a class that contains the index and the discrete curvature
 struct CurvatureObject
 {
 	float curvature;
@@ -44,6 +45,7 @@ struct CurvatureObject
 };
 
 
+// define the compare function for calling the heap operation
 class CompareFunc
 {
 public:

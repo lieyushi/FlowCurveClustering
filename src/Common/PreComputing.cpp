@@ -1,6 +1,7 @@
 #include "PreComputing.h"
 
 
+// calculate the sequence values for a given streamline coordinate
 void getSequence(const VectorXf& array, 
 				 const int& size, 
 				 std::vector<float>& rowSequence)
@@ -34,6 +35,7 @@ void getSequence(const VectorXf& array,
 }
 
 
+// calculate the averaged discrete curvature on the streamline coordinate
 const float getRotation(const VectorXf& array, 
 						const int& size)
 {
@@ -59,6 +61,7 @@ const float getRotation(const VectorXf& array,
 }
 
 
+// get the normalized multivariate w.r.t. segments of the streamline
 void getNormalMultivariate(const VectorXf& array, 
 				 	 	   const int& size, 
 				 	 	   MultiVariate& rowSequence)
@@ -98,7 +101,7 @@ void getNormalMultivariate(const VectorXf& array,
 }
 
 
-
+// get the fixed sequence for the streamline
 void getEachFixedSequence(const VectorXf& array, 
 				 		  const int& size, 
 				 		  std::vector<float>& rowSequence)
@@ -137,6 +140,7 @@ void getEachFixedSequence(const VectorXf& array,
 }
 
 
+// get the unnormalized multivariate w.r.t. segments of the streamline coordinates
 void getUnnormalizedMultivariate(const VectorXf& array, 
 				 	 	  		 const int& size, 
 				 	 	  		 MultiVariate& rowSequence)
@@ -176,6 +180,7 @@ void getUnnormalizedMultivariate(const VectorXf& array,
 }
 
 
+// get the unit direction for each streamline
 void getUnitDirection_byEach(const VectorXf& array, 
 							 const int& pointNum, 
 							 VectorXf& direction)
@@ -205,6 +210,7 @@ void getUnitDirection_byEach(const VectorXf& array,
 }							 
 
 
+// get the pairwise each attribute for the streamline
 void getPairWise_byEach(const VectorXf& data,
 						const int& size,
 					 	std::vector<float>& wiseVec,

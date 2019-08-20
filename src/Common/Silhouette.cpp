@@ -1,5 +1,13 @@
+/*
+ * This class is to calculate the silhouette, Gamma statistics and DB index for clustering evaluation
+ */
+
 #include "Silhouette.h"
 
+
+/*
+ * @brief Default constructor to create storage for the silhouette value
+ */
 Silhouette::Silhouette()
 {
 	sData = std::vector<float>();
@@ -7,12 +15,18 @@ Silhouette::Silhouette()
 }
 
 
+/*
+ * @brief Destructor to empty the vector memory
+ */
 Silhouette::~Silhouette()
 {
 	reset();
 }
 
 
+/*
+ * @brief Reset the member variables in the silhouette class
+ */
 void Silhouette::reset()
 {
 	sData.clear();
@@ -20,6 +34,18 @@ void Silhouette::reset()
 	sAverage = 0;
 }
 
+
+/*
+ * @brief Compute the silhouette value with given input information
+ * @param normOption: The norm type
+ * @param array: The coordinate matrix of the streamlines
+ * @param Row: The size of the row
+ * @param Column: The column size
+ * @param group: The labels for all the streamlines
+ * @param object: A MetricPerparation object for distance matrix computation
+ * @param groupNumber: how many clusters are as input
+ * @param isPBF: A bool variable to tell whether the coordinates are from PBF fluid simulation or not
+ */
 void Silhouette::computeValue(const int& normOption,
 						   	  const MatrixXf& array, 
 						   	  const int& Row, 
@@ -44,13 +70,19 @@ void Silhouette::computeValue(const int& normOption,
 		else
 			storage[group[i]].push_back(i);
 	}
-
+	// compute the value
 	computeValue(normOption, array, Row, Column, group, object, groupNumber, isPBF, storage);
 
 }
 
 
-/* this is for PCA silhouette computing where only Euclidean space in projected-space is considered */
+/*
+ * @brief Compute the silhouette value for PCA based input, so it will be calculated using Euclidean distance
+ * @param array: The matrix coordinates of the dimensionality reduced space
+ * @param group: The labels for different streamlines
+ * @param groupNumber: The number of clusters that are formed
+ * @param isPBF: The bool variable to tell whether it's PBF fluid simulation or not
+ */
 void Silhouette::computeValue(const Eigen::MatrixXf& array,
 							  const std::vector<int>& group,
 							  const int& groupNumber,
@@ -81,7 +113,7 @@ void Silhouette::computeValue(const Eigen::MatrixXf& array,
 
 	/* if the silhouett computing is not for PBF dataset, then would use distanceMatrix */
 	Eigen::MatrixXf distM, idealDistM;
-	if(!isPBF)
+	if(!isPBF)	// not from PBF, so the distance matrix can be assigned
 	{
 		getMatrixM(array,group,storage,distM,idealDistM);
 	}
@@ -97,7 +129,7 @@ void Silhouette::computeValue(const Eigen::MatrixXf& array,
 	computeDBIndex(array, group, storage);
 	std::cout << "DB index is " << dbIndex << std::endl;
 	/* compute Gamma statistic for distM and idealDistM */
-	if(!isPBF)
+	if(!isPBF)	// only compute Gamma statistics for non-PBF data set
 	{
 		std::cout << "Compute gamma statistics..." << std::endl;
 		computeGammaStatistic(distM,idealDistM);
@@ -110,7 +142,18 @@ void Silhouette::computeValue(const Eigen::MatrixXf& array,
 }
 
 
-/* this is for generate value computation for normOption */
+/*
+ * @brief Compute the three clustering evaluation metrics for general norm input
+ * @param normOption: The norm option
+ * @param array: The matrix coordinates of the streamlines
+ * @param Row: The row size
+ * @param Column: The column size
+ * @param group: The labels for all the streamlines
+ * @param object: The MetricPreparation object for distance matrix computation
+ * @param groupNumber: number of clusters as input
+ * @param isPBF: The bool to say whether it is from PBF or not
+ * @param storage: The candidates for each cluster
+ */
 void Silhouette::computeValue(const int& normOption,
 							  const MatrixXf& array,
 							  const int& Row,
@@ -157,7 +200,15 @@ void Silhouette::computeValue(const int& normOption,
 }
 
 
-
+/*
+ * @brief Compute the A_i for silhouette value calculation
+ * @param storage: The candidates included for all the clusters
+ * @param group: The cluster labels of streamlines
+ * @param array: The coordinates of the streamlines
+ * @param index: The target streamline
+ * @param object: The MetricPreparation object
+ * @param normOption: The norm option
+ */
 const float Silhouette::getA_i(const std::vector<std::vector<int> >& storage,
 							   const std::vector<int>& group,
 						 	   const MatrixXf& array,
@@ -196,6 +247,15 @@ const float Silhouette::getA_i(const std::vector<std::vector<int> >& storage,
 }
 
 
+/*
+ * @brief Compute the B_i for silhouette value calculation
+ * @param storage: The candidates included for all the clusters
+ * @param group: The cluster labels of streamlines
+ * @param array: The coordinates of the streamlines
+ * @param index: The target streamline
+ * @param object: The MetricPreparation object
+ * @param normOption: The norm option
+ */
 const float Silhouette::getB_i(const std::vector<std::vector<int> >& storage,
 							   const std::vector<int>& group,
 							   const MatrixXf& array,
@@ -234,6 +294,14 @@ const float Silhouette::getB_i(const std::vector<std::vector<int> >& storage,
 }
 
 
+/*
+ * @brief Compute the similarity distance between two streamlines
+ * @param first: The index of first streamline
+ * @param second: The index of second streamline
+ * @param object: The MetricPreparation class object
+ * @param array: The matrix coordinates
+ * @param normOption: The norm option
+ */
 const float Silhouette::getDist(const int& first,
 								const int& second,
 								const MetricPreparation& object,
@@ -256,7 +324,14 @@ const float Silhouette::getDist(const int& first,
 }
 
 
-/* this is for PCA silhouette computing where only Euclidean space in projected-space is considered */
+/*
+ * @brief Compute the distM (distance matrix) and idealDistM (ideal distance matrix) for PCA only
+ * @param cArray: The matrix coordinates of the streamlines
+ * @param group: The labels for all the streamlines
+ * @param storage: The candidates inside all the clusters
+ * @param distM: The distance matrix to be assigned the value
+ * @param idealDist: The ideal distance matrix with 0 and 1
+ */
 void Silhouette::getMatrixM(const Eigen::MatrixXf& cArray,
 		  	  				const std::vector<int>& group,
 							const std::vector<std::vector<int> >& storage,
@@ -301,7 +376,13 @@ void Silhouette::getMatrixM(const Eigen::MatrixXf& cArray,
 }
 
 
-/* this is for the other clustering algorithm for non-PBF datasets which could compuote Gamma statistics */
+/*
+ * @brief Compute the distM idealDistM (ideal distance matrix) for non-PBF case and distM already been stored
+ * @param cArray: The matrix coordinates of the streamlines
+ * @param group: The labels for all the streamlines
+ * @param storage: The candidates inside all the clusters
+ * @param idealDist: The ideal distance matrix with 0 and 1
+ */
 void Silhouette::getMatrixM(const Eigen::MatrixXf& cArray,
 		  	  				const std::vector<int>& group,
 							const std::vector<std::vector<int> >& storage,
@@ -332,7 +413,15 @@ void Silhouette::getMatrixM(const Eigen::MatrixXf& cArray,
 }
 
 
-
+/*
+ * @brief Compute the A_i for silhouette value calculation for PCA case (use Euclidean distance)
+ * @param storage: The candidates included for all the clusters
+ * @param group: The cluster labels of streamlines
+ * @param array: The coordinates of the streamlines
+ * @param index: The target streamline
+ * @param isPBF: A bool tag whether the data is from PBF or not
+ * @param distM: The calculated distance matrix that has been calculated before
+ */
 const float Silhouette::getA_i(const std::vector<std::vector<int> >& storage,
 							   const std::vector<int>& group,
 							   const Eigen::MatrixXf& array,
@@ -369,6 +458,15 @@ const float Silhouette::getA_i(const std::vector<std::vector<int> >& storage,
 }
 
 
+/*
+ * @brief Compute the B_i for silhouette value calculation for PCA case (use Euclidean distance)
+ * @param storage: The candidates included for all the clusters
+ * @param group: The cluster labels of streamlines
+ * @param array: The coordinates of the streamlines
+ * @param index: The target streamline
+ * @param isPBF: A bool tag whether the data is from PBF or not
+ * @param distM: The calculated distance matrix that has been calculated before
+ */
 const float Silhouette::getB_i(const std::vector<std::vector<int> >& storage,
 							   const std::vector<int>& group,
 							   const Eigen::MatrixXf& array,
@@ -419,8 +517,14 @@ const float Silhouette::getB_i(const std::vector<std::vector<int> >& storage,
 }
 
 
-
-/* this function is used to compute silhouette value for clustering */
+/*
+ * @brief Compute silhouette value for PCA-based only (no norm option)
+ * @param array: The matrix coordinates of streamlines
+ * @param group: The labels of all the streamlines
+ * @param isPBF: The bool tag whether is PBF or not
+ * @param storage: The candidates in all the clusters
+ * @param distM: The distance matrix as input
+ */
 void Silhouette::computeSilhouette(const Eigen::MatrixXf& array,
 								   const std::vector<int>& group,
 								   const bool& isPBF,
@@ -475,7 +579,14 @@ void Silhouette::computeSilhouette(const Eigen::MatrixXf& array,
 }
 
 
-/* this function is used to compute silhouette value for clustering */
+/*
+ * @brief Compute silhouette value for general norm input
+ * @param array: The matrix coordinates of streamlines
+ * @param group: The labels of all the streamlines
+ * @param storage: The candidates in all the clusters
+ * @param object: The MetricPreparation class object
+ * @param normOption: The norm option
+ */
 void Silhouette::computeSilhouette(const Eigen::MatrixXf& array,
 					   	   	       const std::vector<int>& group,
 								   const std::vector<std::vector<int> >& storage,
@@ -530,8 +641,12 @@ void Silhouette::computeSilhouette(const Eigen::MatrixXf& array,
 }
 
 
-
-/* compute DB index, default is using Euclidean distance */
+/*
+ * @brief Compute DB index for PCA case (only Euclidean distance used)
+ * @param array: The matrix coordinates of streamlines
+ * @param group: The labels of all the streamlines
+ * @param storage: The candidates in all the clusters
+ */
 void Silhouette::computeDBIndex(const Eigen::MatrixXf& array,
 								const std::vector<int>& group,
 								const std::vector<std::vector<int> >& storage)
@@ -595,6 +710,14 @@ void Silhouette::computeDBIndex(const Eigen::MatrixXf& array,
 }
 
 
+/*
+ * @brief Compute DB index for general input of norm option
+ * @param array: The matrix coordinates of streamlines
+ * @param group: The labels of all the streamlines
+ * @param storage: The candidates in all the clusters
+ * @param object: The MetricPreparation class object
+ * @param normOption: The norm option
+ */
 /* compute DB index with normOption as input */
 void Silhouette::computeDBIndex(const Eigen::MatrixXf& array,
 								const std::vector<int>& group,
@@ -663,9 +786,11 @@ void Silhouette::computeDBIndex(const Eigen::MatrixXf& array,
 }
 
 
-
-
-/* compute Gamma statistics between two matrices, distance matrix and ideal distance matrix */
+/*
+ * @brief Compute the Gamma statistics between two matrices
+ * @param distM: The distance matrix
+ * @param idealDistM: The ideal distance matrix with only value 1 and 0
+ */
 void Silhouette::computeGammaStatistic(const Eigen::MatrixXf& distM,
 									   const Eigen::MatrixXf& idealDistM)
 {
@@ -711,13 +836,14 @@ void Silhouette::computeGammaStatistic(const Eigen::MatrixXf& distM,
 		std::cout << "standard deviation has nan error!" << std::endl;
 		exit(1);
 	}
-
 	gammaStatistic = float(numerator/s_1/s_2/totalNum);
-
 }
 
 
-/* for computing gamma statistics for non-PBF datasets */
+/*
+ * @brief Compute the Gamma statistics for the general input of norm options
+ * @param idealDistM: The ideal distance matrix with 1 and 0 only
+ */
 void Silhouette::computeGammaStatistic(const Eigen::MatrixXf& idealDistM)
 {
 	const int& Row = idealDistM.rows();
@@ -760,8 +886,6 @@ void Silhouette::computeGammaStatistic(const Eigen::MatrixXf& idealDistM)
 		std::cout << "standard deviation has nan error!" << std::endl;
 		exit(1);
 	}
-
 	gammaStatistic = float(numerator/s_1/s_2/totalNum);
-
 }
 

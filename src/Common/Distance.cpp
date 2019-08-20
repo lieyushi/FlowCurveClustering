@@ -1,11 +1,25 @@
+/*
+ * The source file for implementing functions related to the similarity measure/distance calculation
+ */
+
 #include "Distance.h"
 
 
+// the length of neighboring vertices for calculating the Procrutes distance
 const int& PROCRUSTES_SIZE = 7;
+
+// the global pointer variable for the distance matrix
 float **distanceMatrix = NULL;
 
-/* ------------------ Compute norm 3 for trajectories ------------------------- */
-// given a center trajectory and index of pre-stored vector 
+
+/* --------------------   Calculate the distance 3 -----------------------------*/
+/*
+ * @brief Calculate the similarity measure 3
+ * @param row: Input vector
+ * @param size: The size of vector
+ * @param i: The index
+ * @param rotationSequence: The pre-calculated rotationSequence
+ */
 const float getBMetric_3(const VectorXf& row,
 						 const int& size,
 						 const int& i,
@@ -18,7 +32,8 @@ const float getBMetric_3(const VectorXf& row,
 	return getBMetric(firstNorm3, secondNorm3);
 }
 
-// given two center trajectories for distance measuring 
+
+// calculate the distance 3 with given two center trajectories for distance measuring
 const float getBMetric_3(const VectorXf& firstRow,
 						 const int& size,
 						 const VectorXf& secondRow
@@ -31,6 +46,7 @@ const float getBMetric_3(const VectorXf& firstRow,
 }
 
 
+// calculate the distance 3 with given the rotationSequence and two indices
 const float getBMetric_3(const int& first,
 						 const int& second,
 						 const std::vector<std::vector<float> >& rotationSequence
@@ -38,8 +54,8 @@ const float getBMetric_3(const int& first,
 {
 	return getBMetric(rotationSequence[first], rotationSequence[second]);
 }
-
 /* -------------------- Finish computing norm 3 for trajectories --------------------*/
+
 
 /* ------------------ Compute norm 6 for trajectories ------------------------- */
 // given a center trajectory and index of pre-stored vector 
@@ -150,7 +166,7 @@ const float getBMetric_9(const int& first,
 /* -------------------- Finish computing norm 9 for trajectories --------------------*/
 
 
-
+// get the B-metric for two univariate normal distributions
 const float getBMetric(const std::vector<float>& firstNorm3, 
 					   const std::vector<float>& secondNorm3
 					  )
@@ -181,6 +197,7 @@ const float getBMetric(const std::vector<float>& firstNorm3,
 }
 
 
+// get the B-metric for two multivariate normal distribution
 const float getBMetric(const MultiVariate& centerNormal, 
 					   const MultiVariate& neighNormal
 					  ) 
@@ -209,6 +226,7 @@ const float getBMetric(const MultiVariate& centerNormal,
 }
 
 
+/* ------------------ Compute norm 10 for trajectories ------------------------- */
 const float getMetric_10(const VectorXf& centroid,
 						 const int& size,
 						 const int& index,
@@ -224,6 +242,8 @@ const float getMetric_10(const VectorXf& centroid,
 	length = acos(length);
 	return length;
 }
+
+
 const float getMetric_10(const VectorXf& firstRow,
 						 const int& size,
 						 const VectorXf& secondRow)
@@ -250,9 +270,10 @@ const float getMetric_10(const int& first,
 	length = acos(length);
 	return length;
 }
+/* ------------------ Finish norm 9 for trajectories ------------------------- */
 
 
-
+/* ------------------ Compute norm 0, 11, 1, 2, 5, 8 for trajectories ------------------------- */
 const float getNorm(const Eigen::VectorXf& centroid,
 					const Eigen::VectorXf& r2,
 					const int& index,
@@ -300,7 +321,7 @@ const float getNorm(const Eigen::VectorXf& centroid,
 		}
 		break;
 
-	case 2: /* mean value of dot product value, which means it's rotational invariant */
+	case 2: /* mean value of dot product value, which means it's rotational invariant, or d_G */
 		{
 			const int& pointNum = centroid.size()/3-1;
 			float dotValue, leftNorm, rightNorm, result;
@@ -446,7 +467,7 @@ const float getNorm(const VectorXf& centroid,
 		length = (centroid-r2).norm();
 		break;
 
-	case 1:  /* fraction norm by high-dimensional feature-space */
+	case 1:  /* fraction norm by high-dimensional feature-space, or d_F */
 		{
 			for (int i = 0; i < centroid.size(); ++i)
 			{
@@ -477,7 +498,7 @@ const float getNorm(const VectorXf& centroid,
 		}
 		break;
 
-	case 2: /* mean value of dot product value, which means it's rotational invariant */
+	case 2: /* mean value of dot product value, which means it's rotational invariant, or d_G */
 		{
 			const int& pointNum = centroid.size()/3-1;
 			float dotValue, leftNorm, rightNorm, result;
@@ -628,7 +649,7 @@ const float getNorm(const Eigen::VectorXf& r1,
 		}
 		break;
 
-	case 2: /* mean value of dot product value, which means it's rotational invariant */
+	case 2: /* mean value of dot product value, which means it's rotational invariant, or d_G */
 		{
 			const int& pointNum = r1.size()/3-1;
 			float dotValue, leftNorm, rightNorm, result;
@@ -754,9 +775,18 @@ const float getNorm(const Eigen::VectorXf& r1,
 
 	return length;
 }
+/* ------------------ Finish norm 0, 11, 1, 2, 5, 8 for trajectories ------------------------- */
 
 
-
+/*
+ * @brief Get the similarity measures given the coordinates and norm option
+ * @param data: The coordinate matrix
+ * @param first: The first index i
+ * @param second: The second index j
+ * @param normOption: The norm option
+ * @param object: The MetricPreparation class object for distance computation
+ * @return The distance value between line i and j
+ */
 const float getDisimilarity(const MatrixXf& data,
 							const int& first,
 							const int& second,
@@ -768,6 +798,15 @@ const float getDisimilarity(const MatrixXf& data,
 }
 
 
+/*
+ * @brief Get the similarity measures given the coordinates and norm option
+ * @param others: The input line coordinate
+ * @param data: The coordinate matrix
+ * @param index: The index of another line i
+ * @param normOption: The norm option
+ * @param object: The MetricPreparation class object for distance computation
+ * @return The distance value between line i and the input vector others
+ */
 const float getDisimilarity(const VectorXf& others,
 							const MatrixXf& data,
 							const int& index,
@@ -777,9 +816,9 @@ const float getDisimilarity(const VectorXf& others,
 	float length;
 	switch(normOption)
 	{
-	case 0:
-	case 1:
-	case 2:
+	case 0:	// Euclidean distance, d_E
+	case 1:	// Fraction norm, d_F
+	case 2:	// geometric similarity measure, d_G
 	case 5:
 	case 8:
 	case 11:
@@ -817,21 +856,21 @@ const float getDisimilarity(const VectorXf& others,
 							  object.unitLength);
 		break;
 
-	case 12:
+	case 12:	// the MCP distance, i.e., d_M
 		length = getMetric_MOP(others, data.row(index));
 		break;
 
-	case 13:
+	case 13:	// the Hausdorff distance, i.e., d_H
 		length = getMetric_Hausdorff(others, data.row(index));
 		break;
 
 	/* signature-based similarity metric with chi-squared test combined with mean-closest */
-	case 14:
+	case 14:	// the signature-based similarity, i.e., d_S
 		length = getSignatureMetric(others,data.row(index),object.pairwise[index]);
 		break;
 
 	/* adapted Procrustes distance */
-	case 15:
+	case 15:	// the Procrustes distance, i.e., d_P
 		//length = getProcrustesMetric(others, data.row(index));
 		length = std::min(getProcrustesMetricSegment(others, data.row(index)),
 				getProcrustesMetricSegment(data.row(index), others));
@@ -841,7 +880,7 @@ const float getDisimilarity(const VectorXf& others,
 		length = getEntropyMetric(object.pairwise[index], others);
 		break;
 
-	case 17:
+	case 17:	// the time-based MCP, i.e., d_T
 		length = getPathline_MCP(others, data.row(index));
 		break;
 
@@ -851,10 +890,19 @@ const float getDisimilarity(const VectorXf& others,
 	}
 
 	return length;
-	
 }
 
 
+/*
+ * @brief Get the similarity measures given the coordinates and norm option
+ * @param first: The first input line coordinate
+ * @param second: The second input line coordinate
+ * @param firstIndex: The index of line i
+ * @param secondIndex: The index of line j
+ * @param normOption: The norm option
+ * @param object: The MetricPreparation class object for distance computation
+ * @return The distance value between line i and the input vector others
+ */
 const float getDisimilarity(const VectorXf& first,
 							const VectorXf& second,
 							const int& firstIndex,
@@ -865,9 +913,9 @@ const float getDisimilarity(const VectorXf& first,
 	float length;
 	switch(normOption)
 	{
-	case 0:
-	case 1:
-	case 2:
+	case 0:	// Euclidean distance, d_E
+	case 1:	// Fraction norm, d_F
+	case 2:	// Geometric similarity, d_G
 	case 5:
 	case 8:
 	case 11:
@@ -905,19 +953,19 @@ const float getDisimilarity(const VectorXf& first,
 					object.unitLength);
 		break;
 
-	case 12:
+	case 12:	// the MCP distance, d_M
 		length = getMetric_MOP(first, second);
 		break;
 
-	case 13:
+	case 13:	// the Hausdorff distance, d_H
 		length = getMetric_Hausdorff(first, second);
 		break;
 
-	case 14:
+	case 14:	//  the signature-based distance, d_S
 		length = getSignatureMetric(first,second,object.pairwise[firstIndex],object.pairwise[secondIndex]);
 		break;
 
-	case 15:
+	case 15:	// the Procrutes distance, d_P
 		//length = getProcrustesMetric(first, second);
 		length = std::min(getProcrustesMetricSegment(first,second),getProcrustesMetricSegment(second,first));
 		break;
@@ -926,7 +974,7 @@ const float getDisimilarity(const VectorXf& first,
 		length = getEntropyMetric(object.pairwise[firstIndex], object.pairwise[secondIndex]);
 		break;
 
-	case 17:
+	case 17:	// the time-based MCP, d_T
 		length = getPathline_MCP(first, second);
 		break;
 
@@ -934,12 +982,18 @@ const float getDisimilarity(const VectorXf& first,
 		exit(1);
 		break;
 	}
-
 	return length;
 }
 
 
-
+/*
+ * @brief Get the similarity measures given the coordinates and norm option
+ * @param first: The first input line coordinate
+ * @param second: The second input line coordinate
+ * @param normOption: The norm option
+ * @param object: The MetricPreparation class object for distance computation
+ * @return The distance value between two lines
+ */
 const float getDisimilarity(const VectorXf& first,
 							const VectorXf& second,
 							const int& normOption,
@@ -948,9 +1002,9 @@ const float getDisimilarity(const VectorXf& first,
 	float length;
 	switch(normOption)
 	{
-	case 0:
-	case 1:
-	case 2:
+	case 0:	// Euclidean distance, d_E
+	case 1:	// Fraction norm, d_F
+	case 2:	// Geometric similarity, d_G
 	case 5:
 	case 8:
 	case 11:
@@ -981,21 +1035,21 @@ const float getDisimilarity(const VectorXf& first,
 		length = getBMetric_9(first, first.size()/3, second);
 		break;
 
-	case 12:
+	case 12:	// the MCP distance, d_M
 		length = getMetric_MOP(first, second);
 		break;
 
-	case 13:
+	case 13:	// the Hausdorff distance, d_H
 		length = getMetric_Hausdorff(first, second);
 		break;
 
 	/* signature-based similarity metric with chi-squared test combined with mean-closest */
-	case 14:
+	case 14:	// the signature-based similarity, d_S
 		length = getSignatureMetric(first, second);
 		break;
 
 	/* adapted Procrustes distance */
-	case 15:
+	case 15:	// the Procrustes distance, d_P
 		//length = getProcrustesMetric(first, second);
 		length = getProcrustesMetricSegment(first,second);
 		break;
@@ -1004,7 +1058,7 @@ const float getDisimilarity(const VectorXf& first,
 		length = getEntropyMetric(first, second);
 		break;
 
-	case 17:
+	case 17:	// the time-based MCP, d_T
 		length = getPathline_MCP(first, second);
 		break;
 
@@ -1014,13 +1068,18 @@ const float getDisimilarity(const VectorXf& first,
 	}
 
 	return length;
-
 }
 
 
-
+/*
+ * @brief Get the MCP distance for two lines
+ * @param first: The first line coordinate
+ * @param second: The second line coordinate
+ * @return A distance value between two lines
+ */
 const float getMetric_MOP(const VectorXf& first, const VectorXf& second)
 {
+	// The MCP of first to second
 	const int& vNum = first.size()/3;
 	float result, f_to_s, s_to_f;
 	float summation = 0;
@@ -1037,6 +1096,7 @@ const float getMetric_MOP(const VectorXf& first, const VectorXf& second)
 	}
 	s_to_f = summation/vNum;
 
+	// The MCP of second to first
 	summation = 0;
 	for(int i=0;i<vNum;++i)
 	{
@@ -1051,13 +1111,20 @@ const float getMetric_MOP(const VectorXf& first, const VectorXf& second)
 	}
 	f_to_s = summation/vNum;
 
+	// get the average of that
 	result = (f_to_s+s_to_f)/2.0;
 	return result;
 }
 
-/* get Hausdorff distance between streamlines */
+/*
+ * @brief Get the Hausdorff distance between two lines
+ * @param first: The first line coordinates
+ * @param second: The second line coordinates
+ * @return The distance value
+ */
 const float getMetric_Hausdorff(const VectorXf& first, const VectorXf& second)
 {
+	// the max of first to second
 	const int& vNum = first.size()/3;
 	float result, f_to_s=-1.0, s_to_f=-1.0;
 	for(int i=0;i<vNum;++i)
@@ -1072,6 +1139,7 @@ const float getMetric_Hausdorff(const VectorXf& first, const VectorXf& second)
 		s_to_f=std::max(s_to_f, minDist);
 	}
 
+	// the max of second to first
 	for(int i=0;i<vNum;++i)
 	{
 		float minDist = FLT_MAX;
@@ -1084,12 +1152,18 @@ const float getMetric_Hausdorff(const VectorXf& first, const VectorXf& second)
 		f_to_s=std::max(f_to_s, minDist);
 	}
 
+	// max of the max
 	result = std::max(f_to_s, s_to_f);
 	return result;
 }
 
 
-
+/*
+ * @brief Assign values to the distance matrix
+ * @param data: The coordinate matrix
+ * @param normOption: The norm option
+ * @param object: The MetricPreparation object
+ */
 void getDistanceMatrix(const MatrixXf& data,
 				       const int& normOption,
 					   const MetricPreparation& object)
@@ -1097,6 +1171,7 @@ void getDistanceMatrix(const MatrixXf& data,
 	const int& Row = data.rows();
 	distanceMatrix = new float*[Row];
 
+	// assign the distance matrix
 #pragma omp parallel for schedule(static) num_threads(8)
 	for (int i = 0; i < Row; ++i)
 	{
@@ -1110,7 +1185,7 @@ void getDistanceMatrix(const MatrixXf& data,
 				distanceMatrix[i][j] = getDisimilarity(data, i, j, normOption, object);
 		}
 	}
-
+	// help check whether they already been assigned and whether they are symmetric or not
 	std::cout << "Distance between 215 and 132 is " << distanceMatrix[215][132] << std::endl;
 	std::cout << "Distance between 132 and 215 is " << distanceMatrix[132][215] << std::endl;
 
@@ -1118,6 +1193,10 @@ void getDistanceMatrix(const MatrixXf& data,
 }
 
 
+/*
+ * @brief Delete the pointer of distance matrix
+ * @param Row: The row of distance matrix
+ */
 void deleteDistanceMatrix(const int& Row)
 {
 	if(distanceMatrix)
@@ -1137,6 +1216,7 @@ void deleteDistanceMatrix(const int& Row)
 }
 
 
+// assign the averaged rotation of the cluster representatives
 const float getRotation(const std::vector<vector<float> >& streamline, std::vector<float>& rotation)
 {
 	if(streamline.empty())
@@ -1152,6 +1232,7 @@ const float getRotation(const std::vector<vector<float> >& streamline, std::vect
 		eachSum = 0;
 		eachLine = streamline[i];
 		lineSize = eachLine.size()/3-2;
+		// calculate the summation of discrete curvatures
 		for(int j=0;j<lineSize;++j)
 		{
 			first<<eachLine[3*j+3]-eachLine[3*j],eachLine[3*j+4]-eachLine[3*j+1],eachLine[3*j+5]-eachLine[3*j+2];
@@ -1166,6 +1247,7 @@ const float getRotation(const std::vector<vector<float> >& streamline, std::vect
 				eachSum+=acos(angle);
 			}
 		}
+		// get the mean of discrete curvatures
 		rotation[i]=eachSum;
 		result+=eachSum;
 	}
@@ -1173,6 +1255,8 @@ const float getRotation(const std::vector<vector<float> >& streamline, std::vect
 	return result;
 }
 
+
+/* ------------------ Compute norm 14 for integral curves ------------------------- */
 
 /* get signature-based dissimilarity metric given two elements and their histogram*/
 const float getSignatureMetric(const Eigen::VectorXf& firstArray,
@@ -1193,7 +1277,6 @@ const float getSignatureMetric(const Eigen::VectorXf& firstArray,
 	const int& size = vertexCount/SUBSET+1;
 
 	Eigen::VectorXf firstSubset(3*size), secondSubset(3*size);
-
 
 	/* get mean_dist between two sampled subsets */
 	int tempPos = 0;
@@ -1255,7 +1338,10 @@ const float getSignatureMetric(const Eigen::VectorXf& first,
 
 	return getSignatureMetric(first,second,firstHist,secondHist);
 }
+/* ------------------ Finish computing norm 14 for integral curves ------------------------- */
 
+
+/* ------------------ Compute norm 15 for integral curves ------------------------- */
 
 /* get adapted Procrustes distance. For example, if vec has 100 points, it will calculate mean of 94 points */
 const float getProcrustesMetric(const Eigen::VectorXf& first,
@@ -1496,6 +1582,7 @@ const float getProcrustesMetricSegment(const Eigen::VectorXf& first,
 	else
 		return result/effective;
 }
+/* ------------------ Finish norm 15 for integral curves ------------------------- */
 
 
 /* need to store each label for elements for NID computation */
@@ -1526,6 +1613,8 @@ void generateGroups(const std::vector<std::vector<int> >& storage)
 	readme.close();
 }
 
+
+/* ------------------ Compute norm 16 for integral curves ------------------------- */
 
 /* get illustrative visualization metric for paper An Illustrative Visualization Framework for 3D Vector Fields */
 const float getEntropyMetric(const std::vector<float>& firstEntropy,
@@ -1568,9 +1657,12 @@ const float getEntropyMetric(const Eigen::VectorXf& first,
 	getLinearAngularEntropy(second, BUNDLE_SIZE, secondEntropy);
 
 	return getEntropyMetric(firstEntropy, secondEntropy);
-
 }
+/* ------------------ Compute norm 16 for integral curves ------------------------- */
 
+
+/* ------------------ Compute norm 17 for integral curves ------------------------- */
+// compute the time-based MCP for pathlines
 const float getPathline_MCP(const Eigen::VectorXf& first,
         					const Eigen::VectorXf& second)
 {
@@ -1592,3 +1684,4 @@ const float getPathline_MCP(const Eigen::VectorXf& first,
 	}
 	return dist/t_M;
 }
+/* ------------------ Compute norm 17 for integral curves ------------------------- */

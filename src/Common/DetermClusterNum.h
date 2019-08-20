@@ -18,8 +18,10 @@
 #include <map>
 #include <vector>
 
+
 using namespace std;
 using namespace Eigen;
+
 
 class DetermClusterNum {
 public:

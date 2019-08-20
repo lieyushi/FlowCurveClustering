@@ -1,5 +1,14 @@
 #include "IOHandler.h"
 
+
+/*
+ * @brief Read the data from the file into the vector<vector<>>
+ * @param fileName: The file name of the data set
+ * @param dataVec: The streamline coordinates to be updated
+ * @param vertexCount: The total vertex count
+ * @param dimension: 2 or 3 indicates it's 2D or 3D point
+ * @param maxElement: The max dimension of streamlines
+ */
 void IOHandler::readFile(const string& fileName, 
 						 std::vector< std::vector<float > >& dataVec, 
 						 int& vertexCount, 
@@ -94,6 +103,15 @@ void IOHandler::readFile(const string& fileName,
 }
 
 
+/*
+ * @brief Read the particle-based data from the given frame number
+ * @param fileName: The file of the particle based data
+ * @param dataVec: The streamline coordinates
+ * @param vertexCount: The total point count
+ * @param dimension: 2 (2d) or 3 (3d) points
+ * @param trajectoryNum: Number of trajectories
+ * @param Frame: Number of frames
+ */
 void IOHandler::readFile(const string& fileName, 
 						 std::vector< std::vector<float > >& dataVec, 
 						 int& vertexCount, 
@@ -147,6 +165,15 @@ void IOHandler::readFile(const string& fileName,
 }
 
 
+/*
+ * @brief Print the vtk for streamlines
+ * @param fileName: The given vtk file name and position
+ * @param dataVec: The streamline coordinates
+ * @param vertexCount: the count of vertices
+ * @param dimension: 2 or 3 indicates 2D or 3D
+ * @param clusterNumber: the labels for each streamline
+ * @param sCluster: The float scalar value for each streamline
+ */
 void IOHandler::printVTK(const string& fileName, 
 						 const std::vector< std::vector<float > >& dataVec, 
 						 const int& vertexCount, 
@@ -228,6 +255,13 @@ void IOHandler::printVTK(const string& fileName,
 }
 
 
+/*
+ * @brief Print the vtk of the streamlines
+ * @param fileName: The name of the data set file
+ * @param dataVec: The streamline coordinates
+ * @param vertexCount: total count of vertices
+ * @param dimension: 2 or 3
+ */
 void IOHandler::printVTK(const string& fileName, 
 						 const std::vector< std::vector<float > >& dataVec, 
 						 const int& vertexCount, 
@@ -295,6 +329,14 @@ void IOHandler::printVTK(const string& fileName,
 }
 
 
+/*
+ * @brief Print the vtk file of the streamlines
+ * @param fileName: the name of the data set
+ * @param dataVec: The streamline coordinates
+ * @param vertexCount: the count of vertices
+ * @param dimension: 2 or 3
+ * @param sCluster: the scalar value for streamlines
+ */
 void IOHandler::printVTK(const string& fileName, 
 						 const std::vector<MeanLine>& dataVec, 
 						 const int& vertexCount, 
@@ -375,7 +417,13 @@ void IOHandler::printVTK(const string& fileName,
 }
 
 
-/* fill the missing matrix with the coordinates of last point */
+/*
+ * @brief Direct repeating the last point of the streamlines
+ * @param data: The matrix coordinates to be updated
+ * @param dataVec: The line coordinates of streamlines as input
+ * @param dimension: 2 or 3
+ * @param maxElement: The max dimension of streamlines
+ */
 void IOHandler::expandArray(MatrixXf& data, 
 							const std::vector< std::vector<float> >& dataVec, 
 							const int& dimension, 
@@ -400,6 +448,13 @@ void IOHandler::expandArray(MatrixXf& data,
 }
 
 
+/*
+ * @brief Sample the streamlines with equal arc length
+ * @param data: The matrix coordinates to be updated
+ * @param dataVec: The input streamline coordinates
+ * @param dimension: 2 or 3
+ * @param maxElements: The max dimension of streamlines
+ */
 /* sample equal-sized array by equal arcs given a numOfVertices count */
 void IOHandler::uniformArcSampling(MatrixXf& data,
 								   const std::vector< std::vector<float> >& dataVec,
@@ -472,7 +527,13 @@ void IOHandler::uniformArcSampling(MatrixXf& data,
 }
 
 
-/* Uniformly sample array along streamlines instead of filling by the last index */
+/*
+ * @brief Sample the streamlines on the intervals to preservce thier geometry shapes
+ * @param data: The matrix coordinates to be updated
+ * @param dataVec: The streamline coordinates as input
+ * @param dimension: 2 or 3
+ * @param maxElements: The maximal length of streamlines
+ */
 void IOHandler::sampleArray(MatrixXf& data, 
 							const std::vector< std::vector<float> >& dataVec, 
 							const int& dimension, 
@@ -545,6 +606,12 @@ void IOHandler::sampleArray(MatrixXf& data,
 }
 
 
+/*
+ * @brief Assign vector values to the pointer type
+ * @param data: The pointer to be updated
+ * @param dataVec: The streamline coordinates
+ * @param dimension: 2 or 3
+ */
 void IOHandler::formArray(float ***data, 
 						  const std::vector< std::vector<float> >& dataVec, 
 						  const int& dimension)
@@ -560,6 +627,15 @@ void IOHandler::formArray(float ***data,
 }
 
 
+/*
+ * @brief Print the new group labels to the existing vtk file
+ * @param dataVec: The streamline coordinates as input
+ * @param group: The label vector for each streamline
+ * @param totalNum: The size of each cluster just in case to show dominant clusters
+ * @param groupName: The string text for the labels
+ * @param fullName: The full name of the vtk to be written in
+ * @param dimension: 2 or 3
+ */
 void IOHandler::printToFull(const std::vector< std::vector<float> >& dataVec, 
 							const std::vector<int>& group, 
 				 			const std::vector<int>& totalNum, 
@@ -604,6 +680,14 @@ void IOHandler::printToFull(const std::vector< std::vector<float> >& dataVec,
 }
 
 
+/*
+ * @brief Print scalar values to the existing vtk file
+ * @param dataVec: The streamline data set
+ * @param sData: The scalar values on the streamlines
+ * @param groupName: The string text for the scalar values
+ * @param fullName: The full name of the .vtk file
+ * @param dimension: 2 or 3
+ */
 void IOHandler::printToFull(const std::vector< std::vector<float> >& dataVec, 
 							const std::vector<float>& sData, 
 				 			const string& groupName, 
@@ -639,6 +723,15 @@ void IOHandler::printToFull(const std::vector< std::vector<float> >& dataVec,
 }
 
 
+/*
+ * @brief Print scalar and label values to the existing vtk file
+ * @param dataVec: The streamline data set
+ * @param group: The group labels for the streamlines
+ * @param sCluster: The scalar values on the streamlines
+ * @param groupName: The string text for the scalar values
+ * @param fullName: The full name of the .vtk file
+ * @param dimension: 2 or 3
+ */
 void IOHandler::printToFull(const std::vector< std::vector<float> >& dataVec, 
 							const std::vector<int>& group, 
 							const std::vector<float>& sCluster, 
@@ -677,7 +770,11 @@ void IOHandler::printToFull(const std::vector< std::vector<float> >& dataVec,
 }
 
 
-
+/*
+ * @brief delete the array
+ * @param data: The pointer type
+ * @param row: The number of rows
+ */
 void IOHandler::deleteArray(float **data, 
 							const int& row)
 {
@@ -692,6 +789,7 @@ void IOHandler::deleteArray(float **data,
 }
 
 
+// write two values into the readme
 void IOHandler::writeReadme(const double& PCA_KMeans_delta, 
 							const double& KMeans_delta)
 {
@@ -708,6 +806,7 @@ void IOHandler::writeReadme(const double& PCA_KMeans_delta,
 }
 
 
+// write string and several float scalars in the readme
 void IOHandler::writeReadme(const string& comment,
 							const std::vector<float>& sAverage)
 {
@@ -729,7 +828,7 @@ void IOHandler::writeReadme(const string& comment,
 }
 
 
-
+// write status information and number of clusters in the readme
 void IOHandler::writeReadme(const std::vector<string>& timeName, 
 							const std::vector<double>& timeDiff,
 							const int& cluster)
@@ -752,6 +851,7 @@ void IOHandler::writeReadme(const std::vector<string>& timeName,
 	readme << std::endl;
     readme.close();
 }
+
 
 /* generate eventList and timeList for printing information */
 void IOHandler::writeReadme(const std::vector<string>& timeName,
@@ -777,7 +877,7 @@ void IOHandler::writeReadme(const std::vector<string>& timeName,
 }
 
 
-
+// write the extracted line information w.r.t. the norm in the readme
 void IOHandler::writeReadme(const std::vector<ExtractedLine>& closest, 
 							const std::vector<ExtractedLine>& furthest, 
 							const int& normOption)
@@ -810,6 +910,7 @@ void IOHandler::writeReadme(const std::vector<ExtractedLine>& closest,
 }
 
 
+// write the extracted lines in the readme
 void IOHandler::writeReadme(const std::vector<ExtractedLine>& closest, 
 							const std::vector<ExtractedLine>& furthest)
 {
@@ -840,7 +941,7 @@ void IOHandler::writeReadme(const std::vector<ExtractedLine>& closest,
 }
 
 
-/* write value of the silhouette class */
+/* write value of the silhouette class in the readme */
 void IOHandler::writeReadme(const float& entropy, const Silhouette& sil, const string& norm_str)
 {
 	std::ofstream readme("../dataset/README",ios::out | ios::app);
@@ -872,7 +973,7 @@ void IOHandler::writeReadme(const float& closestAverage, const float& furthestAv
 }
 
 
-
+// assign the ExtractedLine information to the closest streamline coordinates and cluster
 void IOHandler::assignVec(std::vector<std::vector<float> >& closestStreamline, 
 						  std::vector<int>& cluster,
 						  const std::vector<ExtractedLine>& closest,
@@ -893,6 +994,7 @@ void IOHandler::assignVec(std::vector<std::vector<float> >& closestStreamline,
 }
 
 
+// assign the size of clusters to the center
 void IOHandler::assignVec(std::vector<int>& cluster,
 						  const std::vector<MeanLine>& centerMass)
 {
@@ -905,6 +1007,7 @@ void IOHandler::assignVec(std::vector<int>& cluster,
 }
 
 
+// write group information into the local file as backup
 void IOHandler::writeGroup(const std::vector<int>& group, 
 						   const std::vector< std::vector<float> >& dataVec)
 {
@@ -925,6 +1028,7 @@ void IOHandler::writeGroup(const std::vector<int>& group,
 }
 
 
+// print the query information from the streamline query
 void IOHandler::printQuery(const int& normOption,
 					   	   const int& order,
 					   	   const StringQuery& queryResult, 
@@ -1020,6 +1124,7 @@ void IOHandler::printQuery(const int& normOption,
 }
 
 
+// print the coordinates of the streamlines into the local txt file
 void IOHandler::printTXT(float **data,
 						 const int& Row,
 						 const int& Column)
@@ -1068,6 +1173,7 @@ void IOHandler::expandArray(std::vector<std::vector<float> >& equalArray,
 }
 
 
+// print the group information to the existing full vtk file with label names
 void IOHandler::printToFull(const std::vector< std::vector<float> >& dataVec,
 				 			const std::vector<int>& group, 
 				 			const string& fullName,
@@ -1097,6 +1203,7 @@ void IOHandler::printToFull(const std::vector< std::vector<float> >& dataVec,
 }
 
 
+// print the streamlines with attached scalar values in the vtk format
 void IOHandler::printFeature(const string& fileName,
 				  			 const std::vector<std::vector<float> >& array,
 				  			 const std::vector<float>& sCluster,
@@ -1183,6 +1290,7 @@ void IOHandler::printFeature(const string& fileName,
 }
 
 
+// print the streamlines with several scalar values in the vtk file
 void IOHandler::printFeature(const string& fileName,
 							 const std::vector<std::vector<float> >& array,
 							 const std::vector<float>& sCluster,
@@ -1282,6 +1390,7 @@ void IOHandler::printFeature(const string& fileName,
 }
 
 
+// print the label and size of clusters for the streamlines
 void IOHandler::printClusters(const std::vector< std::vector<float> >& dataVec, 
 							  const std::vector<int>& group, 
 				 			  const std::vector<int>& storage, 
@@ -1326,6 +1435,7 @@ void IOHandler::printClusters(const std::vector< std::vector<float> >& dataVec,
 }
 
 
+// print the clustered streamlines with noise information generated from DBSCAN
 void IOHandler::printClustersNoise(const std::vector< std::vector<float> >& dataVec, 
 							  const std::vector<int>& group, 
 				 			  const std::vector<int>& storage, 
@@ -1371,6 +1481,7 @@ void IOHandler::printClustersNoise(const std::vector< std::vector<float> >& data
 }
 
 
+// generate readme txt with number of clusters, input threshold and activity list, mostly for BIRCH
 void IOHandler::generateReadme(const std::vector<string>& activityList,
 							   const std::vector<double>& timeList,
 							   const int& normOption,
@@ -1400,6 +1511,7 @@ void IOHandler::generateReadme(const std::vector<string>& activityList,
 }
 
 
+// print the readme information with activity list and time list that records some status during the computation
 void IOHandler::generateReadme(const std::vector<string>& activityList,
 							   const std::vector<string>& timeList)
 {
@@ -1420,6 +1532,7 @@ void IOHandler::generateReadme(const std::vector<string>& activityList,
 }
 
 
+// write string arrays in the readme
 void IOHandler::writeReadme(const string& comments)
 {
 	if(comments.empty())
@@ -1435,6 +1548,7 @@ void IOHandler::writeReadme(const string& comments)
 }
 
 
+// write the finalized group size in the storage
 void IOHandler::writeGroupSize(const std::vector<int>& storage)
 {
 	if(storage.empty())

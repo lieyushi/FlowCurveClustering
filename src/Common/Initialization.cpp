@@ -1,5 +1,17 @@
+/*
+ * This is the source cpp for the class Initialization.h
+ */
+
 #include "Initialization.h"
 
+
+/*
+ * @brief To generate the random coordinates for the k-means initialization
+ * @param clusterCenter: The random initialization to be updated
+ * @param column: The column size
+ * @param cArray: The input matrix coordinates
+ * @param Cluster: The number of centroids
+ */
 void Initialization::generateRandomPos(MatrixXf& clusterCenter,
 								  	   const int& column,
 								       const MatrixXf& cArray,
@@ -28,6 +40,13 @@ void Initialization::generateRandomPos(MatrixXf& clusterCenter,
 }
 
 
+/*
+ * @brief To generate the initialization from the samples
+ * @param clusterCenter: The initialized centroid coordinates
+ * @param column: The size of column
+ * @param cArray: The original matrix coordinates as input
+ * @param Cluster: The count of clusters
+ */
 void Initialization::generateFromSamples(MatrixXf& clusterCenter,
 								    	 const int& column,
 								    	 const MatrixXf& cArray,
@@ -70,10 +89,17 @@ void Initialization::generateFromSamples(MatrixXf& clusterCenter,
 	{
 		clusterCenter.row(i) = cArray.row(number[i]);
 	}
-
 }
 
 
+/*
+ * @brief This is the k-means++ initialization
+ * @param clusterCenter: The cluster centroid to be initialized
+ * @param column: The size of column
+ * @param cArray: The matrix coordinates of the lines
+ * @param normOption: The norm option
+ * @param object: The MetricPreparation
+ */
 void Initialization::generateFarSamples(MatrixXf& clusterCenter,
 								   	    const int& column,
 								   		const MatrixXf& cArray,
@@ -102,8 +128,7 @@ void Initialization::generateFarSamples(MatrixXf& clusterCenter,
 			nearest = FLT_MAX;
 			for (int j = 0; j < chosen; ++j)
 			{
-				toCentroid = getDisimilarity(cArray, i, 
-							number[j], normOption, object);
+				toCentroid = getDisimilarity(cArray, i, number[j], normOption, object);
 				if(nearest>toCentroid)
 					nearest=toCentroid;
 			}

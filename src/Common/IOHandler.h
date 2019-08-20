@@ -23,6 +23,8 @@
 using namespace std;
 using namespace Eigen;
 
+
+// the class of extractedLine to record the linenumber, cluster index and coordinates
 struct ExtractedLine
 {
 	int lineNum;
@@ -34,6 +36,7 @@ struct ExtractedLine
 };
 
 
+// the class of the centroid lines
 struct MeanLine
 {
 	std::vector<float> minCenter;
@@ -45,6 +48,7 @@ struct MeanLine
 };
 
 
+// the class of streamline query results
 struct StringQuery
 {
 	int index;
@@ -58,6 +62,7 @@ struct StringQuery
 };
 
 
+// the class of FeatureLine for clustering result
 struct FeatureLine
 {
 	std::vector<MeanLine> centerMass;
@@ -79,18 +84,35 @@ struct FeatureLine
 };
 
 
-
+// most of the functions related to I/O operation are contained inside
 class IOHandler
 {
 	
 public:
 	
+	/*
+	 * @brief Read the data from the file into the vector<vector<>>
+	 * @param fileName: The file name of the data set
+	 * @param dataVec: The streamline coordinates to be updated
+	 * @param vertexCount: The total vertex count
+	 * @param dimension: 2 or 3 indicates it's 2D or 3D point
+	 * @param maxElement: The max dimension of streamlines
+	 */
 	static void readFile(const string& fileName, 
 						 std::vector< std::vector<float > >& dataVec, 
 						 int& vertexCount, 
 						 const int& dimension,
 						 int& maxElement);
 
+	/*
+	 * @brief Read the particle-based data from the given frame number
+	 * @param fileName: The file of the particle based data
+	 * @param dataVec: The streamline coordinates
+	 * @param vertexCount: The total point count
+	 * @param dimension: 2 (2d) or 3 (3d) points
+	 * @param trajectoryNum: Number of trajectories
+	 * @param Frame: Number of frames
+	 */
 	static void readFile(const string& fileName, 
 						 std::vector< std::vector<float > >& dataVec, 
 						 int& vertexCount, 
@@ -98,6 +120,15 @@ public:
 						 const int& trajectoryNum, 
 						 const int& Frame);
 
+	/*
+	 * @brief Print the vtk for streamlines
+	 * @param fileName: The given vtk file name and position
+	 * @param dataVec: The streamline coordinates
+	 * @param vertexCount: the count of vertices
+	 * @param dimension: 2 or 3 indicates 2D or 3D
+	 * @param clusterNumber: the labels for each streamline
+	 * @param sCluster: The float scalar value for each streamline
+	 */
 	static void printVTK(const string& fileName, 
 						 const std::vector< std::vector<float > >& dataVec, 
 						 const int& vertexCount, 
@@ -105,11 +136,28 @@ public:
 						 const std::vector<int>& clusterNumber,
 						 const std::vector<float>& sCluster);
 
+
+	/*
+	 * @brief Print the vtk of the streamlines
+	 * @param fileName: The name of the data set file
+	 * @param dataVec: The streamline coordinates
+	 * @param vertexCount: total count of vertices
+	 * @param dimension: 2 or 3
+	 */
 	static void printVTK(const string& fileName, 
 						 const std::vector< std::vector<float > >& dataVec, 
 						 const int& vertexCount, 
 						 const int& dimension);
 
+
+	/*
+	 * @brief Print the vtk file of the streamlines
+	 * @param fileName: the name of the data set
+	 * @param dataVec: The streamline coordinates
+	 * @param vertexCount: the count of vertices
+	 * @param dimension: 2 or 3
+	 * @param sCluster: the scalar value for streamlines
+	 */
 	static void printVTK(const string& fileName, 
 						 const std::vector<MeanLine>& dataVec, 
 						 const int& vertexCount, 

@@ -1,3 +1,8 @@
+/*
+ * The class is to compute the Silhouette, Gamma statistics and DB index for the clustering results
+ */
+
+
 #ifndef SILHOUETTE_H
 #define SILHOUETTE_H
 
@@ -54,12 +59,15 @@ public:
 	void reset();
 
 private:
+
+	// general norm option of get the distance between two lines
 	const float getDist(const int& first,
 						const int& second,
 						const MetricPreparation& object,
 						const MatrixXf& array,
 						const int& normOption);
 
+	// get the a_i with general norm option
 	const float getA_i(const std::vector<std::vector<int> >& storage,
 					   const std::vector<int>& group,
 					   const MatrixXf& array,
@@ -67,6 +75,7 @@ private:
 					   const MetricPreparation& object,
 					   const int& normOption);
 
+	// get the b_i with general norm option
 	const float getB_i(const std::vector<std::vector<int> >& storage,
 					   const std::vector<int>& group,
 					   const MatrixXf& array,

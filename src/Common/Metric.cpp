@@ -1,9 +1,14 @@
 #include "Metric.h"
 
+
+// the bin size for calculating the d_S (14) similarity measure
 const int& BIN_SIZE = 20;
 
+// the number of bundles for calculating the entropy-based similarity (16)
 const int& BUNDLE_SIZE = 20;
 
+
+// calculate the mean rotation for all the streamlines
 void computeMeanRotation(const Eigen::MatrixXf& data, 
 						 const int& Row, 
 						 const int& Column, 
@@ -19,6 +24,7 @@ void computeMeanRotation(const Eigen::MatrixXf& data,
 }
 
 
+// calculate the roataion sequence for all the streamlines
 void getRotationSequence(const Eigen::MatrixXf& data, 
 						 const int& Row, 
 						 const int& Column, 
@@ -33,6 +39,7 @@ void getRotationSequence(const Eigen::MatrixXf& data,
 }
 
 
+// calculate the multivariate normal sequence for all the streamlines
 void getNormalSequence(const Eigen::MatrixXf& data, 
 					   const int& Row, 
 					   const int& Column, 
@@ -46,6 +53,8 @@ void getNormalSequence(const Eigen::MatrixXf& data,
 	}
 }
 
+
+// calculate values of segment to a fixed direction for all the streamlines
 void getFixedSequence(const Eigen::MatrixXf& data, 
 					  const int& Row, 
 					  const int& Column, 
@@ -60,6 +69,7 @@ void getFixedSequence(const Eigen::MatrixXf& data,
 }
 
 
+// get the unnormalized seuqnce of the multivariate segments for all the streamlines
 void getUnnormalizedSequence(const Eigen::MatrixXf& data, 
 					   		 const int& Row, 
 					  		 const int& Column, 
@@ -74,6 +84,7 @@ void getUnnormalizedSequence(const Eigen::MatrixXf& data,
 }
 
 
+// get the unit directions of segments for all the streamlines
 void getUnitDirection(const Eigen::MatrixXf& data, 
 					  const int& Row, 
 					  const int& Column, 
@@ -88,6 +99,7 @@ void getUnitDirection(const Eigen::MatrixXf& data,
 }
 
 
+// calculate the pair-wise distance values
 void computePairWise(const Eigen::MatrixXf& data, 
 					 const int& Row, 
 					 const int& Column, 
@@ -103,7 +115,7 @@ void computePairWise(const Eigen::MatrixXf& data,
 }
 
 
-/* get signature-based bin for histogram for dissimilarity computation */
+/* get signature-based bins for histogram for dissimilarity computation */
 void getSignatureBin(const Eigen::MatrixXf& data,
 					 const int& Row,
 					 const int& Column,

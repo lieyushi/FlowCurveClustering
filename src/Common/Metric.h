@@ -7,9 +7,12 @@
 #include <boost/multiprecision/cpp_dec_float.hpp>
 
 
+// the number of histograms for calculating the signature-based similarity measure (14)
 extern const int& BIN_SIZE;
 
+// the number of entropy segments for calculating entropy-based similarity measure (16)
 extern const int& BUNDLE_SIZE;
+
 
 void computeMeanRotation(const Eigen::MatrixXf& data, 
 						 const int& Row, 
