@@ -4,13 +4,13 @@
  *  Created on: Feb 11, 2017
  *      Author: cotrik
  */
-    /** CFNode is composed of several CFEntries within page-size, and acts like B-tree node.
-     *
-     * CFNode should be page-sized for more efficient operation.
-     * Like b-tree twist their node when removing and inserting node, CFTree perform similar operations on its own CFNodes.
-     *
-     * CFNode has two types: intermediate node leaf node, especially leaf node has additional pointers to neighbor leaves.
-     */
+/** CFNode is composed of several CFEntries within page-size, and acts like B-tree node.
+ *
+ * CFNode should be page-sized for more efficient operation.
+ * Like b-tree twist their node when removing and inserting node, CFTree perform similar operations on its own CFNodes.
+ *
+ * CFNode has two types: intermediate node leaf node, especially leaf node has additional pointers to neighbor leaves.
+ */
 #ifndef CFNODE_H_
 #define CFNODE_H_
 #include <vector>

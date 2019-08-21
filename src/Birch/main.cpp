@@ -34,8 +34,9 @@
 
 /*
  * @brief The driver main function
- * @param argc: count of arguments
- * @param argv: char* array of arguments
+ *
+ * @param[in] argc count of arguments
+ * @param[in] argv char* array of arguments
  * @return 0 if successful
  */
 int main( int argc, char** argv)
@@ -53,8 +54,8 @@ int main( int argc, char** argv)
 	getUserInput(argc, argv, trajectories, equalArray, items, dimension, fi);
 
 	// perform birch clustering
-	getBirchClustering(items,argv,trajectories,fi,equalArray, dimension, item_cids, maxGroup,
-			normOption, fullName, object);
+	getBirchClustering(items,argv,trajectories,fi,equalArray, dimension, item_cids, maxGroup, normOption,
+			fullName, object);
 
 	// perform the clustering analysis and cluster representative extraction
 	getClusterAnalysis(trajectories, fi, equalArray, dimension, item_cids, maxGroup, normOption,

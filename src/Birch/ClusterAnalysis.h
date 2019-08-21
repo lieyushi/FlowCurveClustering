@@ -1,6 +1,7 @@
 /*
- * The original birch C++ code is directly borrowed from github and is hard to documentation. We only
+ * @brief The original birch C++ code is directly borrowed from github and is hard to documentation. We only
  * provide basic documentation for calling the functions directly from the code
+ * @author Lieyu Shi
  */
 
 
@@ -21,34 +22,59 @@
 #include <sstream>
 
 
-/* why use extern? Too many parameters passed in */
+/*
+ * @brief The vector to store the calculation time and status
+ */
 std::vector<string> activityList;
 std::vector<double> timeList;
 
-// whether it is PBF dataset
+/*
+ * @brief whether it is PBF dataset
+ */
 bool isPBF;
 
-// whether read cluster from local file
+/*
+ * @brief whether read cluster from local file
+ */
 bool readCluster;
 
-// whether the data set is pathline or not
+/*
+ * @brief whether the data set is pathline or not
+ */
 bool isPathlines;
 
+/*
+ * @brief The MetricPreparation object used to calculate the distance matrix
+ */
 template<boost::uint32_t dim>
 MetricPreparation CFTree<dim>::object = MetricPreparation();
 
+/*
+ * @brief The norm option for BIRCH clustering
+ */
 template<boost::uint32_t dim>
 int CFTree<dim>::normOption = -1;
 
+/*
+ * @brief The total number of nodes in the BIRCH clustering
+ */
 template<boost::uint32_t dim>
 int CFTree<dim>::totalNodes = 0;
 
+/*
+ * @brief The CFT tree with defined size
+ */
 typedef CFTree<4824u> cftree_type;
 
+/*
+ * @brief The distance threshold for the BIRCH clustering input
+ */
 cftree_type::float_type birch_threshold;
 
 
-// the vertex count and max dimension of the data set
+/*
+ * @brief The struct to record the vertex count and max dimension of the data set
+ */
 struct FileIndex
 {
 	int vertexCount, maxElement;
@@ -61,13 +87,14 @@ struct FileIndex
 
 
 /*
- * @brief Get user input from console
- * @param argc: count of argument
- * @param argv: argv* string of argument
- * @param trajectories: The input line coordinates
- * @param equalArray: The matrix of coordinates after sampling with equal size of vertices
- * @param dimension: The max dimension
- * @param fi: An FileIndex object
+ * @brief Get user input from console and perform related operations
+ *
+ * @param[in] argc Count of argument
+ * @param[in] argv Argv* string of argument
+ * @param[out] trajectories The input line coordinates
+ * @param[out] equalArray The matrix of coordinates after sampling with equal size of vertices
+ * @param[out] dimension The max dimension
+ * @param[out] fi An FileIndex object
  */
 template<boost::uint32_t dim>
 void getUserInput(const int& argc, 
@@ -151,8 +178,9 @@ void getUserInput(const int& argc,
 
 /*
  * @brief Find the maximal number of clusters
- * @param fname: the file name
- * @param items: T type of object
+ *
+ * @param[in] fname The file name as input
+ * @param[out] items T type of object to be updated
  */
 template<typename T>
 static void print_items( const std::string fname, T& items )
@@ -179,8 +207,9 @@ static void print_items( const std::string fname, T& items )
 
 /*
  * @brief Load items into the global tree object
- * @param matrixData: The matrix of the line coordinates
- * @param items: The vector information to be updated
+ *
+ * @param[in] matrixData The matrix of the line coordinates as input
+ * @param[out] items The vector information to be updated
  */
 template<boost::uint32_t dim>
 static void load_items( const Eigen::MatrixXf& matrixData,
@@ -199,9 +228,10 @@ static void load_items( const Eigen::MatrixXf& matrixData,
 
 /*
  * @brief Get the max distance
- * @param equalArray: The coordinate matrix
- * @param object: The MetricPreparation object for distance matrix computation
- * @param normOption: The norm
+ *
+ * @param[in] equalArray The coordinate matrix
+ * @param[in] object The MetricPreparation object for distance matrix computation
+ * @param[in] normOption The norm
  * @return The max distance
  */
 const float getMaxDist(const Eigen::MatrixXf& equalArray, 
@@ -235,12 +265,13 @@ const float getMaxDist(const Eigen::MatrixXf& equalArray,
 
 /*
  * @brief Perform the binary search to find the distance threshold to get approximately the clusters
- * @param object: The MetricPreparation object for distance matrix computation
- * @param normOption the norm option
- * @param items: The item vector type
- * @param distThreshold: The distance threshold
- * @param maxGroup: The finalized cluster number
- * @param item_cids: The cluster formalized
+ *
+ * @param[in] object The MetricPreparation object for distance matrix computation
+ * @param[in] normOption the norm option
+ * @param[out] items The item vector type
+ * @param[in] distThreshold The distance threshold
+ * @param[out] maxGroup The finalized cluster number
+ * @param[out] item_cids The cluster formalized
  */
 template<boost::uint32_t dim>
 void getBirchClusterTrial(const MetricPreparation& object,
@@ -297,17 +328,18 @@ void getBirchClusterTrial(const MetricPreparation& object,
 
 /*
  * @brief Perform birch clustering with iterative binary search for the optimal distance threshold
- * @param items: The item vector
- * @param argv: The data set name and position
- * @param trajectories: The read-in data set
- * @param fi: The FileIndex
- * @param equalArray: The matrix coordinate
- * @param dimension: The max dimension
- * @param item_cids: The cluster labels
- * @param maxGroup: The max group
- * @param normOption: The norm option
- * @param fullName: The .vtk file position
- * @param object: The MetricPreparation class object
+ *
+ * @param[out] items The item vector
+ * @param[in] argv The data set name and position
+ * @param[out] trajectories The read-in data set
+ * @param[in] fi The FileIndex
+ * @param[out] equalArray The matrix coordinate
+ * @param[in] dimension The max dimension
+ * @param[out] item_cids The cluster labels
+ * @param[out] maxGroup The max group
+ * @param[out] normOption The norm option
+ * @param[out] fullName The .vtk file position
+ * @param[out] object The MetricPreparation class object
  */
 template<boost::uint32_t dim>
 void getBirchClustering(std::vector<item_type<dim> >& items,
@@ -489,8 +521,7 @@ void getBirchClustering(std::vector<item_type<dim> >& items,
 
 /*
  * @brief Get the cluster analysis for Birch clustering result
- * @param items: The item vector
- * @param argv: The data set name and position
+ *
  * @param trajectories: The read-in data set
  * @param fi: The FileIndex
  * @param equalArray: The matrix coordinate
