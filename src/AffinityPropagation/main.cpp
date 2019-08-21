@@ -6,9 +6,8 @@ void setPara(Para& p);
 
 /*
  * @brief The main driver for data set name and file position
- * @param argc: The argument count
- * @param argv: The char* array
- * @return 0 for successful execution
+ * @param[in] argc The argument count
+ * @param[in] argv The char* array
  */
 int main(int argc, char **argv)
 {
@@ -29,8 +28,7 @@ int main(int argc, char **argv)
 
 /*
  * @brief Externally set up necessary parameters
- * @param p: The Para object to be set
- * @return Nothing
+ * @param[out] p The Para object to be set
  */
 void setPara(Para& p)
 {

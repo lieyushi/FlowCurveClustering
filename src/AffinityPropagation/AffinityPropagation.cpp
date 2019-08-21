@@ -7,10 +7,7 @@
 
 /*
  * @brief This is a default constructor for AffinityPropagation class object
- * @param No parameter input
- * @return No return type
  */
-
 AffinityPropagation::AffinityPropagation()
 {
 
@@ -19,11 +16,15 @@ AffinityPropagation::AffinityPropagation()
 
 /*
  * @brief Create an AffinityPropagation object with command line parameters
- * @param argc: the count of argument
- * @param argv: the argument line with string type of data set names and dimension count
- * @param p: a Para object with some pre-defined parameter values
- * @param automatic: a bool object for automatic parameter setting or not
- * @return Nothing but to create an AffinityPropagation object
+ *
+ * @details
+ * 	Create an AffinityPropagation class object from argument strings and pre-set parameters. This constructor will be
+ * 	ready for the following calculation of the AP clustering algorithm
+ *
+ * @param[in] argc The count of argument as input
+ * @param[in] argv The argument line with string type of data set names and dimension count
+ * @param[in] p The Para object with some pre-defined parameter values
+ * @param[in] automatic The bool object for automatic parameter setting or not
  */
 AffinityPropagation::AffinityPropagation(const int& argc, char **argv, const Para& p, bool& automatic)
 {
@@ -45,8 +46,9 @@ AffinityPropagation::AffinityPropagation(const int& argc, char **argv, const Par
 
 /*
  * @brief A destructor of the class
- * @param No parameter
- * @return No return values
+ *
+ * @details
+ * 	Delete the global pointer variable distanceMatrix
  */
 AffinityPropagation::~AffinityPropagation()
 {
@@ -57,8 +59,10 @@ AffinityPropagation::~AffinityPropagation()
 
 /*
  * @brief The member function to perform the affinity propagation clustering on similarity measures
- * @param No parameter provided
- * @return Nothing for return
+ *
+ * @details
+ * 	Perform the AP clustering techniques on selected similarity measures and evaluation metric calculation. The selected
+ * 	similarity measures can be revised for any choice
  */
 void AffinityPropagation::performClustering()
 {
@@ -115,8 +119,12 @@ void AffinityPropagation::performClustering()
 
 /*
  * @brief It performs the AP clustering algorithm on selected similarity measure norm (number tag)
- * @param norm: The number representing the similarity measure
- * @return Nothing to return. Generate some necessary evaluation metrics and data files
+ *
+ * @details
+ * 	Perform the AP clustering on a given similarity measure norm. It includes first-stage (and second-staged AP for
+ * 	option) AP clustering, the group labeling, clustering evaluation calculation and representative extraction procedures.
+ *
+ * @param[in] norm The number representing the similarity measure
  */
 void AffinityPropagation::clusterByNorm(const int& norm)
 {
@@ -220,10 +228,15 @@ void AffinityPropagation::clusterByNorm(const int& norm)
 
 /*
  * @brief Set the labels of clustering technique for all the individual lines
- * @param neighborVec: The assemble of lines that belong to the same cluster
- * @param storage: The number of assemble candidates for each cluster
- * @param centroid: The center coordinates of each cluster
- * @param groupTag: The cluster label for each candididate individual line
+ *
+ * @details
+ * 	This function will set the group labels in ascending order of cluster size and furthermore calculate the candidate
+ * 	vectors, centroid vectors and cluster size vector
+ *
+ * @param[out] neighborVec The assemble of lines that belong to the same cluster
+ * @param[out] storage The number of assemble candidates for each cluster
+ * @param[out] centroid The center coordinates of each cluster
+ * @param[out] groupTag The cluster label for each candididate individual line
  */
 void AffinityPropagation::setLabel(vector<vector<int> >& neighborVec, vector<int>& storage, Eigen::MatrixXf& centroid,
 		std::vector<int>& groupTag)
@@ -275,10 +288,15 @@ void AffinityPropagation::setLabel(vector<vector<int> >& neighborVec, vector<int
 
 /*
  * @brief Extract the cluster representatives of clusters and calculate the evaluation metrics for the clustering results
- * @param storage: The number of candidates included in each cluster
- * @param neighborVec: The candidates (only streamline index included) for each streamline cluster
- * @param centroid: The centroids of streamline clusters
- * @return Nothing. It will output the cluster representatives and evaluation metric values
+ *
+ * @details
+ * 	Extract the features and calculate the clustering evaluation metrics for the clustering result. Check the cluster size
+ * 	output information to guarantee the ascending order of cluster sizes. Print the extracted vtk files for visual
+ * 	analysis.
+ *
+ * @param[in] storage The number of candidates included in each cluster
+ * @param[in] neighborVec The candidates (only streamline index included) for each streamline cluster
+ * @param[in] centroid The centroids of streamline clusters
  */
 void AffinityPropagation::extractFeatures(const std::vector<int>& storage, const std::vector<std::vector<int> >& neighborVec,
 		                  const Eigen::MatrixXf& centroid)
@@ -416,9 +434,9 @@ void AffinityPropagation::extractFeatures(const std::vector<int>& storage, const
 
 /*
  * @brief A member function to read the geometric coordinates from given file name and position
- * @param argc: The count of arguments
- * @param argv: The argument char array type that includes data set name and dimension count
- * @return Nothing. Just assign the coordinate matrix to the member variables of the class
+ *
+ * @param[in] argc The count of arguments
+ * @param[in] argv The argument char array type that includes data set name and dimension count
  */
 void AffinityPropagation::setDataset(const int& argc, char **argv)
 {
@@ -460,9 +478,9 @@ void AffinityPropagation::setDataset(const int& argc, char **argv)
 
 /*
  * @brief This function is to calculate the normalized entropy for the clustering result
- * @param storage: The size of each streamline cluster
- * @pagram EntropyRatio: The normalized entropy value to be assigned from calculation
- * @return Nothing, just perform the clustering evaluation calculation
+ *
+ * @param[in] storage The size of each streamline cluster
+ * @pagram[out] EntropyRatio The normalized entropy value to be assigned from calculation
  */
 void AffinityPropagation::getEntropyRatio(const std::vector<int>& storage, float& EntropyRatio)
 {
@@ -483,8 +501,8 @@ void AffinityPropagation::getEntropyRatio(const std::vector<int>& storage, float
 
 /*
  * @brief It performs some necessary operations given the input parameters
- * @param p: A Para object that contains parameters for pre-processing and activation for two-staged AP
- * @return Nothing, just perform the sampling and assignment of member variables
+ *
+ * @param[in] p A Para object that contains parameters for pre-processing and activation for two-staged AP
  */
 void AffinityPropagation::setParameterAutomatic(const Para& p)
 {
@@ -519,8 +537,6 @@ void AffinityPropagation::setParameterAutomatic(const Para& p)
 
 /*
  * @brief It provides console for user parameter input
- * @param No parameters for the function
- * @return Nothing, just set up parameters and provide relevant computation
  */
 void AffinityPropagation::getParameterUserInput()
 {
@@ -560,10 +576,10 @@ void AffinityPropagation::getParameterUserInput()
 
 /*
  * @brief Calculate the matrix S given a distance matrix and the coordinates of lines
- * @param matrixS: The matrix S to be assigned values
- * @param distMatrix: The distance matrix
- * @param coordinates: The coordinate matrix for the streamlines/pathlines
- * @return Nothing, just initialize the matrix S for further AP clustering operation
+ *
+ * @param[out] matrixS The matrix S to be assigned values
+ * @param[in] distMatrix The distance matrix
+ * @param[in] coordinates The coordinate matrix for the streamlines/pathlines
  */
 void AffinityPropagation::getMatrixS(Eigen::MatrixXf& matrixS, float** distMatrix, const Eigen::MatrixXf& coordinates)
 {
@@ -636,11 +652,11 @@ void AffinityPropagation::getMatrixS(Eigen::MatrixXf& matrixS, float** distMatri
 
 /*
  * @brief Initialize the matrix S, R and A for AP clustering
- * @param matrixS: The matrix S to be initialized
- * @param matrixR: The matrix R to be initialized
- * @param matrixA: The matrix A to be initialized
- * @param rows: The row size of the matrix
- * @return Nothing, just resize the memory for three matrices
+ *
+ * @param[out] matrixS The matrix S to be initialized
+ * @param[out] matrixR The matrix R to be initialized
+ * @param[out] matrixA The matrix A to be initialized
+ * @param[in] rows The row size of the matrix
  */
 void AffinityPropagation::initializeMatrices(Eigen::MatrixXf& matrixS, Eigen::MatrixXf& matrixR,
 											Eigen::MatrixXf& matrixA, const int& rows)
@@ -654,10 +670,10 @@ void AffinityPropagation::initializeMatrices(Eigen::MatrixXf& matrixS, Eigen::Ma
 
 /*
  * @brief Update the responsibility matrix R by input matrix A and S
- * @param matrixR: The matrix R to be updated
- * @param matrixA: The matrix A as input
- * @param matrixR: The matrix S as input
- * @return Nothing, just update the entry-wise value of matrix R
+ *
+ * @param[out] matrixR The matrix R to be updated
+ * @param[in] matrixA The matrix A as input
+ * @param[in] matrixR The matrix S as input
  */
 void AffinityPropagation::updateResponsibility(Eigen::MatrixXf& matrixR, const Eigen::MatrixXf& matrixA,
 											  const Eigen::MatrixXf& matrixS)
@@ -686,9 +702,9 @@ void AffinityPropagation::updateResponsibility(Eigen::MatrixXf& matrixR, const E
 
 /*
  * @brief Update the availability matrix A
- * @param matrixA: the availability matrix A to be updated
- * @param matrixR: the responsibility matrix R as input
- * @return Nothing but just update the matrix A
+ *
+ * @param[out] matrixA the availability matrix A to be updated
+ * @param[in] matrixR the responsibility matrix R as input
  */
 void AffinityPropagation::updateAvailability(Eigen::MatrixXf& matrixA, const Eigen::MatrixXf& matrixR)
 {
@@ -730,13 +746,13 @@ void AffinityPropagation::updateAvailability(Eigen::MatrixXf& matrixA, const Eig
 
 /*
  * @brief Get the group label for all the streamlines/pathlines
- * @param matrixR: The responsibility matrix R as input
- * @param matrixA: The availability matrix A as input
- * @param matrixS: The matrix S as input
- * @param neighborVec: The neighborhood vector for each cluster
- * @param storage: The int vector for recording the size of each cluster
- * @param groupTag: The labels for each streamlines/pathlines
- * @return Nothing, will update the cluster labels for all the streamlines/pathlines
+ *
+ * @param[in] matrixR The responsibility matrix R as input
+ * @param[in] matrixA The availability matrix A as input
+ * @param[in] matrixS The matrix S as input
+ * @param[out] neighborVec The neighborhood vector for each cluster
+ * @param[out] storage The int vector for recording the size of each cluster
+ * @param[out] groupTag The labels for each streamlines/pathlines
  */
 void AffinityPropagation::getGroupAssignment(const Eigen::MatrixXf& matrixR, const Eigen::MatrixXf& matrixA,
 			  	  	  	  	const Eigen::MatrixXf& matrixS, std::vector<std::vector<int> >& neighborVec,
@@ -814,10 +830,10 @@ void AffinityPropagation::getGroupAssignment(const Eigen::MatrixXf& matrixR, con
 
 /*
  * @brief The function is to get the distance matrix for centroid streamlines/pathlines
- * @param centroidDistMatrix: The distance matrix for centroid streamlines/pathlines
- * @param norm: The input similarity label
- * @param centroid: The coordinate matrix for the centroids
- * @return Nothing, update the distance matrix
+ *
+ * @param[out] centroidDistMatrix The distance matrix for centroid streamlines/pathlines
+ * @param[in] norm The input similarity label
+ * @param[in] centroid The coordinate matrix for the centroids
  */
 void AffinityPropagation::getDistMatrixForCentroids(float*** centroidDistMatrix, const int& norm,
 		const Eigen::MatrixXf& centroid)
@@ -848,8 +864,8 @@ void AffinityPropagation::getDistMatrixForCentroids(float*** centroidDistMatrix,
 
 /*
  * @brief This function is to read distance matrix from the local file if it exists
- * @param norm: It is the index for similarity measure
- * @return Nothing, just update the global variable distanceMatrix
+ *
+ * @param[in] norm It is the index for similarity measure
  */
 void AffinityPropagation::getDistanceMatrixFromFile(const int& norm)
 {
@@ -933,12 +949,12 @@ void AffinityPropagation::getDistanceMatrixFromFile(const int& norm)
 
 /*
  * @brief This function is to perform the AP clustering
- * @param matrixS: The matrix S to be updated
- * @param matrixR: The matrix R to be updated
- * @param matrixA: The matrix A to be updated
- * @param distMatrix: The distance matrix as input
- * @param coordinates: The coordinate of streamlines/pathlines as input
- * @return Nothing, just perform the AP clustering
+ *
+ * @param[out] matrixS The matrix S to be updated
+ * @param[out] matrixR The matrix R to be updated
+ * @param[out] matrixA The matrix A to be updated
+ * @param[out] distMatrix The distance matrix as input
+ * @param[in] coordinates The coordinate of streamlines/pathlines as input
  */
 void AffinityPropagation::performAPClustering(Eigen::MatrixXf& matrixS, Eigen::MatrixXf& matrixR,
 		Eigen::MatrixXf& matrixA, float** distMatrix, const Eigen::MatrixXf& coordinates)
@@ -966,13 +982,13 @@ void AffinityPropagation::performAPClustering(Eigen::MatrixXf& matrixS, Eigen::M
 
 /*
  * @brief This function is to calculate the centroids by AP clustering labels
- * @param storage: The vector of int for the size of each cluster
- * @param neighborVec: The candidate of each cluster
- * @param centroid: The centroid streamline to be updated
- * @param groupTag: The labels for each streamline
- * @param centroidGroup: The number of candidates for each cluster
- * @param groupSize: The size of groups generated
- * @return Nothing, just to update the neighborVec, storage and centroid
+ *
+ * @param[out] storage The vector of int for the size of each cluster
+ * @param[out] neighborVec The candidate of each cluster
+ * @param[out] centroid The centroid streamline to be updated
+ * @param[out] groupTag The labels for each streamline
+ * @param[in] centroidGroup The number of candidates for each cluster
+ * @param[in] groupSize The size of groups generated
  */
 void AffinityPropagation::getHierarchicalClusters(std::vector<int>& storage, std::vector<std::vector<int> >& neighborVec,
 		Eigen::MatrixXf& centroid, std::vector<int>& groupTag, const std::vector<int>& centroidGroup,

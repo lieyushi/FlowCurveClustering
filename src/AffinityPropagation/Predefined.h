@@ -52,11 +52,11 @@ void mySwap(T& a, T& b)
 
 /*
  * @brief The partition function for quick-median-computation
+ *
  * @param array: The array to calculate the median value
  * @param left: The left index
  * @param right: The right index
  * @param pivotIndex: The pivot index for partition function
- * @return Nothing
  */
 template <class T>
 int partition(std::vector<T>& array, const int& left, const int& right, const int& pivotIndex)
@@ -79,6 +79,7 @@ int partition(std::vector<T>& array, const int& left, const int& right, const in
 
 /*
  * @brief return k-th element in the unsorted array with quicks-selection algorithm, pseudocode referrenced at https://en.wikipedia.org/wiki/Quickselect
+ *
  * @param array: The array for input
  * @param left: The left index
  * @param right: The right index
