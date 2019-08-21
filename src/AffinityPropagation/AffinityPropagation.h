@@ -31,13 +31,19 @@
 struct Para
 {
 
-	/* 1.directly filling with last vertex; 2. uniform sampling, 3. equal-arc sampling */
+	/*
+	 * @brief 1.directly filling with last vertex; 2. uniform sampling, 3. equal-arc sampling
+	 */
 	int sampled;
 
-	/* extraction option, 1. centroid, closest and furthest, 2. median */
+	/*
+	 * @brief extraction option, 1. centroid, closest and furthest, 2. median
+	 */
 	int extractOption;
 
-	/* max iteration for AP clustering */
+	/*
+	 * @brief max iteration for AP clustering
+	 */
 	int maxIteration;
 };
 
