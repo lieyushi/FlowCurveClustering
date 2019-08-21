@@ -1,19 +1,19 @@
-/* Standard agglomerative hierarchical clustering methods.
- * Assume input object number is N, then form a N*N distance matrix to be stored.
- * Basic procedures are
- * 	1. store distance matrix
- * 	2. min-heap to sort mutual distance
- * 	3. every time merge two nodes with smallest distance and update the min-heap
- * 	4. merge until only one cluster or given cluster number is obtained
- */
-
-/* Performance and memory usage analysis
- * 1. Performance
- * 		N*N (distance matrix) + 2N*N logN (build min-heap) + 2N*N*log(N*N) (min-heap update)
- * 2. Memory usage
- * 		N*N (distance matrix) + N*N(min-heap)
+/* @brief Standard agglomerative hierarchical clustering methods.
+ * @details
+ * 	Assume input object number is N, then form a N*N distance matrix to be stored.
+ * 	Basic procedures are
+ * 		1. store distance matrix
+ * 		2. min-heap to sort mutual distance
+ * 		3. every time merge two nodes with smallest distance and update the min-heap
+ * 		4. merge until only one cluster or given cluster number is obtained
+ * 	Performance and memory usage analysis
+ * 		1. Performance
+ * 			N*N (distance matrix) + 2N*N logN (build min-heap) + 2N*N*log(N*N) (min-heap update)
+ * 		2. Memory usage
+ * 			N*N (distance matrix) + N*N(min-heap)
+ *	 	Would expect this algorithm to be super time-consuming and memory-wasting
  *
- * Would expect this algorithm to be super time-consuming and memory-wasting
+ * @author Lieyu Shi
  */
 
 #ifndef _AHC_H_
@@ -29,103 +29,257 @@
 #include "ValidityMeasurement.h"
 #include "DetermClusterNum.h"
 
+
+/*
+ * @brief The class to perform agglomerative hierarchical clustering algorithms and related clustering analysis
+ */
 class AHC
 {
 
 public:
 
-/* default constructor */
+
+	/*
+	 * @brief The default constructor
+	 */
 	AHC();
 
-/* argument constructor with argc and argv */
+
+	/*
+	 * @brief A constructor with parameters
+	 * @details
+	 * 	To set the data set and perform some reading operation into the member variables from the file
+	 *
+	 * @param[in] argc The count of argv
+	 * @param[in] argv The argument string line
+	 */
 	AHC(const int& argc, char **argv);
 
-/* destructor */
+
+	/*
+	 * @brief The destructor of the class AHC
+	 * @details
+	 * 	Delete the global pointer distance matrix
+	 *
+	 */
 	~AHC();
 
-/* perform clustering function */
+
+	/*
+	 * @brief Perform the clustering for selected similarity measure labels w.r.t. user input and data set type
+	 * @details
+	 *	If the number of clusters are pre-stored in the "cluster_number" file, the code will read the numbers first.
+	 *	Then for different similarity measures, it will decide whether the L-method is activated or not. If L-method
+	 *	is activated, the number of clusters is set to be 1, otherwise it will be set as user input. Hierarchical merging
+	 *	operation for the tree is called after parameter setting is finished.
+	 */
 	void performClustering();
 
+
 private:
-/* extract features from datasets as representative curves */
+
+
+	/*
+	 * @brief Extract the features and calculate the evaluation metrics for clustering results
+	 * @details
+	 * 	Based on the clustering result, the cluster representatives will be extracted first for each cluster based on the
+	 * 	closest/furthest candidate to the cluster centroid.
+	 * 	The clustering evaluation metrics will be computed for the quantitative analysis of the clustering result.
+	 * 	All the information (cluster representatives stored in .vtk file, clustering evaluation metrics stored in readme)
+	 * 	will be recorded and stored in the designated folders for further batch processing.
+	 *
+	 * @param[in] storage The size of each cluster as input as input
+	 * @param[in] neighborVec The candidate vector for each cluster as input
+	 * @param[in] centroid The centroid for each cluster as input
+	 */
 	void extractFeatures(const std::vector<int>& storage, const std::vector<std::vector<int> >& neighborVec,
             			 const Eigen::MatrixXf& centroid);
 
-/* metric preparation object to be stored ahead of time */
+
+	/*
+	 * @brief metric preparation object to be stored ahead of time
+	 */
 	MetricPreparation object;
 
-/* input norm option */
+	/*
+	 * @brief input norm option
+	 */
 	int normOption;
 
-/* the tag to tell whether it's a PBF or not */
+	/*
+	 * @brief the tag to tell whether it's a PBF or not
+	 */
 	bool isPBF;
 
-/* group information */
+	/*
+	 * @brief group information for integral curves
+	 */
 	std::vector<int> group;
 
-/* activityList vector to store event */
+	/*
+	 * @brief activityList vector to store event
+	 */
 	std::vector<string> activityList;
 
-/* timeList vector to store time information */
+	/*
+	 * @brief timeList vector to store time information
+	 */
 	std::vector<string> timeList;
 
-/* store dataset information */
+	/*
+	 * @brief store dataset information
+	 */
 	DataSet ds;
 
-/* how many clusters to be needed */
+	/*
+	 * @brief how many clusters to be needed
+	 */
 	int numberOfClusters;
 
-/* k-means initialization option */
+	/*
+	 * @brief k-means initialization option
+	 */
 	int initializationOption;
 
-/* linkage choice */
+	/*
+	 * @brief linkage choice
+	 */
 	int linkageOption;
 
-/* whether used L-method to detect optimal number of clusters */
+	/*
+	 * @brief whether used L-method to detect optimal number of clusters
+	 */
 	bool lMethod;
 
-/* whether read cluster by input or read from txt */
+	/*
+	 * @brief whether read cluster by input or read from txt
+	 */
 	bool readCluster;
 
-/* whether is pathline or not */
+	/*
+	 * @brief whether is pathline or not
+	 */
 	bool isPathlines;
 
-/* used to test the curve of some function */
+	/*
+	 * @brief used to test the curve of some function
+	 */
 	std::vector<float> curveValue[4];
 
-/* set dataset from user command */
+
+	/*
+	 * @brief Set the data set and perform necessary operations with user parameter input
+	 * @details
+	 * 	The function will read in the coordinates of the streamlines/pathlines from the given argument.
+	 * 	Then it will provide necessary sampling strategy based on user input and data set type
+	 * 	Furthmore, parameter input will be enforced from the console.
+	 *
+	 * @param[in] argc The count of argument string
+	 * @param[in] argv The char* array for argument
+	 */
 	void setDataset(const int& argc, char **argv);
 
-/* compute distance between two clusters based on likage type */
+
+	/*
+	 * @brief Get the distance between two nodes with a given linkage type
+	 *
+	 * @param[in] firstList The first node with candidates
+	 * @param[in] secondList The second node with candidates
+	 * @param[in] Linkage The linkage type, 0 for single, 1 for complete and 2 for average
+	 * @return The distance value between two nodes in AHC clustering
+	 */
 	const float getDistAtNodes(const vector<int>& firstList, const vector<int>& secondList, const int& Linkage);
 
-/* perform AHC merging by given a distance threshold */
+
+	/*
+	 * @brief Perform hierarchical merge for the trees by a given required cluster number
+	 * @details
+	 * 	Hiarachically merge the nodes until the number of cluster is reached. Then based on whether L-method is activated
+	 * 	or not, the posterior operation will be called on either finding the clustering information or finding the optimal
+	 * 	number of clusters
+	 *
+	 * @param[out] node_map The initial node with each node representing one streamline/pathline
+	 * @param[out] dNodeVec The DistNode vector which has the indices of two nodes and their distance
+	 * @param[out] nodeVec The vector of Ensemble which has candidate index of the cluster
+	 */
 	void hierarchicalMerging(std::unordered_map<int, Ensemble>& node_map, std::vector<DistNode>& dNodeVec,
 			  std::vector<Ensemble>& nodeVec);
 
-/* perform group-labeling information */
+
+	/*
+	 * @brief Set the labels and compute the centroid and cluster related information
+	 * @details
+	 *	With generated node information, the cluster size, cluster centroids and candidates belonging to the same cluster
+	 *	will be determined for further clustering evaluation metric calculation.
+	 *
+	 * @param[in] nodeVec The remained node vector
+	 * @param[out] neighborVec The candidate vector of each cluster to be updated
+	 * @param[out] storage The size of each cluster to be updated
+	 * @param[out] centroid The centroid coordinates to be updated
+	 */
 	void setLabel(const std::vector<Ensemble>& nodeVec, vector<vector<int> >& neighborVec,
 			      vector<int>& storage, Eigen::MatrixXf& centroid);
 
-/* get string for linkage type */
+
+	/*
+	 * @brief Get the string for linkage type
+	 * @return A string type for linkage
+	 */
 	string getLinkageStr();	
 
-/* get entropy ratio */
+
+	/*
+	 * @brief Calculate the normalized entropy
+	 *
+	 * @param[in] storage The size of different clusters
+	 * @param[out] EntropyRatio The normalized entropy to be updated
+	 */
 	void getEntropyRatio(const std::vector<int>& storage, float& EntropyRatio);
 
-/* get norm string */
+
+	/*
+	 * @brief Get the string type of input similarity measure
+	 * @return A string type
+	 */
 	string getNormStr();
 
-/* get entropy ratio string */ 
+
+	/*
+	 * @brief Get the string type for entropy value
+	 *
+	 * @param[out] EntropyRatio The normalized entropy value
+	 * @return The string of the float value
+	 */
 	string getEntropyStr(const float& EntropyRatio);	
 
-/* set a vector for min-heap */
+
+	/*
+	 * @brief Set the merged nodes and perform necessary merge operations before the starting of AHC
+	 *
+	 * @param[out] dNodeVec The node vector to be updated
+	 * @param[out] node_map The map to record the index and node
+	 */
 	void setValue_merge(std::vector<DistNode>& dNodeVec, std::unordered_map<int, Ensemble>& node_map);
 
-/* set a vector for min-heap */
+
+	/*
+	 * @brief Set value for the dNodeVec and node_map as initialization of the AHC procedure
+	 *
+	 * @param[out] dNodeVec The vector of nodes to be updated
+	 * @param[out] node_map The map for recording index and candidate streamlines in the cluster
+	 */
 	void setValue(std::vector<DistNode>& dNodeVec, std::unordered_map<int, Ensemble>& node_map);
 
-/* perform clustering on normOption */
+
+	/*
+	 * @brief The function to perform AHC clustering by a given norm
+	 *
+	 * @details
+	 * 	The function will first judge whether the local storage of distance matrix exists or not. If it exists, the program
+	 * 	will read in the distance matrix from the local file, otherwise it will calculate the distance matrix. In this format
+	 * 	the time for calculating distance matrix can be saved for different clustering techniques.
+	 * 	Then it will read in number of clusters as input for the clustering operation.
+	 */
 	void performClustering_by_norm();
 
 };

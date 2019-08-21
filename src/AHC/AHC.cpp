@@ -1,5 +1,6 @@
 /*
- * This is the source cpp for implementing the member functions for the class AHC
+ * @brief This is the source cpp for implementing the member functions for the class AHC
+ * @author Lieyu Shi
  */
 
 #include "AHC.h"
@@ -7,8 +8,6 @@
 
 /*
  * @brief The default constructor
- * @param No
- * @return Nothing
  */
 AHC::AHC()
 {
@@ -18,9 +17,11 @@ AHC::AHC()
 
 /*
  * @brief A constructor with parameters
- * @param argc: The count of argv
- * @param argv: The argument string line
- * @return Nothing, set the data set from argument
+ * @details
+ * 	To set the data set and perform some reading operation into the member variables from the file
+ *
+ * @param[in] argc The count of argv
+ * @param[in] argv The argument string line
  */
 AHC::AHC(const int& argc, char **argv)
 {
@@ -30,6 +31,9 @@ AHC::AHC(const int& argc, char **argv)
 
 /*
  * @brief The destructor of the class AHC
+ * @details
+ * 	Delete the global pointer distance matrix
+ *
  */
 AHC::~AHC()
 {
@@ -39,6 +43,12 @@ AHC::~AHC()
 
 /*
  * @brief The function to perform AHC clustering by a given norm
+ *
+ * @details
+ * 	The function will first judge whether the local storage of distance matrix exists or not. If it exists, the program
+ * 	will read in the distance matrix from the local file, otherwise it will calculate the distance matrix. In this format
+ * 	the time for calculating distance matrix can be saved for different clustering techniques.
+ * 	Then it will read in number of clusters as input for the clustering operation.
  */
 void AHC::performClustering_by_norm()
 {
@@ -145,7 +155,12 @@ void AHC::performClustering_by_norm()
 
 
 /*
- * @brief Perform the clustering for related similarity measure labels
+ * @brief Perform the clustering for selected similarity measure labels w.r.t. user input and data set type
+ * @details
+ *	If the number of clusters are pre-stored in the "cluster_number" file, the code will read the numbers first.
+ *	Then for different similarity measures, it will decide whether the L-method is activated or not. If L-method
+ *	is activated, the number of clusters is set to be 1, otherwise it will be set as user input. Hierarchical merging
+ *	operation for the tree is called after parameter setting is finished.
  */
 void AHC::performClustering()
 {
@@ -243,9 +258,14 @@ void AHC::performClustering()
 
 /*
  * @brief Perform hierarchical merge for the trees by a given required cluster number
- * @param node_map: The initial node with each node representing one streamline/pathline
- * @param dNodeVec: The DistNode vector which has the indices of two nodes and their distance
- * @param nodeVec: The vector of Ensemble which has candidate index of the cluster
+ * @details
+ * 	Hiarachically merge the nodes until the number of cluster is reached. Then based on whether L-method is activated
+ * 	or not, the posterior operation will be called on either finding the clustering information or finding the optimal
+ * 	number of clusters
+ *
+ * @param[out] node_map The initial node with each node representing one streamline/pathline
+ * @param[out] dNodeVec The DistNode vector which has the indices of two nodes and their distance
+ * @param[out] nodeVec The vector of Ensemble which has candidate index of the cluster
  */
 void AHC::hierarchicalMerging(std::unordered_map<int, Ensemble>& node_map, std::vector<DistNode>& dNodeVec,
 							  std::vector<Ensemble>& nodeVec)
@@ -393,11 +413,15 @@ void AHC::hierarchicalMerging(std::unordered_map<int, Ensemble>& node_map, std::
 
 
 /*
- * @brief Set the labels and compute the centroid and cluster information
- * @param nodeVec: The remained node vector
- * @param neighborVec: The candidate vector of each cluster to be updated
- * @param storage: The size of each cluster to be updated
- * @param centroid: The centroid coordinates to be updated
+ * @brief Set the labels and compute the centroid and cluster related information
+ * @details
+ *	With generated node information, the cluster size, cluster centroids and candidates belonging to the same cluster
+ *	will be determined for further clustering evaluation metric calculation.
+ *
+ * @param[in] nodeVec The remained node vector
+ * @param[out] neighborVec The candidate vector of each cluster to be updated
+ * @param[out] storage The size of each cluster to be updated
+ * @param[out] centroid The centroid coordinates to be updated
  */
 void AHC::setLabel(const std::vector<Ensemble>& nodeVec, vector<vector<int> >& neighborVec,
 			      vector<int>& storage, Eigen::MatrixXf& centroid)
@@ -433,12 +457,18 @@ void AHC::setLabel(const std::vector<Ensemble>& nodeVec, vector<vector<int> >& n
 }
 
 
-
 /*
  * @brief Extract the features and calculate the evaluation metrics for clustering results
- * @param storage: The size of each cluster as input as input
- * @param neighborVec: The candidate vector for each cluster as input
- * @param centroid: The centroid for each cluster as input
+ * @details
+ * 	Based on the clustering result, the cluster representatives will be extracted first for each cluster based on the
+ * 	closest/furthest candidate to the cluster centroid.
+ * 	The clustering evaluation metrics will be computed for the quantitative analysis of the clustering result.
+ * 	All the information (cluster representatives stored in .vtk file, clustering evaluation metrics stored in readme)
+ * 	will be recorded and stored in the designated folders for further batch processing.
+ *
+ * @param[in] storage The size of each cluster as input as input
+ * @param[in] neighborVec The candidate vector for each cluster as input
+ * @param[in] centroid The centroid for each cluster as input
  */
 void AHC::extractFeatures(const std::vector<int>& storage, const std::vector<std::vector<int> >& neighborVec,
 		                  const Eigen::MatrixXf& centroid)
@@ -593,8 +623,13 @@ void AHC::extractFeatures(const std::vector<int>& storage, const std::vector<std
 
 /*
  * @brief Set the data set and perform necessary operations with user parameter input
- * @param argc: The count of argument string
- * @param argv: The char* array for argument
+ * @details
+ * 	The function will read in the coordinates of the streamlines/pathlines from the given argument.
+ * 	Then it will provide necessary sampling strategy based on user input and data set type
+ * 	Furthmore, parameter input will be enforced from the console.
+ *
+ * @param[in] argc The count of argument string
+ * @param[in] argv The char* array for argument
  */
 void AHC::setDataset(const int& argc, char **argv)
 {
@@ -677,10 +712,11 @@ void AHC::setDataset(const int& argc, char **argv)
 
 
 /*
- * @brief Get the distance between two nodes with linkage type
- * @param firstList: The first node with candidates
- * @param secondList: The second node with candidates
- * @param Linkage: The linkage type, 0 for single, 1 for complete and 2 for average
+ * @brief Get the distance between two nodes with a given linkage type
+ *
+ * @param[in] firstList The first node with candidates
+ * @param[in] secondList The second node with candidates
+ * @param[in] Linkage The linkage type, 0 for single, 1 for complete and 2 for average
  * @return The distance value between two nodes in AHC clustering
  */
 const float AHC::getDistAtNodes(const vector<int>& firstList, const vector<int>& secondList, const int& Linkage)
@@ -786,8 +822,9 @@ string AHC::getLinkageStr()
 
 /*
  * @brief Calculate the normalized entropy
- * @param storage: The size of different clusters
- * @param EntropyRatio: The normalized entropy to be updated
+ *
+ * @param[in] storage The size of different clusters
+ * @param[out] EntropyRatio The normalized entropy to be updated
  */
 void AHC::getEntropyRatio(const std::vector<int>& storage, float& EntropyRatio)
 {
@@ -816,7 +853,8 @@ string AHC::getNormStr()
 
 /*
  * @brief Get the string type for entropy value
- * @param EntropyRatio: The normalized entropy value
+ *
+ * @param[out] EntropyRatio The normalized entropy value
  * @return The string of the float value
  */
 string AHC::getEntropyStr(const float& EntropyRatio)
@@ -828,9 +866,10 @@ string AHC::getEntropyStr(const float& EntropyRatio)
 
 
 /*
- * @brief Set the merged nodes and perform necessary merge operations
- * @param dNodeVec: The node vector to be updated
- * @param node_map: The map to record the index and node
+ * @brief Set the merged nodes and perform necessary merge operations before the starting of AHC
+ *
+ * @param[out] dNodeVec The node vector to be updated
+ * @param[out] node_map The map to record the index and node
  */
 void AHC::setValue_merge(std::vector<DistNode>& dNodeVec, std::unordered_map<int, Ensemble>& node_map)
 {
@@ -909,8 +948,9 @@ void AHC::setValue_merge(std::vector<DistNode>& dNodeVec, std::unordered_map<int
 
 /*
  * @brief Set value for the dNodeVec and node_map as initialization of the AHC procedure
- * @param dNodeVec: The vector of nodes to be updated
- * @param node_map: The map for recording index and candidate streamlines in the cluster
+ *
+ * @param[out] dNodeVec The vector of nodes to be updated
+ * @param[out] node_map The map for recording index and candidate streamlines in the cluster
  */
 void AHC::setValue(std::vector<DistNode>& dNodeVec, std::unordered_map<int, Ensemble>& node_map)
 {
