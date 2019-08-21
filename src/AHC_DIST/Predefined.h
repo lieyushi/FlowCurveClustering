@@ -1,3 +1,9 @@
+/*
+ * @brief The preliminary class before the AHC clustering starts
+ * @author Lieyu Shi
+ */
+
+
 #ifndef _PREDEFINED_H
 #define _PREDEFINED_H
 
@@ -6,7 +12,12 @@
 #include "Silhouette.h"
 
 
-// the dataset class to record relevant information
+/*
+ * @brief The class to store the information of the data set
+ * @details
+ * 	Record the coordinates, matrix, max elements, vertex count, dimension, string name, full vtk name and data name of
+ * 	the data set
+ */
 struct DataSet
 {
 	vector<vector<float> > dataVec;	//original dataset
@@ -22,7 +33,9 @@ struct DataSet
 };
 
 
-// define a treeNode structure to store AHC clustering tree
+/*
+ * @brief The node that contains the candidates included in the cluster
+ */
 struct Ensemble
 {
 	int index = -1;
@@ -37,7 +50,13 @@ struct Ensemble
 };
 
 
-// remove two elements in template vector
+/*
+ * @brief Delete the two elements in the vector
+ *
+ * @param[out] original The input vector to be operated on
+ * @param[in] first The first element to be deleted
+ * @param[in] second The second element to be deleted
+ */
 template <class T>
 void deleteVecElements(std::vector<T>& origine, const T& first, const T& second);
 

@@ -10,9 +10,10 @@
 
 /*
  * @brief Delete the two elements in the vector
- * @param original: The input vector to be operated on
- * @param first: The first element to be deleted
- * @param second: The second element to be deleted
+ *
+ * @param[out] original The input vector to be operated on
+ * @param[in] first The first element to be deleted
+ * @param[in] second The second element to be deleted
  */
 template <class T>
 void deleteVecElements(std::vector<T>& original, const T& first, const T& second)

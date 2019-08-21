@@ -1,8 +1,15 @@
 /*
- * This is the source cpp for the AHC clustering with distance threshold as input
+ * @brief This is the source cpp for the AHC clustering with distance threshold as input
+ * @details
+ * 	Different from the standard AHC which requires a number of cluster as input, the AHC_DIDS accepts a distance
+ * 	threshold as input and merges any two nodes that have the distance value within this range. It is very similar
+ * 	to BIRCH clustering algorithm and it is not used in flow visualization. However, we still place it here with
+ * 	documentation just in case anyone feels interest in it.
+ * @author Lieyu Shi
  */
 
 #include "AHC.h"
+
 
 /*
  * @brief The default constructor
@@ -14,8 +21,12 @@ AHC::AHC() {
 
 /*
  * @brief The constructor with parameters
- * @param argc: count of argument
- * @param argv: char* array of argument
+ * @details
+ *	It firstly sets up the data set from the argument string and reads in from the local file
+ *	then create the distance matrix for AHC clustering
+ *
+ * @param[in] argc Count of argument
+ * @param[in] argv Char* array of argument
  */
 AHC::AHC(const int& argc, char **argv) {
 
@@ -27,8 +38,7 @@ AHC::AHC(const int& argc, char **argv) {
 	 * object as cached before the pairwise distance matrix computation
 	 */
 	object = MetricPreparation(ds.dataMatrix.rows(), ds.dataMatrix.cols());
-	object.preprocessing(ds.dataMatrix, ds.dataMatrix.rows(),
-			ds.dataMatrix.cols(), normOption);
+	object.preprocessing(ds.dataMatrix, ds.dataMatrix.rows(), ds.dataMatrix.cols(), normOption);
 
 	/* would store distance matrix instead because it would save massive time */
 	struct timeval start, end;
@@ -59,6 +69,11 @@ AHC::~AHC() {
 
 /*
  * @brief Perform AHC clustering with distance input
+ * @details
+ * 	It will select the type of AHC clustering, either by input of a cluster number, or a distance threshold. Then
+ * 	perform the hiararchical clustering by bottom-up merge of the tree. Then posterior calculation on feature
+ * 	extraction and clustering evaluation is performed for quantitative and visual analysis
+ *
  */
 void AHC::performClustering() {
 
@@ -98,13 +113,14 @@ void AHC::performClustering() {
 
 /*
  * @breif Perform bottom-up clustering with cluster number as input
- * @param nodeVec: A vector for Ensemble objects
+ * @details
+ * 	Iteratively merge the hierarchical tree until the tree size is approximately close to the required number
+ *
+ * @param[out] nodeVec A vector for Ensemble objects
  */
 void AHC::bottomUp_byGroup(std::vector<Ensemble>& nodeVec) {
 	const int& Row = ds.dataMatrix.rows();
-	std::cout
-			<< "-------------------------------------------------------------------------------"
-			<< std::endl;
+	std::cout << "-------------------------------------------------------------------------------" << std::endl;
 	std::cout << "Expected number of clusters from [0, " << Row << "]:";
 	std::cin >> expectedClusters;
 	assert(expectedClusters > 0 && expectedClusters < Row / 10);
@@ -156,8 +172,9 @@ void AHC::bottomUp_byGroup(std::vector<Ensemble>& nodeVec) {
 
 
 /*
- * @brief Perform the bottom-up clustering by threshold
- * @param nodeVec: The Ensemble vector to be updated
+ * @brief Perform the bottom-up clustering by distance threshold of the linkage type
+ *
+ * @param[out] nodeVec The Ensemble vector to be updated
  */
 void AHC::bottomUp_byThreshold(std::vector<Ensemble>& nodeVec) {
 	std::cout
@@ -188,8 +205,9 @@ void AHC::bottomUp_byThreshold(std::vector<Ensemble>& nodeVec) {
 
 
 /*
- * @brief Perform hierarchical merging for AHC
- * @param nodeVec: The Ensemble vector to be updated
+ * @brief Perform hierarchical merging for AHC if the merged distance is lower than the distance threshold
+ *
+ * @param[out] nodeVec The Ensemble vector to be updated
  */
 void AHC::hierarchicalMerging(std::vector<Ensemble>& nodeVec) {
 	const int Row = ds.dataMatrix.rows();
@@ -300,10 +318,11 @@ void AHC::hierarchicalMerging(std::vector<Ensemble>& nodeVec) {
 
 /*
  * @brief Set label for streamlines from the hierarchical tree
- * @param nodeVec: The Ensemble vector as input
- * @param neighborVec: The candidate vector for each cluster
- * @param storage: The size of clusters to be updated
- * @param centroid: The centroids of streamlines to be updated
+ *
+ * @param[in] nodeVec The Ensemble vector as input
+ * @param[out] neighborVec The candidate vector for each cluster
+ * @param[out] storage The size of clusters to be updated
+ * @param[out] centroid The centroids of streamlines to be updated
  */
 void AHC::setLabel(const std::vector<Ensemble>& nodeVec, vector<vector<int> >& neighborVec,
 		vector<int>& storage, Eigen::MatrixXf& centroid)
@@ -338,9 +357,10 @@ void AHC::setLabel(const std::vector<Ensemble>& nodeVec, vector<vector<int> >& n
 
 /*
  * @brief Extract the features and compute the evaluation metrics
- * @param storage: size of clusters as input
- * @param neighborVec: candidate vectors for each cluster
- * @param centroid: The centroids for each cluster
+ *
+ * @param[in] storage size of clusters as input
+ * @param[in] neighborVec candidate vectors for each cluster
+ * @param[in] centroid The centroids for each cluster
  */
 void AHC::extractFeatures(const std::vector<int>& storage, const std::vector<std::vector<int> >& neighborVec,
 		const Eigen::MatrixXf& centroid)
@@ -482,8 +502,9 @@ void AHC::extractFeatures(const std::vector<int>& storage, const std::vector<std
 
 /*
  * @brief Set data set and perform necessary operations with user parameters
- * @param argc: count of arguments
- * @param argv: char* array of arguments
+ *
+ * @param[in] argc Count of arguments
+ * @param[in] argv Char* array of arguments
  */
 void AHC::setDataset(const int& argc, char **argv) {
 	if (argc != 3) {
@@ -624,9 +645,10 @@ void AHC::getDistRange() {
 
 /*
  * @brief Get distance between nodes by linkage type
- * @param firstList: The first node
- * @param secondList: The second node
- * @param Linkage: The linkage type
+ *
+ * @param[in] firstList The first node
+ * @param[in] secondList The second node
+ * @param[in] Linkage The linkage type
  * @return A float value for the distance
  */
 const float AHC::getDistAtNodes(const vector<int>& firstList, const vector<int>& secondList,
@@ -730,8 +752,8 @@ string AHC::getLinkageStr()
 
 /*
  * @brief Get entropy ratio
- * @param storage: size of clusters
- * @param EntropyRatio: The normalized entropy to be updated
+ * @param[in] storage Size of clusters
+ * @param[out] EntropyRatio The normalized entropy to be updated
  */
 void AHC::getEntropyRatio(const std::vector<int>& storage, float& EntropyRatio)
 {
@@ -758,7 +780,7 @@ string AHC::getNormStr() {
 
 /*
  * @brief Get the string for entropy value
- * @param EntropyRatio: The entropy value
+ * @param[in] EntropyRatio The entropy value
  * @return String type
  */
 string AHC::getEntropyStr(const float& EntropyRatio)
