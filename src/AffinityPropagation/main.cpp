@@ -1,11 +1,20 @@
+/*
+ * @brief The main function to call the AP clustering on the input data set
+ * @author Lieyu Shi
+ */
+
 #include "AffinityPropagation.h"
 
-/* in case of running for many norm, would enable automatic parameter choice */
+/*
+ * @brief Externally set up necessary parameters
+ * @param[out] p The Para object to be set
+ */
 void setPara(Para& p);
 
 
 /*
  * @brief The main driver for data set name and file position
+ *
  * @param[in] argc The argument count
  * @param[in] argv The char* array
  */
@@ -28,6 +37,7 @@ int main(int argc, char **argv)
 
 /*
  * @brief Externally set up necessary parameters
+ *
  * @param[out] p The Para object to be set
  */
 void setPara(Para& p)
