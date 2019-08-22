@@ -1,14 +1,55 @@
+/*
+ * @brief The class to perform PCA-based clustering and k-means clustering on the input streamlines/pathlines
+ * @author Lieyu Shi
+ */
+
+
 #include "PCA_Cluster.h"
 
+
+/*
+ * @brief The covariance ratio to decide the number of PCs in the PCA clustering
+ */
 const float& TOR_1 = 0.999;
+
+/*
+ * @brief The default cluster
+ */
 const int& CLUSTER = 8;
 
+/*
+ * @brief The initialization option for k-means clustering
+ */
 extern int initializationOption;
+
+/*
+ * @brief The post-process after SVD, either k-means or AHC-average
+ */
 extern int post_processing;
 
-/* an external value to judge whether it is a PBF or not */
+/*
+ * @brief An external value to judge whether it is a PBF or not
+ */
 extern bool isPBF;
 
+
+/*
+ * @brief Perform PCA-based clustering with input data
+ * @details
+ * 	It will first perform the PCA clustering, then perform either AHC-average or k-means clustering on the
+ * 	dimensionality reduced space
+ *
+ * @param[in] data The matrix coordinates
+ * @param[in] Row The row size
+ * @param[in] Column The column size
+ * @param[out] massCenter The centroid coordinates of the clusters
+ * @param[out] group The labels of all streamlines
+ * @param[out] totalNum The size of different clusters
+ * @param[out] closest The closest streamline representatives of all the clusters
+ * @param[out] furthest The furthest streamline representatives of the clusters
+ * @param[out] tr The TimeRecorder object to record the time
+ * @param[out] sil The Silhouette class for the clustering evaluation
+ */
 void PCA_Cluster::performPCA_Clustering(const Eigen::MatrixXf& data, 
 										const int& Row, 
 										const int& Column, 
@@ -35,6 +76,21 @@ void PCA_Cluster::performPCA_Clustering(const Eigen::MatrixXf& data,
 }
 
 
+/*
+ * @brief Perform the SVD for the input of matrix coordinates
+ * @details
+ * 	After SVD decomposition, it will select number of dimensions that can add up to 99.9% of the total variance,
+ * 	which usually results in 3 or 4 dimensions.
+ *
+ * @param[out] cArray The reduced-dimension matrix of the coordinates
+ * @param[in] data The matrix coordinates of the streamlines
+ * @param[in] Row The row size
+ * @param[in] Column The column size
+ * @param[out] PC_Number The number of PCs as output
+ * @param[out] SingVec The singular vectors
+ * @param[out] meanTrajectory The mean coordinate of the trajectory
+ * @param[out] tr The TimeRecorder class object
+ */
 void PCA_Cluster::performSVD(MatrixXf& cArray, 
 							 const Eigen::MatrixXf& data, 
 							 const int& Row, 
@@ -99,6 +155,24 @@ void PCA_Cluster::performSVD(MatrixXf& cArray,
 }
 
 
+/*
+ * @brief Perform the k-means clustering algorithm on the PCs
+ *
+ * @param[in] cArray The dimension-reduced matrix coordinates
+ * @param[in] Row The row size
+ * @param[in] Column The column size
+ * @param[in] PC_Number The number of PCs
+ * @param[in] SingVec The singular vector matrix
+ * @param[in] meanTrajectory The mean coordinate of the trajectory
+ * @param[in] Cluster The number of clusters as input
+ * @param[out] group The labels for all the streamlines
+ * @param[out] totalNum The size of all the clusters
+ * @param[out] closest The coordinates of the closest extracted lines
+ * @param[out] furthest The coordinates of the furthest extracted lines
+ * @param[in] data The matrix coordinates of all the streamlines
+ * @param[out] tr The TimeRecorder class object
+ * @param[out] sil The Silhouette class object
+ */
 void PCA_Cluster::performPC_KMeans(const MatrixXf& cArray, 
 								   const int& Row, 
 								   const int& Column, 
@@ -334,6 +408,21 @@ void PCA_Cluster::performPC_KMeans(const MatrixXf& cArray,
 }
 
 
+/*
+ * @brief Perform k-means clustering with input data
+ *
+ * @param[in] data The matrix coordinates
+ * @param[in] Row The row size
+ * @param[in] Column The column size
+ * @param[out] massCenter The centroid coordinates of the clusters
+ * @param[out] group The labels of all streamlines
+ * @param[out] totalNum The size of different clusters
+ * @param[out] closest The closest streamline representatives of all the clusters
+ * @param[out] furthest The furthest streamline representatives of the clusters
+ * @param[in] normOption The norm option as input
+ * @param[out] tr The TimeRecorder object to record the time
+ * @param[out] sil The Silhouette class for the clustering evaluation
+ */
 void PCA_Cluster::performDirectK_Means(const Eigen::MatrixXf& data, 
 									   const int& Row, 
 									   const int& Column, 
@@ -352,6 +441,24 @@ void PCA_Cluster::performDirectK_Means(const Eigen::MatrixXf& data,
 }
 
 
+/*
+ * @brief Perform PCA-based clustering with input data and number of clusters as input
+ * @details
+ * 	It will first perform the PCA clustering, then perform either AHC-average or k-means clustering on the
+ * 	dimensionality reduced space
+ *
+ * @param[in] data The matrix coordinates
+ * @param[in] Row The row size
+ * @param[in] Column The column size
+ * @param[out] massCenter The centroid coordinates of the clusters
+ * @param[out] group The labels of all streamlines
+ * @param[out] totalNum The size of different clusters
+ * @param[out] closest The closest streamline representatives of all the clusters
+ * @param[out] furthest The furthest streamline representatives of the clusters
+ * @param[in] Cluster Number of clusters as input
+ * @param[out] tr The TimeRecorder object to record the time
+ * @param[out] sil The Silhouette class for the clustering evaluation
+ */
 void PCA_Cluster::performPCA_Clustering(const Eigen::MatrixXf& data, 
 										const int& Row, 
 										const int& Column, 
@@ -378,6 +485,22 @@ void PCA_Cluster::performPCA_Clustering(const Eigen::MatrixXf& data,
 }
 
 
+/*
+ * @brief Perform k-means clustering with input data and the number of clusters as input
+ *
+ * @param[in] data The matrix coordinates
+ * @param[in] Row The row size
+ * @param[in] Column The column size
+ * @param[out] massCenter The centroid coordinates of the clusters
+ * @param[out] group The labels of all streamlines
+ * @param[out] totalNum The size of different clusters
+ * @param[out] closest The closest streamline representatives of all the clusters
+ * @param[out] furthest The furthest streamline representatives of the clusters
+ * @param[in] Cluster The number of clusters as input
+ * @param[in] normOption The norm option as input
+ * @param[out] tr The TimeRecorder object to record the time
+ * @param[out] sil The Silhouette class for the clustering evaluation
+ */
 void PCA_Cluster::performDirectK_Means(const Eigen::MatrixXf& data, 
 									   const int& Row, 
 									   const int& Column, 
@@ -396,6 +519,21 @@ void PCA_Cluster::performDirectK_Means(const Eigen::MatrixXf& data,
 }
 
 
+/*
+ * @brief Perform the k-means directly on similarity measures
+ *
+ * @param[in] data The matrix coordinates of the streamlines
+ * @param[in] Row The row size
+ * @param[in] Column The column size
+ * @param[out] massCenter The centroid coordinates of the clusters
+ * @param[in] Cluster The number of clusters
+ * @param[in] totalNum The size of clusters
+ * @param[out] closest The closest extracted lines of the clusters
+ * @param[out] furthest The furthest extracted lines of the clusters
+ * @param[in] normOption The norm option
+ * @param[out] tr The TimeRecorder object
+ * @param[out] sil The Silhouette object
+ */
 void PCA_Cluster::performFullK_MeansByClusters(const Eigen::MatrixXf& data, 
 											   const int& Row, 
 											   const int& Column, 
@@ -688,6 +826,23 @@ void PCA_Cluster::performFullK_MeansByClusters(const Eigen::MatrixXf& data,
 }
 
 
+/*
+ * @brief Perform the AHC-average on the dimensionality-reduced space coordinates
+ *
+ * @param[in] cArray The dimension-reduced matrix coordinates
+ * @param[in] PC_Number The number of PCs
+ * @param[in] SingVec The singular vector matrix
+ * @param[in] meanTrajectory The mean coordinate of the trajectory
+ * @param[out] massCenter The centroid coordinates of the clusters
+ * @param[in] Cluster The number of clusters as input
+ * @param[out] group The labels for all the streamlines
+ * @param[out] totalNum The size of all the clusters
+ * @param[out] closest The coordinates of the closest extracted lines
+ * @param[out] furthest The coordinates of the furthest extracted lines
+ * @param[in] data The matrix coordinates of all the streamlines
+ * @param[out] tr The TimeRecorder class object
+ * @param[out] sil The Silhouette class object
+ */
 void PCA_Cluster::perform_AHC(const Eigen::MatrixXf& cArray, const int& PC_Number, const Eigen::MatrixXf& SingVec,
 		const VectorXf& meanTrajectory, std::vector<MeanLine>& massCenter, const int& Cluster,
 		std::vector<int>& group, std::vector<int>& totalNum, std::vector<ExtractedLine>& closest,
@@ -858,7 +1013,17 @@ void PCA_Cluster::perform_AHC(const Eigen::MatrixXf& cArray, const int& PC_Numbe
 }
 
 
-/* perform AHC merging by given a distance threshold */
+/*
+ * @brief Perform AHC merging by given an input number of clusters
+ *
+ * @param[out] nodeMap The hash map for nodes
+ * @param[out] dNodeVec The node vector for nodes
+ * @param[out] nodeVec The vector of AHC hierarchical clustering node
+ * @param[in] reduced_dist_matrix The distance matrix of the dimensionality reduced space coordinates
+ * @param[in] cArray The dimensionality reduce coordinates
+ * @param[in] numberOfClusters The number of clusters as input
+ * @param[out] tr The TimeRecorder object
+ */
 void PCA_Cluster::hierarchicalMerging(std::unordered_map<int, AHC_node>& nodeMap, std::vector<DistNode>& dNodeVec,
 		std::vector<AHC_node>& nodeVec, const Eigen::MatrixXf& reduced_dist_matrix, const Eigen::MatrixXf& cArray,
 		const int& numberOfClusters, TimeRecorder& tr)
@@ -980,6 +1145,14 @@ void PCA_Cluster::hierarchicalMerging(std::unordered_map<int, AHC_node>& nodeMap
 }
 
 
+/*
+ * @brief Get the distance between two nodes by a given linkage type
+ *
+ * @param[in] firstList The first node that contains the candidates
+ * @param[in] secondList The second node that contains the candidates
+ * @param[in] reduced_dist_matrix The distance matrix of the dimensionality reduced coordinates
+ * @return The float value between two nodes
+ */
 float PCA_Cluster::getDistAtNodes(const vector<int>& firstList, const vector<int>& secondList,
 		const Eigen::MatrixXf& reduced_dist_matrix)
 {
@@ -1004,7 +1177,13 @@ float PCA_Cluster::getDistAtNodes(const vector<int>& firstList, const vector<int
 }
 
 
-/* set a vector for min-heap */
+/*
+ * @brief Set the nodes and perform necessary merges for nodes before the start of AHC clustering
+ *
+ * @param[out] dNodeVec The vector of nodes with distance
+ * @param[in] reduced_data The matrix coordinates of the dimensionality reduce coordinates
+ * @param[in] reduced_dist_matrix The distance matrix of the dimensionality reduced coordinates
+ */
 void PCA_Cluster::setValue(std::vector<DistNode>& dNodeVec, const Eigen::MatrixXf& reduced_data,
 						   const Eigen::MatrixXf& reduced_dist_matrix)
 {
@@ -1024,7 +1203,17 @@ void PCA_Cluster::setValue(std::vector<DistNode>& dNodeVec, const Eigen::MatrixX
 	assert(tag==dNodeVec.size());
 }
 
-/* perform group-labeling information */
+
+/*
+ * @brief Set the labels for streamlines from the clustering results
+ *
+ * @param[in] nodeVec The vector of AHC nodes for the AHC clustering results
+ * @param[out] neighborVec The candidates that belongs to the clusters
+ * @param[out] storage The size of clusters
+ * @param[out] centroid The centroid streamline coordinates of all the clusters
+ * @param[in] cArray The coordinates of the dimensionality reduced space
+ * @param[out] recorder The recorder vector
+ */
 void PCA_Cluster::setLabel(const std::vector<AHC_node>& nodeVec, vector<vector<int> >& neighborVec,
 		vector<int>& storage, Eigen::MatrixXf& centroid, const Eigen::MatrixXf& cArray, std::vector<int>& recorder)
 {

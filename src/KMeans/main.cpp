@@ -1,11 +1,36 @@
+/*
+ * @brief The PCA-based clustering and k-means clustering technique on the input integral curves
+ * @author Lieyu Shi
+ */
+
+
 #include "PCA_Cluster.h"
 #include <sys/time.h>
 
 using namespace std;
 
+
+/*
+ * @brief The PCA and k-means clustering technique to perform the clustering on data sets from the argument
+ *
+ * @param[in] argc The count of arguments
+ * @param[in] argv The argv* array of arguments
+ */
 void featureExtraction(const int& argc,
 					   char **argv);
 
+
+/*
+ * @brief Perform the PCA clustering technique on the integral curves
+ *
+ * @param[in] fileName The file name of the data set
+ * @param[in] dataVec The coordinates of the streamlines
+ * @param[in] cluster The number of clusters as input
+ * @param[in] dimension The dimension of 2 or 3
+ * @param[in] fullName The full name of the primary vtk file
+ * @param[in] maxElements The max elements of the streamlines
+ * @param[in] data The matrix coordinates after re-sampling
+ */
 void performPCA_Cluster(const string& fileName, 
 						const std::vector< std::vector<float> >& dataVec, 
 						const int& cluster, 
@@ -16,6 +41,21 @@ void performPCA_Cluster(const string& fileName,
 						TimeRecorder& tr,
 						Silhouette& sil);
 
+
+/*
+ * @brief Perform direct k-means on the input data set
+ *
+ * @param[in] fileName The file name of the data set
+ * @param[in] dataVec The coordinates of the streamlines
+ * @param[in] cluster The number of clusters as input
+ * @param[in] dimension The dimension of 2 or 3
+ * @param[in] fullName The full name of the primary vtk file
+ * @param[in] maxElements The max elements of the streamlines
+ * @param[in] data The matrix coordinates after re-sampling
+ * @param[in] normOption The norm option
+ * @param[out] tr The TimeRecorder object
+ * @param[out] sil The Silhouette class object
+ */
 void performK_Means(const string& fileName, 
 					const std::vector< std::vector<float> >& dataVec, 
 					const int& cluster, 
@@ -27,9 +67,25 @@ void performK_Means(const string& fileName,
 					TimeRecorder& tr,
 					Silhouette& sil);
 
+
+/*
+ * @brief The initialization option for k-means
+ */
 int initializationOption;
+
+/*
+ * @brief The tag whether it is PBF or not
+ */
 bool isPBF;
+
+/*
+ * @brief The post processing strategy
+ */
 int post_processing;
+
+/*
+ * @breif Whether read the number of clusters from local file
+ */
 bool readCluster;
 
 
@@ -39,6 +95,13 @@ int main(int argc, char* argv[])
 	return 0;
 }
 
+
+/*
+ * @brief The PCA and k-means clustering technique to perform the clustering on data sets from the argument
+ *
+ * @param[in] argc The count of arguments
+ * @param[in] argv The argv* array of arguments
+ */
 void featureExtraction(const int& number,
 					   char **argv)
 {
@@ -237,6 +300,17 @@ void featureExtraction(const int& number,
 }
 
 
+/*
+ * @brief Perform the PCA clustering technique on the integral curves
+ *
+ * @param[in] fileName The file name of the data set
+ * @param[in] dataVec The coordinates of the streamlines
+ * @param[in] cluster The number of clusters as input
+ * @param[in] dimension The dimension of 2 or 3
+ * @param[in] fullName The full name of the primary vtk file
+ * @param[in] maxElements The max elements of the streamlines
+ * @param[in] data The matrix coordinates after re-sampling
+ */
 void performPCA_Cluster(const string& fileName, 
 					    const std::vector< std::vector<float> >& dataVec, 
 					    const int& cluster, 
@@ -314,6 +388,20 @@ void performPCA_Cluster(const string& fileName,
 }
 
 
+/*
+ * @brief Perform direct k-means on the input data set
+ *
+ * @param[in] fileName The file name of the data set
+ * @param[in] dataVec The coordinates of the streamlines
+ * @param[in] cluster The number of clusters as input
+ * @param[in] dimension The dimension of 2 or 3
+ * @param[in] fullName The full name of the primary vtk file
+ * @param[in] maxElements The max elements of the streamlines
+ * @param[in] data The matrix coordinates after re-sampling
+ * @param[in] normOption The norm option
+ * @param[out] tr The TimeRecorder object
+ * @param[out] sil The Silhouette class object
+ */
 void performK_Means(const string& fileName, 
 					const std::vector< std::vector<float> >& dataVec, 
 					const int& cluster, 

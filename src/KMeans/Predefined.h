@@ -6,7 +6,9 @@
 #include "Silhouette.h"
 
 
-// define a treeNode structure to store AHC clustering tree
+/*
+ * @brief define a treeNode structure to store AHC clustering tree
+ */
 struct AHC_node
 {
 	int index = -1;
@@ -21,12 +23,21 @@ struct AHC_node
 	{}
 };
 
-// remove two elements in template vector
+
+/*
+ * @brief remove two elements in template vector
+ *
+ * @param[out] origine The vector to be operated on
+ * @param[in] first The first index
+ * @param[in] second The second index
+ */
 template <class T>
 void deleteVecElements(std::vector<T>& origine, const T& first, const T& second);
 
 
-/* we will use a min-heap to perserve sorted distance for hirarchical clustering */
+/*
+ * @brief We will use a min-heap to perserve sorted distance for hirarchical clustering
+ */
 struct DistNode
 {
 	int first = -1, second = -1;
