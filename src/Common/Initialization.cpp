@@ -1,16 +1,19 @@
 /*
- * This is the source cpp for the class Initialization.h
+ * @brief This is the source cpp for the class Initialization.h. It is for the k-means initialization
+ * @author Lieyu Shi
  */
+
 
 #include "Initialization.h"
 
 
 /*
  * @brief To generate the random coordinates for the k-means initialization
- * @param clusterCenter: The random initialization to be updated
- * @param column: The column size
- * @param cArray: The input matrix coordinates
- * @param Cluster: The number of centroids
+ *
+ * @param[out] clusterCenter The random initialization to be updated
+ * @param[in] column The column size
+ * @param[in] cArray The input matrix coordinates
+ * @param[in] Cluster The number of centroids
  */
 void Initialization::generateRandomPos(MatrixXf& clusterCenter,
 								  	   const int& column,
@@ -42,10 +45,11 @@ void Initialization::generateRandomPos(MatrixXf& clusterCenter,
 
 /*
  * @brief To generate the initialization from the samples
- * @param clusterCenter: The initialized centroid coordinates
- * @param column: The size of column
- * @param cArray: The original matrix coordinates as input
- * @param Cluster: The count of clusters
+ *
+ * @param[out] clusterCenter The initialized centroid coordinates
+ * @param[in] column The size of column
+ * @param[in] cArray The original matrix coordinates as input
+ * @paramp[in] Cluster The count of clusters
  */
 void Initialization::generateFromSamples(MatrixXf& clusterCenter,
 								    	 const int& column,
@@ -94,11 +98,12 @@ void Initialization::generateFromSamples(MatrixXf& clusterCenter,
 
 /*
  * @brief This is the k-means++ initialization
- * @param clusterCenter: The cluster centroid to be initialized
- * @param column: The size of column
- * @param cArray: The matrix coordinates of the lines
- * @param normOption: The norm option
- * @param object: The MetricPreparation
+ *
+ * @param[out] clusterCenter The cluster centroid to be initialized
+ * @param[in] column The size of column
+ * @param[in] cArray The matrix coordinates of the lines
+ * @param[in] normOption The norm option
+ * @param[in] object The MetricPreparation
  */
 void Initialization::generateFarSamples(MatrixXf& clusterCenter,
 								   	    const int& column,

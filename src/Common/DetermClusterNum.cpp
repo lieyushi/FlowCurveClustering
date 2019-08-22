@@ -27,7 +27,7 @@ DetermClusterNum::~DetermClusterNum() {
 
 /*
  * @brief Use iterative refinement of knee to get optimal number for hierarchical clustering
- * @param eval_graph: The map that contains the cluster number and its merged distance
+ * @param[out] eval_graph The map that contains the cluster number and its merged distance
  */
 void DetermClusterNum::iterativeRefinement(std::map<int, float>& eval_graph)
 {
@@ -55,9 +55,9 @@ void DetermClusterNum::iterativeRefinement(std::map<int, float>& eval_graph)
 
 /*
  * @brief Find the knee value by the L-method with a given cutoff value
- * @param eval_graph: The map with cluster numbers and their relative merged distance
- * @param cutoff: The cutoff index point
- * @return An index found by the Lmethod which is related to the knee
+ * @param[in] eval_graph The map with cluster numbers and their relative merged distance
+ * @param[in] cutoff The cutoff index point
+ * @return An index found by the L-method which is related to the knee
  */
 const int DetermClusterNum::LMethod(const std::map<int, float>& eval_graph, const int& cutoff)
 {
@@ -146,7 +146,7 @@ const int DetermClusterNum::LMethod(const std::map<int, float>& eval_graph, cons
 
 /*
  * @brief Record the L-method result in the local file
- * @param normOption: The norm option as input
+ * @param[in] normOption The norm option as input
  */
 void DetermClusterNum::recordLMethodResult(const int& normOption)
 {
@@ -164,7 +164,7 @@ void DetermClusterNum::recordLMethodResult(const int& normOption)
 
 /*
  * @brief Remove extremely dissimilarity mcluster merges
- * @param eval_graph: The map including the cluster numbers and their merged distance
+ * @param[out] eval_graph The map including the cluster numbers and their merged distance
  */
 void DetermClusterNum::removeExtreme(std::map<int, float>& eval_graph)
 {

@@ -1,24 +1,52 @@
 /*
- * The source file for implementing functions related to the similarity measure/distance calculation
+ * @brief It contains the function to calculate the distance values/similarity measures among integral curves
+ * @details
+ * 	 0: Euclidean Norm
+	 1: Fraction Distance Metric
+	 2: piece-wise angle average
+	 3: Bhattacharyya metric for rotation
+	 4: average rotation
+	 5: signed-angle intersection
+	 6: normal-direction multivariate distribution
+	 7: Bhattacharyya metric with angle to a fixed direction
+	 8: Piece-wise angle average \times standard deviation
+	 9: normal-direction multivariate un-normalized distribution
+	 10: x*y/|x||y| borrowed from machine learning
+	 11: cosine similarity
+	 12: Mean-of-closest point distance (MCP)
+	 13: Hausdorff distance min_max(x_i,y_i)
+	 14: Signature-based measure from http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=6231627
+	 15: Procrustes distance take from http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=6787131
+	 16: entropy-based distance metric taken from http://vis.cs.ucdavis.edu/papers/pg2011paper.pdf
+	 17: time-series MCP distance from https://www.sciencedirect.com/science/article/pii/S0097849318300128
+			for pathlines only
+
+ * @author Lieyu Shi
  */
 
 #include "Distance.h"
 
 
-// the length of neighboring vertices for calculating the Procrutes distance
+/*
+ * @brief The length of neighboring vertices for calculating the Procrutes distance
+ */
 const int& PROCRUSTES_SIZE = 7;
 
-// the global pointer variable for the distance matrix
+
+/*
+ * @brief the global pointer variable for the distance matrix
+ */
 float **distanceMatrix = NULL;
 
 
-/* --------------------   Calculate the distance 3 -----------------------------*/
 /*
- * @brief Calculate the similarity measure 3
- * @param row: Input vector
- * @param size: The size of vector
- * @param i: The index
- * @param rotationSequence: The pre-calculated rotationSequence
+ * @brief Calculate the similarity measure 3 for the integral curves
+ *
+ * @param[in] row Input vector
+ * @param[in] size The size of vector
+ * @param[in] i The index
+ * @param[in] rotationSequence The pre-calculated rotationSequence
+ * @return The float value of similarity measure labeled as 3
  */
 const float getBMetric_3(const VectorXf& row,
 						 const int& size,
@@ -33,7 +61,14 @@ const float getBMetric_3(const VectorXf& row,
 }
 
 
-// calculate the distance 3 with given two center trajectories for distance measuring
+/*
+ * @brief Calculate the distance 3 with given two center trajectories for distance measuring
+ *
+ * @param[in] firstRow The coordinate of the first line
+ * @param[in] size The size of the coordinate
+ * @param[in] secondRow The coordinate of the second line
+ * @return The float value of the similarity measure labeled as 3
+ */
 const float getBMetric_3(const VectorXf& firstRow,
 						 const int& size,
 						 const VectorXf& secondRow
@@ -46,7 +81,14 @@ const float getBMetric_3(const VectorXf& firstRow,
 }
 
 
-// calculate the distance 3 with given the rotationSequence and two indices
+/*
+ * @brief Calculate the distance 3 with given the rotationSequence and two indices
+ *
+ * @param[in] first The index of the first line
+ * @param[in] second The index of the second line
+ * @param[in] rotationSeuqnce The rotation sequence vector of the lines as input
+ * @return The float value of the similarity measure labeled as 3
+ */
 const float getBMetric_3(const int& first,
 						 const int& second,
 						 const std::vector<std::vector<float> >& rotationSequence
@@ -54,11 +96,17 @@ const float getBMetric_3(const int& first,
 {
 	return getBMetric(rotationSequence[first], rotationSequence[second]);
 }
-/* -------------------- Finish computing norm 3 for trajectories --------------------*/
 
 
-/* ------------------ Compute norm 6 for trajectories ------------------------- */
-// given a center trajectory and index of pre-stored vector 
+/*
+ * @brief Calculate the norm 6 for integral curves given a center trajectory and index of pre-stored vector
+ *
+ * @param[in] row The coordinate of the first line
+ * @param[in] size The size of the coordinate
+ * @param[in] i The index of the second line
+ * @param[in] normalMultivariate The normalized multivariate vector for all the streamlines
+ * @return The float value of norm 6 between two integral curves
+ */
 const float getBMetric_6(const VectorXf& row,
 						 const int& size,
 						 const int& i,
@@ -71,7 +119,15 @@ const float getBMetric_6(const VectorXf& row,
 	return getBMetric(centerNormal, neighNormal);
 }
 
-// given two center trajectories for distance measuring 
+
+/*
+ * @brief Calculate the norm 6 for integral curves given two center trajectories for distance measuring
+ *
+ * @param[in] firstRow The coordinate of the first line
+ * @param[in] size The size of the coordinate
+ * @param[in] secondRow The coordinate of the second line
+ * @return The float value of norm 6 between two integral curves
+ */
 const float getBMetric_6(const VectorXf& firstRow,
 						 const int& size,
 						 const VectorXf& secondRow
@@ -83,6 +139,15 @@ const float getBMetric_6(const VectorXf& firstRow,
 	return getBMetric(centerNormal, neighNormal);
 }
 
+
+/*
+ * @brief Calculate the norm 6 for integral curves given two indices for distance measuring
+ *
+ * @param[in] first The index of the first line
+ * @param[in] second The index of the second line
+ * @param[in] normalMultivariate The normalized multivariate vector for all the streamlines
+ * @return The float value of norm 6 between two integral curves
+ */
 const float getBMetric_6(const int& first,
 						 const int& second,
 						 const std::vector<MultiVariate>& normalMultivariate
@@ -90,11 +155,17 @@ const float getBMetric_6(const int& first,
 {
 	return getBMetric(normalMultivariate[first], normalMultivariate[second]);
 }
-/* -------------------- Finish computing norm 6 for trajectories --------------------*/
 
 
-/* ------------------ Compute norm 7 for trajectories ------------------------- */
-// given a center trajectory and index of pre-stored vector 
+/*
+ * @brief Calculate the norm 7 for two integral curves given a center trajectory and index of pre-stored vector
+ *
+ * @param[in] row The coordinate of the first line
+ * @param[in] size The size of the coordinates
+ * @param[in] i The index of the second line
+ * @param[in] rotationSequence The rotation sequence vector for all the streamlines
+ * @return The float value of norm 7 between two integral curves
+ */
 const float getBMetric_7(const VectorXf& row,
 						 const int& size,
 						 const int& i,
@@ -107,7 +178,15 @@ const float getBMetric_7(const VectorXf& row,
 	return getBMetric(firstNorm3, secondNorm3);
 }
 
-// given two center trajectories for distance measuring 
+
+/*
+ * @brief Calculate the norm 7 for two integral curves given two center trajectories for distance measuring
+ *
+ * @param[in] firstRow The coordinate of the first line
+ * @param[in] size The size of the coordinates
+ * @param[in] secondRow The coordinate of the second line
+ * @return The float value of norm 7 between two integral curves
+ */
 const float getBMetric_7(const VectorXf& firstRow,
 						 const int& size,
 						 const VectorXf& secondRow
@@ -119,6 +198,15 @@ const float getBMetric_7(const VectorXf& firstRow,
 	return getBMetric(firstNorm3, secondNorm3);
 }
 
+
+/*
+ * @brief Calculate the norm 7 for two integral curves given two indices of the lines for distance measuring
+ *
+ * @param[in] first The index of the first line
+ * @param[in] second The index of the second line
+ * @param[in] rotationSequence The rotation sequence vector for all the streamlines
+ * @return The float value of norm 7 between two integral curves
+ */
 const float getBMetric_7(const int& first,
 						 const int& second,
 						 const std::vector<std::vector<float> >& rotationSequence
@@ -126,11 +214,17 @@ const float getBMetric_7(const int& first,
 {
 	return getBMetric(rotationSequence[first], rotationSequence[second]);
 }
-/* -------------------- Finish computing norm 7 for trajectories --------------------*/
 
 
-/* ------------------ Compute norm 9 for trajectories ------------------------- */
-// given a center trajectory and index of pre-stored vector 
+/*
+ * @brief Calculate the norm 9 for two integral curves given a center trajectory and index of pre-stored vector
+ *
+ * @param[in] row The coordinate of the first line
+ * @param[in] size The size of the coordinates
+ * @param[in] i The index of the second line
+ * @param[in] normalMultivariate The normalized multivariate vector for all the streamlines
+ * @return The float value of norm 9 between two integral curves
+ */
 const float getBMetric_9(const VectorXf& row,
 						 const int& size,
 						 const int& i,
@@ -143,7 +237,15 @@ const float getBMetric_9(const VectorXf& row,
 	return getBMetric(centerNormal, neighNormal);
 }
 
-// given two center trajectories for distance measuring 
+
+/*
+ * @brief Calculate the norm 9 for two integral curves given two center trajectories for distance measuring
+ *
+ * @param[in] firstRow The coordinate of the first line
+ * @param[in] size The size of the coordinate
+ * @param[in] secondRow The coordinate of the second line
+ * @return The float value of norm 9 between two integral curves
+ */
 const float getBMetric_9(const VectorXf& firstRow,
 						 const int& size,
 						 const VectorXf& secondRow
@@ -155,6 +257,15 @@ const float getBMetric_9(const VectorXf& firstRow,
 	return getBMetric(centerNormal, neighNormal);
 }
 
+
+/*
+ * @brief Calculate the norm 9 for two integral curves given two indices of streamlines for distance measuring
+ *
+ * @param[in] first The index of the first line
+ * @param[in] second The index of the second line
+ * @param[in] normalMultivariate The normalized multivariate vector for all the streamlines
+ * @return The float value of norm 9 between two integral curves
+ */
 const float getBMetric_9(const int& first,
 						 const int& second,
 						 const std::vector<MultiVariate>& normalMultivariate
@@ -163,14 +274,18 @@ const float getBMetric_9(const int& first,
 	return getBMetric(normalMultivariate[first], normalMultivariate[second]);
 }
 
-/* -------------------- Finish computing norm 9 for trajectories --------------------*/
 
-
-// get the B-metric for two univariate normal distributions
+/*
+ * @brief Calculate the B-metric for two streamlines considered as univariate normal distributions
+ * @param[in] firstNorm3 The coordinate of the first line
+ * @param[in] secondNorm3 The coordinate of the second line
+ * @return The float value
+ */
 const float getBMetric(const std::vector<float>& firstNorm3, 
 					   const std::vector<float>& secondNorm3
 					  )
 {
+	// calculate mean and standard deviation of the two arrays
 	float u_a, u_b, sig_a, sig_b, sig_a_inverse, sig_b_inverse, 
 		  summation, sum_inverse, tempDist;
 	u_a = firstNorm3[0], u_b = secondNorm3[0];
@@ -197,7 +312,12 @@ const float getBMetric(const std::vector<float>& firstNorm3,
 }
 
 
-// get the B-metric for two multivariate normal distribution
+/*
+ * @brief Calculate the B-metric for two streamlines considered as multivariate normal distributions
+ * @param[in] centerNormal The multivariate normal distribution of the first line
+ * @param[in] neighNormal The multivriate normal distribution of the second line
+ * @return The float value
+ */
 const float getBMetric(const MultiVariate& centerNormal, 
 					   const MultiVariate& neighNormal
 					  ) 
@@ -226,7 +346,15 @@ const float getBMetric(const MultiVariate& centerNormal,
 }
 
 
-/* ------------------ Compute norm 10 for trajectories ------------------------- */
+/*
+ * @brief Calculate the norm 10 given two streamlines
+ *
+ * @param[in] centroid The coordinate of the first line
+ * @param[in] size The size of coordinates
+ * @param[in] index The index of the second line
+ * @param[in] unitLength The unit length vector for all the streamlines
+ * @return The float value of norm 10 between two integral curves
+ */
 const float getMetric_10(const VectorXf& centroid,
 						 const int& size,
 						 const int& index,
@@ -244,6 +372,14 @@ const float getMetric_10(const VectorXf& centroid,
 }
 
 
+/*
+ * @brief Calculate the norm 10 given the coordinates of two streamlines
+ *
+ * @param[in] firstRow The coordinate of the first line
+ * @param[in] size The size of coordinates
+ * @param[in] secondRow The coordinate of the second line
+ * @return The float value of norm 10 between two integral curves
+ */
 const float getMetric_10(const VectorXf& firstRow,
 						 const int& size,
 						 const VectorXf& secondRow)
@@ -258,6 +394,16 @@ const float getMetric_10(const VectorXf& firstRow,
 	length = acos(length);
 	return length;
 }
+
+
+/*
+ * @brief Calculate the norm 10 given the indices of two streamlines
+ *
+ * @param[in] first The index of the first line
+ * @param[in] second The index of the second line
+ * @param[in] unitLength The unit length vector for all the streamlines
+ * @return The float value of norm 10 between two integral curves
+ */
 const float getMetric_10(const int& first,
 						 const int& second,
 						 const std::vector<VectorXf>& unitLength)
@@ -270,10 +416,19 @@ const float getMetric_10(const int& first,
 	length = acos(length);
 	return length;
 }
-/* ------------------ Finish norm 9 for trajectories ------------------------- */
 
 
-/* ------------------ Compute norm 0, 11, 1, 2, 5, 8 for trajectories ------------------------- */
+/*
+ * @brief Calculate the norm 0, 1, 2, 5, 8 and 11 for two given streamlines
+ *
+ * @param[in] centroid The coordinate of the centroid line
+ * @param[in] r2 The coordinate of the second line
+ * @param[in] index The index of the second line
+ * @param[in] normOption The norm option
+ * @param[in] pairwise The pairwise vector the first line
+ * @param[in] objectNorm The pairwise vector of the second line
+ * @return The float value of the similarity measure
+ */
 const float getNorm(const Eigen::VectorXf& centroid,
 					const Eigen::VectorXf& r2,
 					const int& index,
@@ -285,12 +440,12 @@ const float getNorm(const Eigen::VectorXf& centroid,
 	float length = 0.0;
 	switch(normOption)
 	{
-	case 0:
+	case 0:	// Euclidean distance
 	default:
 		length = (centroid-r2).norm();
 		break;
 
-	case 11:
+	case 11:	// the norm 11
 		{
 			float dotPro = centroid.dot(r2);
 			float firstNorm = centroid.norm();
@@ -450,6 +605,18 @@ const float getNorm(const Eigen::VectorXf& centroid,
 }
 
 
+/*
+ * @brief Calculate the norm 0, 1, 2, 5, 8 and 11 for two given streamlines
+ *
+ * @param[in] centroid The coordinate of the centroid line
+ * @param[in] r2 The coordinate of the second line
+ * @param[in] firstIndex The index of the first line
+ * @param[in] secondIndex The index of the second line
+ * @param[in] normOption The norm option
+ * @param[in] pairwise The pairwise vector the first line
+ * @param[in] objectNorm The pairwise vector of the second line
+ * @return The float value of the similarity measure
+ */
 const float getNorm(const VectorXf& centroid,
 					const VectorXf& r2,
 					const int& firstIndex,
@@ -626,6 +793,14 @@ const float getNorm(const VectorXf& centroid,
 }
 
 
+/*
+ * @brief Calculate the norm 0, 1, 2, 5, 8 and 11 for two given streamlines
+ *
+ * @param[in] r1 The coordinate of the first line
+ * @param[in] r2 The coordinate of the second line
+ * @param[in] normOption The norm option
+ * @return The float value of the similarity measure
+ */
 const float getNorm(const Eigen::VectorXf& r1, 
 					const Eigen::VectorXf& r2, 
 					const int& normOption)
@@ -775,16 +950,15 @@ const float getNorm(const Eigen::VectorXf& r1,
 
 	return length;
 }
-/* ------------------ Finish norm 0, 11, 1, 2, 5, 8 for trajectories ------------------------- */
 
 
 /*
  * @brief Get the similarity measures given the coordinates and norm option
- * @param data: The coordinate matrix
- * @param first: The first index i
- * @param second: The second index j
- * @param normOption: The norm option
- * @param object: The MetricPreparation class object for distance computation
+ * @param[in] data The coordinate matrix
+ * @param[in] first The first index i
+ * @param[in] second The second index j
+ * @param[in] normOption The norm option
+ * @param[in] object The MetricPreparation class object for distance computation
  * @return The distance value between line i and j
  */
 const float getDisimilarity(const MatrixXf& data,
@@ -800,11 +974,12 @@ const float getDisimilarity(const MatrixXf& data,
 
 /*
  * @brief Get the similarity measures given the coordinates and norm option
- * @param others: The input line coordinate
- * @param data: The coordinate matrix
- * @param index: The index of another line i
- * @param normOption: The norm option
- * @param object: The MetricPreparation class object for distance computation
+ *
+ * @param[in] others The input line coordinate
+ * @param[in] data The coordinate matrix
+ * @param[in] index The index of another line i
+ * @param[in] normOption The norm option
+ * @param[in] object The MetricPreparation class object for distance computation
  * @return The distance value between line i and the input vector others
  */
 const float getDisimilarity(const VectorXf& others,
@@ -895,12 +1070,13 @@ const float getDisimilarity(const VectorXf& others,
 
 /*
  * @brief Get the similarity measures given the coordinates and norm option
- * @param first: The first input line coordinate
- * @param second: The second input line coordinate
- * @param firstIndex: The index of line i
- * @param secondIndex: The index of line j
- * @param normOption: The norm option
- * @param object: The MetricPreparation class object for distance computation
+ *
+ * @param[in] first The first input line coordinate
+ * @param[in] second The second input line coordinate
+ * @param[in] firstIndex The index of line i
+ * @param[in] secondIndex The index of line j
+ * @param[in] normOption The norm option
+ * @param[in] object The MetricPreparation class object for distance computation
  * @return The distance value between line i and the input vector others
  */
 const float getDisimilarity(const VectorXf& first,
@@ -988,10 +1164,11 @@ const float getDisimilarity(const VectorXf& first,
 
 /*
  * @brief Get the similarity measures given the coordinates and norm option
- * @param first: The first input line coordinate
- * @param second: The second input line coordinate
- * @param normOption: The norm option
- * @param object: The MetricPreparation class object for distance computation
+ *
+ * @param[in] first The first input line coordinate
+ * @param[in] second The second input line coordinate
+ * @param[in] normOption The norm option
+ * @param[in] object The MetricPreparation class object for distance computation
  * @return The distance value between two lines
  */
 const float getDisimilarity(const VectorXf& first,
@@ -1073,8 +1250,9 @@ const float getDisimilarity(const VectorXf& first,
 
 /*
  * @brief Get the MCP distance for two lines
- * @param first: The first line coordinate
- * @param second: The second line coordinate
+ *
+ * @param[in] first The first line coordinate
+ * @param[in] second The second line coordinate
  * @return A distance value between two lines
  */
 const float getMetric_MOP(const VectorXf& first, const VectorXf& second)
@@ -1116,10 +1294,12 @@ const float getMetric_MOP(const VectorXf& first, const VectorXf& second)
 	return result;
 }
 
+
 /*
  * @brief Get the Hausdorff distance between two lines
- * @param first: The first line coordinates
- * @param second: The second line coordinates
+ *
+ * @param[in] first The first line coordinates
+ * @param[in] second The second line coordinates
  * @return The distance value
  */
 const float getMetric_Hausdorff(const VectorXf& first, const VectorXf& second)
@@ -1160,9 +1340,10 @@ const float getMetric_Hausdorff(const VectorXf& first, const VectorXf& second)
 
 /*
  * @brief Assign values to the distance matrix
- * @param data: The coordinate matrix
- * @param normOption: The norm option
- * @param object: The MetricPreparation object
+ *
+ * @param[in] data The coordinate matrix
+ * @param[in] normOption The norm option
+ * @param[in] object The MetricPreparation object
  */
 void getDistanceMatrix(const MatrixXf& data,
 				       const int& normOption,
@@ -1195,7 +1376,8 @@ void getDistanceMatrix(const MatrixXf& data,
 
 /*
  * @brief Delete the pointer of distance matrix
- * @param Row: The row of distance matrix
+ *
+ * @param[in] Row The row of distance matrix
  */
 void deleteDistanceMatrix(const int& Row)
 {
@@ -1216,7 +1398,11 @@ void deleteDistanceMatrix(const int& Row)
 }
 
 
-// assign the averaged rotation of the cluster representatives
+/*
+ * @brief Compute and assign the averaged rotation (discrete curvatures) on the cluster representatives
+ * @param[in] streamline The cluster representative coordinates
+ * @param[out] rotation The rotation vector to be updated
+ */
 const float getRotation(const std::vector<vector<float> >& streamline, std::vector<float>& rotation)
 {
 	if(streamline.empty())
@@ -1255,10 +1441,16 @@ const float getRotation(const std::vector<vector<float> >& streamline, std::vect
 	return result;
 }
 
-
-/* ------------------ Compute norm 14 for integral curves ------------------------- */
-
-/* get signature-based dissimilarity metric given two elements and their histogram*/
+/*
+ * @brief Compute the signature-based similarity measure (14) for two integral lines given two elements
+ * and their histogram
+ *
+ * @param[in] firstArray The coordinate of the first line
+ * @param[in] secondArray The coordinate of the second line
+ * @param[in] firstHist The histogram of signatures for the first line
+ * @param[in] secondHist The histogram of signatures for the second line
+ * @return The float value for the norm 14
+ */
 const float getSignatureMetric(const Eigen::VectorXf& firstArray,
 							   const Eigen::VectorXf& secondArray,
 							   const std::vector<float>& firstHist,
@@ -1314,7 +1506,14 @@ const float getSignatureMetric(const Eigen::VectorXf& firstArray,
 }
 
 
-/* get signature-based dissimilarity metric given centroid */
+/*
+ * @brief Calculate the signature-based similarity measure (14) with a line and the centroid line
+ *
+ * @param[in] centroid The given centroid line coordinate
+ * @param[in] first The coordinate of the first line
+ * @param[in] firstHist The signature histogram of the first line
+ * @return The float value of similarity measure 14
+ */
 const float getSignatureMetric(const Eigen::VectorXf& centroid,
 							   const Eigen::VectorXf& first,
 							   const std::vector<float>& firstHist)
@@ -1327,7 +1526,13 @@ const float getSignatureMetric(const Eigen::VectorXf& centroid,
 }
 
 
-/* get signature-based dissimilarity metric given two centroids */
+/*
+ * @brief Calculate the signature-based similarity measure (14) for two streamlines with given coordinates
+ *
+ * @param[in] first The coordinate of the first line
+ * @param[in] second The coordinate of the second line
+ * @return The float value of similarity measure 14
+ */
 const float getSignatureMetric(const Eigen::VectorXf& first,
 							   const Eigen::VectorXf& second)
 {
@@ -1338,12 +1543,17 @@ const float getSignatureMetric(const Eigen::VectorXf& first,
 
 	return getSignatureMetric(first,second,firstHist,secondHist);
 }
-/* ------------------ Finish computing norm 14 for integral curves ------------------------- */
 
 
-/* ------------------ Compute norm 15 for integral curves ------------------------- */
-
-/* get adapted Procrustes distance. For example, if vec has 100 points, it will calculate mean of 94 points */
+/*
+ * @brief Compute the Procrutes distance for two lines with given coordinates
+ * @details
+ * 	Get adapted Procrustes distance. For example, if vec has 100 points, it will calculate mean of 94 points
+ *
+ * @param[in] first The coordinate of the first line
+ * @param[in] second The coordinate of the second line
+ * @return The distance value for Procrutes distance (15)
+ */
 const float getProcrustesMetric(const Eigen::VectorXf& first,
 								const Eigen::VectorXf& second)
 {
@@ -1455,13 +1665,19 @@ const float getProcrustesMetric(const Eigen::VectorXf& first,
 		float requiredD = 1.0-traceA*traceA;
 		result+=requiredD*requiredD;
 	}
-
 	return result/vertexChanged;
-
 }
 
 
-/* get adapted Procrustes distance. For example, if vec has 100 points, it will calculate mean of 14 points */
+/*
+ * @brief Compute the Procrutes distance with segments for two lines with given coordinates
+ * @details
+ * 	Get adapted Procrustes distance. For example, if vec has 100 points, it will calculate mean of 14 points
+ *
+ * @param[in] first The coordinate of the first line
+ * @param[in] second The coordinate of the second line
+ * @return The distance value for Procrutes distance (15)
+ */
 const float getProcrustesMetricSegment(const Eigen::VectorXf& first,
 									   const Eigen::VectorXf& second)
 {
@@ -1582,10 +1798,13 @@ const float getProcrustesMetricSegment(const Eigen::VectorXf& first,
 	else
 		return result/effective;
 }
-/* ------------------ Finish norm 15 for integral curves ------------------------- */
 
 
-/* need to store each label for elements for NID computation */
+/*
+ * @brief To store the cluster information into the storage file
+ *
+ * @param[in] storage The vector that contains the candidates for each cluster
+ */
 void generateGroups(const std::vector<std::vector<int> >& storage)
 {
 	if(storage.empty())
@@ -1614,9 +1833,15 @@ void generateGroups(const std::vector<std::vector<int> >& storage)
 }
 
 
-/* ------------------ Compute norm 16 for integral curves ------------------------- */
-
-/* get illustrative visualization metric for paper An Illustrative Visualization Framework for 3D Vector Fields */
+/*
+ * @brief Calculate the entropy-based metric (16) for two integral curves
+ * @details
+ * 	The metric formulation can be seen in the paper, An Illustrative Visualization Framework for 3D Vector Fields
+ *
+ * @param[in] firstEntropy The entropy vector for the first line
+ * @param[in] secondEntropy The entropy vector for the second line
+ * @return The distance value between two lines
+ */
 const float getEntropyMetric(const std::vector<float>& firstEntropy,
 		                     const std::vector<float>& secondEntropy)
 {
@@ -1629,8 +1854,17 @@ const float getEntropyMetric(const std::vector<float>& firstEntropy,
 	return sqrt(first*first+second*second);
 }
 
-/* get illustrative visualization metric for paper An Illustrative Visualization Framework for 3D Vector Fields,
- * given one entropy values and another as coordinate vector */
+
+/*
+ * @brief Calculate the entropy-based metric (16) for two lines, with one coordinate and one entropy vector
+ * @details
+ * 	The formula can be seen in the paper, An Illustrative Visualization Framework for 3D Vector Fields, and
+ * 	the condition is to be given by one entropy values and another as coordinate vector
+ *
+ * @param[in] firstEntropy The entropy list of the first line
+ * @param[in] array The coordinate of the second line
+ * @return The distance value of similarity measure (16)
+ */
 const float getEntropyMetric(const std::vector<float>& firstEntropy,
 		                     const Eigen::VectorXf& array)
 {
@@ -1641,12 +1875,18 @@ const float getEntropyMetric(const std::vector<float>& firstEntropy,
 	getLinearAngularEntropy(array, BUNDLE_SIZE, secondEntropy);
 
 	return getEntropyMetric(firstEntropy, secondEntropy);
-
 }
 
 
-/* get illustrative visualization metric for paper An Illustrative Visualization Framework for 3D Vector Fields,
- * given two coordinate vectors */
+/*
+ * @brief Calculate the entropy-based metric (16) for two lines, with the coordinates of two lines
+ * @details
+ * 	The formula can be seen in the paper, An Illustrative Visualization Framework for 3D Vector Fields
+ *
+ * @param[in] first The coordinate of the first line
+ * @param[in] second The coordinate of the second line
+ * @return The distance value of similarity measure (16)
+ */
 const float getEntropyMetric(const Eigen::VectorXf& first,
 		                     const Eigen::VectorXf& second)
 {
@@ -1658,11 +1898,15 @@ const float getEntropyMetric(const Eigen::VectorXf& first,
 
 	return getEntropyMetric(firstEntropy, secondEntropy);
 }
-/* ------------------ Compute norm 16 for integral curves ------------------------- */
 
 
-/* ------------------ Compute norm 17 for integral curves ------------------------- */
-// compute the time-based MCP for pathlines
+/*
+ * @brief Calculate the time-based MCP (17) for two pathlines
+ *
+ * @param[in] first The coordinate of the first line
+ * @param[in] second The coordinate of the second line
+ * @return The distance value between two pathlines
+ */
 const float getPathline_MCP(const Eigen::VectorXf& first,
         					const Eigen::VectorXf& second)
 {
@@ -1684,4 +1928,3 @@ const float getPathline_MCP(const Eigen::VectorXf& first,
 	}
 	return dist/t_M;
 }
-/* ------------------ Compute norm 17 for integral curves ------------------------- */

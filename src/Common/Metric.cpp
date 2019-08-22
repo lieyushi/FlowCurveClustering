@@ -1,14 +1,32 @@
+/*
+ * @brief This is a class to prepare the functions for computing the distance for integral curves
+ * @author Lieyu Shi
+ */
+
+
 #include "Metric.h"
 
 
-// the bin size for calculating the d_S (14) similarity measure
+/*
+ * @brief the bin size for calculating the d_S (14) similarity measure
+ */
 const int& BIN_SIZE = 20;
 
-// the number of bundles for calculating the entropy-based similarity (16)
+
+/*
+ * @brief the number of bundles for calculating the entropy-based similarity (16)
+ */
 const int& BUNDLE_SIZE = 20;
 
 
-// calculate the mean rotation for all the streamlines
+/*
+ * @brief Calculate the mean rotation for all the streamlines
+ *
+ * @param[in] data The matrix coordinates of the streamlines
+ * @param[in] Row The row size
+ * @param[in] Column The column size
+ * @param[out] rotation The rotation vector
+ */
 void computeMeanRotation(const Eigen::MatrixXf& data, 
 						 const int& Row, 
 						 const int& Column, 
@@ -24,11 +42,18 @@ void computeMeanRotation(const Eigen::MatrixXf& data,
 }
 
 
-// calculate the roataion sequence for all the streamlines
+/*
+ * @brief Calculate the rotation sequence for all the streamlines
+ *
+ * @param[in] data The matrix coordinates
+ * @param[in] Row The row size
+ * @param[in] Column The column size
+ * @param[out] rotationSequence The rotation sequence vector to be updated
+ */
 void getRotationSequence(const Eigen::MatrixXf& data, 
 						 const int& Row, 
 						 const int& Column, 
-						 std::vector<std::vector<float> >&rotationSequence)
+						 std::vector<std::vector<float> >& rotationSequence)
 {
 	const int& pointNum = Column/3-2;
 #pragma omp parallel for schedule(static) num_threads(8)
@@ -39,7 +64,14 @@ void getRotationSequence(const Eigen::MatrixXf& data,
 }
 
 
-// calculate the multivariate normal sequence for all the streamlines
+/*
+ * @brief Calculate the multivariate normal sequence for all the streamlines
+ *
+ * @param[in] data The matrix coordinates
+ * @param[in] Row The row size
+ * @param[in] Column The column size
+ * @param[out] normalMultivariate The multivariate normal sequence vector to be updated
+ */
 void getNormalSequence(const Eigen::MatrixXf& data, 
 					   const int& Row, 
 					   const int& Column, 
@@ -54,11 +86,18 @@ void getNormalSequence(const Eigen::MatrixXf& data,
 }
 
 
-// calculate values of segment to a fixed direction for all the streamlines
+/*
+ * @brief Calculate the values of segment to a fixed direction for all the streamlines
+ *
+ * @param[in] data The matrix coordinates
+ * @param[in] Row The row size
+ * @param[in] Column The column size
+ * @param[out] rotationSequence The rotation sequence vector to be updated
+ */
 void getFixedSequence(const Eigen::MatrixXf& data, 
 					  const int& Row, 
 					  const int& Column, 
-					  std::vector<std::vector<float> >&rotationSequence)
+					  std::vector<std::vector<float> >& rotationSequence)
 {
 	const int& pointNum = Column/3-1;
 #pragma omp parallel for schedule(static) num_threads(8)
@@ -69,7 +108,14 @@ void getFixedSequence(const Eigen::MatrixXf& data,
 }
 
 
-// get the unnormalized seuqnce of the multivariate segments for all the streamlines
+/*
+ * @brief Get the unnormalized seuqnce of the multivariate segments for all the streamlines
+ *
+ * @param[in] data The matrix coordinates of the streamlines
+ * @param[in] Row The row size
+ * @param[in] Column The column size
+ * @param[out] normalMultivariate The multivariate normal sequence vector to be updated
+ */
 void getUnnormalizedSequence(const Eigen::MatrixXf& data, 
 					   		 const int& Row, 
 					  		 const int& Column, 
@@ -84,7 +130,14 @@ void getUnnormalizedSequence(const Eigen::MatrixXf& data,
 }
 
 
-// get the unit directions of segments for all the streamlines
+/*
+ * @brief Get the unit directions of segments for all the streamlines
+ *
+ * @param[in] data The matrix coordinates of streamlines
+ * @param[in] Row The row size
+ * @param[in] Column The column size
+ * @param[out] unitLength The unit directions of segments for all the streamlines
+ */
 void getUnitDirection(const Eigen::MatrixXf& data, 
 					  const int& Row, 
 					  const int& Column, 
@@ -99,7 +152,15 @@ void getUnitDirection(const Eigen::MatrixXf& data,
 }
 
 
-// calculate the pair-wise distance values
+/*
+ * @brief Calculate the pari-wise distance values
+ *
+ * @param[in] data The matrix coordinates of streamlines
+ * @param[in] Row The row size
+ * @param[in] Column The column size
+ * @param[out] pairwise The pairwise vector to be updated
+ * @param[out] pairwiseNorm The pairwise norm vector to be updated
+ */
 void computePairWise(const Eigen::MatrixXf& data, 
 					 const int& Row, 
 					 const int& Column, 
@@ -115,7 +176,14 @@ void computePairWise(const Eigen::MatrixXf& data,
 }
 
 
-/* get signature-based bins for histogram for dissimilarity computation */
+/*
+ * @brief Get signature-based bins for histogram for similarity computation
+ *
+ * @param[in] data The matrix coordinates of the streamlines
+ * @param[in] Row The row size
+ * @param[in] Column The column size
+ * @param[out] pairwise The pairwise vector to be updated
+ */
 void getSignatureBin(const Eigen::MatrixXf& data,
 					 const int& Row,
 					 const int& Column,
@@ -130,7 +198,14 @@ void getSignatureBin(const Eigen::MatrixXf& data,
 }
 
 
-/* get streamline linear entropy and angular entropy in http://vis.cs.ucdavis.edu/papers/pg2011paper.pdf */
+/*
+ * @brief Get streamline linear entropy and angular entropy in http://vis.cs.ucdavis.edu/papers/pg2011paper.pdf
+ *
+ * @param[in] data The matrix coordinates of streamlines
+ * @param[in] Row The row size
+ * @param[in] Column The column size
+ * @param[out] pairwise The pairwise vector to be updated that has linear entropy and angular entropy values
+ */
 void getBundleEntropy(const Eigen::MatrixXf& data,
 		 	 	 	  const int& Row,
 					  const int& Column,
@@ -144,7 +219,14 @@ void getBundleEntropy(const Eigen::MatrixXf& data,
 }
 
 
-/* get the calculus of int_0^1(sqrt(a+2bt+ct^2))d_t */
+/*
+ * @brief Get the calculus of int_0^1(sqrt(a+2bt+ct^2))d_t
+ *
+ * @param[in] a The coefficient in the formula sqrt(a+2bt+ct^2)
+ * @param[in] b The coefficient in the formula sqrt(a+2bt+ct^2)
+ * @param[in] c The coefficient in the formula sqrt(a+2bt+ct^2)
+ * @return A float value from the calculus computation
+ */
 const float get_calculus(const float& a, const float& b, const float& c)
 {
 	typedef boost::multiprecision::cpp_dec_float_50 mp_type;

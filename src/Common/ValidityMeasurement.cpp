@@ -5,6 +5,7 @@
  *      Author: lieyu
  */
 
+
 #include "ValidityMeasurement.h"
 
 
@@ -27,11 +28,12 @@ ValidityMeasurement::~ValidityMeasurement() {
 
 /*
  * @brief Compute the validity measurement for the clustering result of general norm option
- * @param normOption: The norm option
- * @param array: The matrix coordinates of streamlines
- * @param group: The labels of different streamlines
- * @param object: The MetricPreparation class object
- * @param isPBF: The bool tag to tell whether it is a PBF data set or not
+ *
+ * @param[in] normOption The norm option
+ * @param[in] array The matrix coordinates of streamlines
+ * @param[in] group The labels of different streamlines
+ * @param[in] object The MetricPreparation class object
+ * @param[in] isPBF The bool tag to tell whether it is a PBF data set or not
  */
 void ValidityMeasurement::computeValue(const int& normOption, const MatrixXf& array,
 		const std::vector<int>& group, const MetricPreparation& object, const bool& isPBF)
@@ -173,8 +175,9 @@ void ValidityMeasurement::computeValue(const int& normOption, const MatrixXf& ar
 
 /*
  * @brief Compute the validity measurement for the clustering result of PCA case only
- * @param array: The matrix coordinates of streamlines
- * @param group: The labels of different streamlines
+ *
+ * @param[in] array The matrix coordinates of streamlines
+ * @param[in] group The labels of different streamlines
  */
 void ValidityMeasurement::computeValue(const MatrixXf& array, const std::vector<int>& group)
 {
@@ -304,12 +307,13 @@ void ValidityMeasurement::computeValue(const MatrixXf& array, const std::vector<
 
 /*
  * @brief Get the MST (minimal spanning tree) results for the clustering with general norm option
- * @param values: The output value vector to be updated
- * @param clusterNode: The candidate index in the vector
- * @param object: MetricPreparation class object
- * @param normOption: The norm option
- * @param array: The matrix coordinates
- * @param isPBF: whether it is a PBF data set or not
+ *
+ * @param[out] values The output value vector to be updated
+ * @param[in] clusterNode The candidate index in the vector
+ * @param[in] object MetricPreparation class object
+ * @param[in] normOption The norm option
+ * @param[in] array The matrix coordinates
+ * @param[in] isPBF whether it is a PBF data set or not
  */
 void ValidityMeasurement::getMST_Parent_Node(std::tuple<float, float, float>& values,
 			const std::vector<int>& clusterNode, const MetricPreparation& object, const int& normOption,
@@ -435,11 +439,11 @@ void ValidityMeasurement::getMST_Parent_Node(std::tuple<float, float, float>& va
 
 /*
  * @brief Get the MST (minimal spanning tree) results for the clustering with PCA
- * @param values: The output value vector to be updated
- * @param clusterNode: The candidate index in the vector
- * @param array: The matrix coordinates
+ *
+ * @param[out] values The output value vector to be updated
+ * @param[in] clusterNode The candidate index in the vector
+ * @param[in] array The matrix coordinates
  */
-// get MST for each cluster given index and pair-wise distance, PCA case only
 void ValidityMeasurement::getMST_Parent_Node(std::tuple<float, float, float>& values,
 			const std::vector<int>& clusterNode, const MatrixXf& array)
 {
@@ -553,14 +557,15 @@ void ValidityMeasurement::getMST_Parent_Node(std::tuple<float, float, float>& va
 
 /*
  * @brief Get the Sc value for the clustering with general norm option
- * @param isPBF: Whether the data set is PBF or not
- * @param distM: The distance matrix as input
- * @param clusterNode: The candidate index in the vector
- * @param rangeValue: The ranged value as input
- * @param object: MetricPreparation class object
- * @param normOption: The norm option
- * @param array: The matrix coordinates
- * @param index: The cluster index to be updated
+ *
+ * @param[in] isPBF Whether the data set is PBF or not
+ * @param[in] distM The distance matrix as input
+ * @param[in] clusterNode The candidate index in the vector
+ * @param[in] rangeValue The ranged value as input
+ * @param[in] object MetricPreparation class object
+ * @param[in] normOption The norm option
+ * @param[in] array The matrix coordinates
+ * @param[out] index The cluster index to be updated
  */
 const float ValidityMeasurement::get_Sc_by_range(const bool& isPBF, const Eigen::MatrixXf& distM,
 		                    const std::vector<int>& clusterNode, const float& rangeValue,
@@ -634,13 +639,13 @@ const float ValidityMeasurement::get_Sc_by_range(const bool& isPBF, const Eigen:
 
 /*
  * @brief Get the Sc value for the clustering with PCA only
- * @param distM: The distance matrix as input
- * @param clusterNode: The candidate index in the vector
- * @param rangeValue: The ranged value as input
- * @param array: The matrix coordinates
- * @param index: The cluster index to be updated
+ *
+ * @param[in] distM The distance matrix as input
+ * @param[in] clusterNode The candidate index in the vector
+ * @param[in] rangeValue The ranged value as input
+ * @param[in] array The matrix coordinates
+ * @param[out] index The cluster index to be updated
  */
-// compute the Sc by input range value for PCA case only
 const float ValidityMeasurement::get_Sc_by_range(const Eigen::MatrixXf& distM, const std::vector<int>& clusterNode,
 												 const float& rangeValue, const MatrixXf& array, int& index)
 {

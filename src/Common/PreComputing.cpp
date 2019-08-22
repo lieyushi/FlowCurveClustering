@@ -1,7 +1,19 @@
+/*
+ * @brief The class contains some preliminary functions to calculate before the distance matrix starts
+ * @author Lieyu Shi
+ */
+
+
 #include "PreComputing.h"
 
 
-// calculate the sequence values for a given streamline coordinate
+/*
+ * @brief calculate the sequence values for a given streamline coordinate
+ *
+ * @param[in] array The coordinate of a streamline
+ * @param[in] size The size of coordinate
+ * @param[out] rowSequence The rowSequence vector
+ */
 void getSequence(const VectorXf& array, 
 				 const int& size, 
 				 std::vector<float>& rowSequence)
@@ -35,7 +47,13 @@ void getSequence(const VectorXf& array,
 }
 
 
-// calculate the averaged discrete curvature on the streamline coordinate
+/*
+ * @brief Calculate the average discrete curvatures on the streamline coordinate
+ *
+ * @param[in] array The coordinate of the streamline
+ * @param[in] size The size of coordinate
+ * @return The float value of the average rotation
+ */
 const float getRotation(const VectorXf& array, 
 						const int& size)
 {
@@ -61,7 +79,13 @@ const float getRotation(const VectorXf& array,
 }
 
 
-// get the normalized multivariate w.r.t. segments of the streamline
+/*
+ * @brief Get the normalized multivariate w.r.t. segments of the streamline
+ *
+ * @param[in] array The coordinate of the streamline
+ * @param[in] size The size of coordinate
+ * @param[out] rowSequence The row sequence to be updated
+ */
 void getNormalMultivariate(const VectorXf& array, 
 				 	 	   const int& size, 
 				 	 	   MultiVariate& rowSequence)
@@ -101,7 +125,13 @@ void getNormalMultivariate(const VectorXf& array,
 }
 
 
-// get the fixed sequence for the streamline
+/*
+ * @brief Get the fixed sequence for the streamline
+ *
+ * @param[in] array The coordinate of the streamline
+ * @param[in] The size of coordinate
+ * @param[out] rowSequence The row sequence to be updated
+ */
 void getEachFixedSequence(const VectorXf& array, 
 				 		  const int& size, 
 				 		  std::vector<float>& rowSequence)
@@ -140,7 +170,13 @@ void getEachFixedSequence(const VectorXf& array,
 }
 
 
-// get the unnormalized multivariate w.r.t. segments of the streamline coordinates
+/*
+ * @brief Get the unnormalized multivariate w.r.t. segments of the streamline coordinates
+ *
+ * @param[in] array The coordinate of the streamline
+ * @param[in] The size of coordinate
+ * @param[out] rowSequence The row sequence to be updated
+ */
 void getUnnormalizedMultivariate(const VectorXf& array, 
 				 	 	  		 const int& size, 
 				 	 	  		 MultiVariate& rowSequence)
@@ -180,7 +216,13 @@ void getUnnormalizedMultivariate(const VectorXf& array,
 }
 
 
-// get the unit direction for each streamline
+/*
+ * @brief Get the unit direction for each streamline
+ *
+ * @param[in] array The coordinate of a streamline
+ * @param[in] pointNum The size of point in the line
+ * @param[out] direction The direction vector to be updated
+ */
 void getUnitDirection_byEach(const VectorXf& array, 
 							 const int& pointNum, 
 							 VectorXf& direction)
@@ -210,7 +252,14 @@ void getUnitDirection_byEach(const VectorXf& array,
 }							 
 
 
-// get the pairwise each attribute for the streamline
+/*
+ * @brief Get the pairwise each attribute for the streamline
+ *
+ * @param[in] array The coordinate of a streamline
+ * @param[in] size The size of the coordinate
+ * @param[out] wiseVec The pairwise intersection angle of each segment
+ * @param[out] wiseNorm The pairwise norm vector of each segment
+ */
 void getPairWise_byEach(const VectorXf& data,
 						const int& size,
 					 	std::vector<float>& wiseVec,
@@ -248,7 +297,13 @@ void getPairWise_byEach(const VectorXf& data,
 }
 
 
-/* The difference compared to the former function is that, this will resample on high-curvature points */
+/*
+ * @brief The difference compared to the former function is that, this will resample on high-curvature points
+ *
+ * @param[in] array The coordinate of a streamline
+ * @param[in] binNum The number of points on the line
+ * @param[out] histogram The vector values making up the histogram to be updated
+ */
 void getSignatureHist(const Eigen::VectorXf& array,
 					  const int& binNum,
 					  std::vector<float>& histogram)
@@ -310,7 +365,13 @@ void getSignatureHist(const Eigen::VectorXf& array,
 }
 
 
-/* get the bin-based histogram for signature, the difference is that we should try to get maximal binNum-1 points*/
+/*
+ * @brief Get the bin-based histogram for signature, the difference is that we should try to get maximal binNum-1 points
+ *
+ * @param[in] array The coordinate of the streamline
+ * @param[in] binNum The number of bins on the histogram
+ * @param[out] histogram The histogram of values as an output of vector
+ */
 void getSignatureHistSampled(const Eigen::VectorXf& array,
 					  	  	 const int& binNum,
 							 std::vector<float>& histogram)
@@ -412,7 +473,13 @@ void getSignatureHistSampled(const Eigen::VectorXf& array,
 }
 
 
-/* get linear and angular entropy */
+/*
+ * @brief Get the linear and angular entropy
+ *
+ * @param[in] array The coordinate of the streamline
+ * @param[in] bundleSize The size of bundles for the attributes generated
+ * @param[out] histogram The histogram of values as output
+ */
 void getLinearAngularEntropy(const Eigen::VectorXf& array,
  	  	 	 	 	 	 	 const int& bundleSize,
 							 std::vector<float>& histogram)
