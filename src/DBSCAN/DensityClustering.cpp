@@ -1,16 +1,30 @@
+/*
+ * @brief The source cpp for implementing the clustering algorithm DBSCAN for flow visualization
+ * @author Lieyu Shi
+ */
+
 #include "DensityClustering.h"
 
 std::vector<string> activityList;
 std::vector<string> timeList;
 
+
+/*
+ * @brief The ratio w.r.t the maximal distance in (0,1)
+ */
 float multiTimes;
+
+/*
+ * @brief The minPts to decide the neighbor number
+ */
 int minPts;
 
 
 /*
  * @brief DBSCAN constructor with parameters
- * @param argc: The count of arguments
- * @param argv: The char* array with data sets
+ *
+ * @param[in] argc The count of arguments
+ * @param[in] argv The char* array with data sets
  */
 DensityClustering::DensityClustering(const int& argc, char **argv)
 {
@@ -129,7 +143,8 @@ void DensityClustering::performClustering() {
 
 /*
  * @brief Get the distance threshold
- * @param minPts: The min points for the DBSCAN
+ *
+ * @param[in] minPts The min points for the DBSCAN
  */
 const float DensityClustering::getDistThreshold(const int& minPts)
 {
@@ -157,7 +172,8 @@ const float DensityClustering::getDistThreshold(const int& minPts)
 
 /*
  * @brief Compute the minPts-th dist for all candidates
- * @param minPts: The min point numbers for the DBSCAN clustering
+ *
+ * @param[in] minPts The min point numbers for the DBSCAN clustering
  */
 const float DensityClustering::getAverageDist(const int& minPts)
 {
@@ -167,28 +183,6 @@ const float DensityClustering::getAverageDist(const int& minPts)
 	{
 	#pragma omp for nowait
 		for (int i = 0; i < rowSize; ++i) {
-			/* a linear k*n implementation by directly using a vector for linear mapping */
-			/*
-			 std::vector<float> minDistVec(minPts, FLT_MAX);
-			 float tempDist;
-			 for (int j=0;j<rowSize;++j)
-			 {
-			 if(i==j)
-			 continue;
-			 if(distanceMatrix)
-			 tempDist = distanceMatrix[i][j];
-			 else
-			 tempDist=getDisimilarity(ds.dataMatrix.row(i), ds.dataMatrix.row(j),i,j,normOption, object);
-
-			 if(tempDist<minDistVec[minPts-1])
-			 minDistVec[minPts-1]=tempDist;
-			 for(int l=minPts-1;l>=1;--l)
-			 {
-			 if(minDistVec[l]>minDistVec[l-1])
-			 std::swap(minDistVec[l], minDistVec[l-1]);
-			 }
-			 }*/
-
 			/* use a priority_queue<float> with n*logk time complexity */
 			std::priority_queue<float> minDistArray;
 			float tempDist;
@@ -216,8 +210,9 @@ const float DensityClustering::getAverageDist(const int& minPts)
 
 /*
  * @brief Perform the DBSCAN clustering with given parameters
- * @param radius_eps: The radius to check the neighboring information
- * @param minPts: The minPts for the DBSCAN clustering
+ *
+ * @param[in] radius_eps The radius to check the neighboring information
+ * @param[in] minPts The minPts for the DBSCAN clustering
  */
 void DensityClustering::DBSCAN(const float& radius_eps, const int& minPts) {
 	int C = 0;
@@ -240,11 +235,12 @@ void DensityClustering::DBSCAN(const float& radius_eps, const int& minPts) {
 
 /*
  * @brief Expand the cluster with candidates that lie within range of the target
- * @param index: The index of candidate streamlines
- * @param neighbor: The neighborhood candidates found
- * @param cluster_id: The label for the clusters
- * @param radius_eps: The radius for searching around the neighborhood
- * @param minPts: The min number of points for the DBSCAN clustering
+ *
+ * @param[in] index The index of candidate streamlines
+ * @param[in] neighbor The neighborhood candidates found
+ * @param[in] cluster_id The label for the clusters
+ * @param[in] radius_eps The radius for searching around the neighborhood
+ * @param[in] minPts The min number of points for the DBSCAN clustering
  */
 void DensityClustering::expandCluster(const int& index, vector<int>& neighbor,
 	const int& cluster_id, const float& radius_eps, const int& minPts)
@@ -269,8 +265,9 @@ void DensityClustering::expandCluster(const int& index, vector<int>& neighbor,
 
 /*
  * @brief Perform the region-based query for the target streamline within a given radius
- * @param index: The index of the target streamlines
- * @param radius_eps: The radius of neighborhood checking
+ *
+ * @param[in] index The index of the target streamlines
+ * @param[in] radius_eps The radius of neighborhood checking
  * @return A vector<int> object that contains the region candidates
  */
 const vector<int> DensityClustering::regionQuery(const int& index,
@@ -297,8 +294,9 @@ const vector<int> DensityClustering::regionQuery(const int& index,
 
 /*
  * @brief Set the data set from the arguments
- * @param argc: Count of arguments
- * @param argv: The argument string type
+ *
+ * @param[in] argc Count of arguments
+ * @param[in] argv The argument string type
  */
 void DensityClustering::setDataset(const int& argc, char **argv) {
 	if (argc != 3) {
@@ -395,8 +393,9 @@ void DensityClustering::setNormOption() {
 
 /*
  * @brief Calculate the minimal and maximal distance range for the user input of radius
- * @param minDist: The minimal distance to be updated
- * @param maxDist: The maximal distance to be updated
+ *
+ * @param[in] minDist The minimal distance to be updated
+ * @param[in] maxDist The maximal distance to be updated
  */
 void DensityClustering::getDistRange(float& minDist, float& maxDist)
 {
@@ -451,8 +450,9 @@ const int DensityClustering::setMinPts() {
 
 /*
  * @brief Select a ratio between [0,1] for the radius input
- * @param minDist: The minimal distance value as input
- * @param maxDist: The maximal distance value as input
+ *
+ * @param[in] minDist The minimal distance value as input
+ * @param[in] maxDist The maximal distance value as input
  * @return A radius for the DBSCAN clustering after the user input
  */
 const float DensityClustering::setTimesMin(const float& minDist, const float& maxDist)
@@ -473,8 +473,9 @@ const float DensityClustering::setTimesMin(const float& minDist, const float& ma
 
 /*
  * @brief Extract features for the clustering results and calculate the clustering evaluation metrics
- * @param radius_eps: The radius for DBSCAN clustering
- * @param minPts: The minPts parameter for DBSCAN
+ *
+ * @param[in] radius_eps The radius for DBSCAN clustering
+ * @param[in] minPts The minPts parameter for DBSCAN
  */
 void DensityClustering::extractFeatures(const float& radius_eps, const int& minPts)
 {
