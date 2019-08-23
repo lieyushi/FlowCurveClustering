@@ -1,15 +1,42 @@
+/*
+ * @brief The streamling query class to perform distance-based query and pattern search
+ * @author Lieyu Shi
+ */
+
+
 #include "Query.h"
 #include <sys/time.h>
 
 using namespace std;
 
 
+/*
+ * @brief Query interesting streamlines/pathlines with the input parameter of norm option
+ *
+ * @param[in] argc The count of arguments
+ * @param[int] argv The char* array of arguments
+ */
 void streamlineQuery(const int& argc,
 					 char **argv);
 
+/*
+ * @brief The initialization option for the sampling strategy
+ */
 int initializationOption;
+
+/*
+ * @brief Whether the data set is pathline or streamline
+ */
 bool isPathlines;
 
+
+/*
+ * @brief The main function to perform the query
+ *
+ * @param[in] argc The count of arguments
+ * @param[in] argv The char* array of arguments
+ * @return 0 if successful
+ */
 int main(int argc, char* argv[])
 {
 	streamlineQuery(argc, argv);
@@ -17,6 +44,12 @@ int main(int argc, char* argv[])
 }
 
 
+/*
+ * @brief Query interesting streamlines/pathlines with the input parameter of norm option
+ *
+ * @param[in] argc The count of arguments
+ * @param[int] argv The char* array of arguments
+ */
 void streamlineQuery(const int& argc,
 					 char **argv)
 {

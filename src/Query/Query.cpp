@@ -1,6 +1,19 @@
+/*
+ * @brief The class to perform the distance-based query for the streamlines/pathlines
+ * @author Lieyu Shi
+ */
+
+
 #include "Query.h"
 
 
+	/*
+	 * @brief Get the interesting curves with rotation-related calculation
+	 *
+	 * @param[in] data The matrix coordinates of the streamlines
+	 * @param[in] Row The row size
+	 * @param[in] Column The column size
+	 */
 void Query::getInteresting(const Eigen::MatrixXf& data,
 						   const int& Row,
 						   const int& Column)
@@ -46,12 +59,22 @@ void Query::getInteresting(const Eigen::MatrixXf& data,
 }
 
 
+/*
+ * @brief The default constructor for the class
+ */
 Query::Query()
 {
 	//default constructor
 }
 	
 
+/*
+ * @brief The constructor with the input parameters and assign the coordinates
+ *
+ * @param[in] data The matrix coordinates as input
+ * @param[in] Row The row size
+ * @param[in] Column The column size
+ */
 Query::Query(const Eigen::MatrixXf& data,
 		     const int& Row,
 		     const int& Column)
@@ -60,18 +83,31 @@ Query::Query(const Eigen::MatrixXf& data,
 	getInteresting(data, Row, Column);	
 }
 	
+
+/*
+ * @brief The destructor
+ */
 Query::~Query()
 {
 	interestedCurve.clear();
 }
 
 
+/*
+ * @brief Whether the interested candidate vector is empty or not
+ */
 bool Query::interestedEmpty()
 {
 	return interestedCurve.empty();
 }
 
 
+/*
+ * @brief Get the results of closest search (distance value and index)
+ *
+ * @param[in] normOption The norm option
+ * @param[out] searchResult The result of the streamline query
+ */
 void Query::getClosestInteresting(const int& normOption,
 					   			  std::vector<StringQuery>& searchResult)
 {
@@ -104,6 +140,12 @@ void Query::getClosestInteresting(const int& normOption,
 }
 
 
+/*
+ * @brief Calculate the curve indices that are closest to the target candidate streamline
+ *
+ * @param[in] normOption The norm option
+ * @param[out] searchResult The result of the streamline query
+ */
 void Query::getClosestCurve(const int& normOption,
 					   		std::vector<StringQuery>& searchResult)
 {
@@ -136,7 +178,14 @@ void Query::getClosestCurve(const int& normOption,
 }
 
 
-
+/*
+ * @brief Get the closest candidates compared to the given target
+ *
+ * @param[in] target The given target index of streamline
+ * @param[in] closestNumber The number of closest curves for the search
+ * @param[in] normOption The norm option
+ * @param[out] neighbor The calculated indices of the neighboring integral curves
+ */
 void Query::searchClosest(const int& target, 
 						  const int& closestNumber, 
 					  	  const int& normOption, 
