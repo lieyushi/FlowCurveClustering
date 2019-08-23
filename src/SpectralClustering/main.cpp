@@ -1,6 +1,17 @@
+/*
+ * @brief The main function to use the spectral clustering on input integral curves
+ * @author Lieyu Shi
+ */
+
+
 #include "SpectralClustering.h"
 
-/* in case of running for many norm, would enable automatic parameter choice */
+
+/*
+ * @brief in case of running for many norm, would enable automatic parameter choice ahead of time
+ *
+ * @param[out] The Para class object to be revised
+ */
 void setPara(Para& p);
 
 
@@ -21,7 +32,11 @@ int main(int argc, char **argv)
 }
 
 
-
+/*
+ * @brief in case of running for many norm, would enable automatic parameter choice ahead of time
+ *
+ * @param[out] The Para class object to be revised
+ */
 void setPara(Para& p)
 {
 	/* 1.directly filling with last vertex; 2. uniform sampling, 3. equal-arc sampling */

@@ -1,7 +1,14 @@
-/* Spectral clustering is a graph-based technique to map original streamlines to a spectral embedding space.
+/*
+ * @brief The SpectralClustering class to perform the spectral clustering on input data set
+ *
+ * @detais
+ * 	Spectral clustering is a graph-based technique to map original streamlines to a spectral embedding space.
  * The problem itself is a NP-hard and we used instead a relaxed versions with Graph Laplacians.
- * Detailed procedures can be referred at https://tarekmamdouh.wordpress.com/2014/09/28/spectral-clustering/
+ *
+ *  Detailed procedures can be referred at https://tarekmamdouh.wordpress.com/2014/09/28/spectral-clustering/
  * and TVCG paper http://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=6702500
+ * local scaling for Gaussian kernel size might be defined as 0.05*totalCount as in
+ * Blood Flow Clustering and Applications in Virtual Stenting of Intracranial Aneurysms
  */
 
 
@@ -16,176 +23,324 @@
 #include <queue>
 #include <string>
 
-/* local scaling for Gaussian kernel size */
-/* might be defined as 0.05*totalCount as in Blood Flow Clustering and Applications in
-Virtual Stenting of Intracranial Aneurysms */
 
-
-/* update date size for gradient descent */
+/*
+ * @brief update date size for gradient descent
+ */
 #ifndef GradientStep
 	#define GradientStep 0.3
 #endif
 
 
+/*
+ * @brief The Parameter struct to enable parameter tuning for spectral clustering algorithm
+ */
 struct Para
 {
 
-	/* 1.directly filling with last vertex; 2. uniform sampling, 3. equal-arc sampling */
+	/*
+	 * @brief 1.directly filling with last vertex; 2. uniform sampling, 3. equal-arc sampling
+	 */
 	int sampled;
 
-	/* Laplacian option: 1.Normalized Laplacian, 2.Unsymmetric Laplacian */
+	/*
+	 * @brief Laplacian option: 1.Normalized Laplacian, 2.Unsymmetric Laplacian
+	 */
 	int LaplacianOption;
 
-	/* local scaling by sorted distance: true, false */
+	/*
+	 * @brief local scaling by sorted distance: true, false
+	 */
 	bool isDistSorted;
 
-	/* post-processing method: 1.k-means, 2.eigenvector rotation*/
+	/*
+	 * @brief post-processing method: 1.k-means, 2.eigenvector rotation
+	 */
 	int postProcessing;
 
-	/* derivative method for eigen rotation: 1.numerical derivative, 2.true derivative */
+	/*
+	 * @brief derivative method for eigen rotation: 1.numerical derivative, 2.true derivative
+	 */
 	int mMethod;
 
-	/* extraction option, 1. centroid, closest and furthest, 2. median, 3. statistical representation */
+	/*
+	 * @brief extraction option, 1. centroid, closest and furthest, 2. median, 3. statistical representation
+	 */
 	int extractOption;
 };
 
 
-
+/*
+ * @brief The spectral clustering class for streamline/pathline clustering
+ */
 class SpectralClustering
 {
 
 public:
 
-/* default constructor */
+	/*
+	 * @brief default constructor
+	 */
 	SpectralClustering();
 
-/* argument constructor with argc and argv */
+	/*
+	 * @brief The argument constructor with argc and argv
+	 *
+	 * @param[in] argc The count of arguments
+	 * @param[in] argv The char* array of arguments
+	 * @param[in] p The Para object
+	 * @param[out] automatic The bool flag
+	 */
 	SpectralClustering(const int& argc, char **argv, const Para& p, bool& automatic);
 
-/* destructor */
+
+	/*
+	 * @brief destructor
+	 */
 	~SpectralClustering();
 
-/* perform clustering function */
+
+	/*
+	 * @brief perform spectral clustering function
+	 */
 	void performClustering();
+
 
 private:
 
-/**********************************************************************************************************
- **************************************   Private member variables   **************************************
- **********************************************************************************************************/
-
-/* metric preparation object to be stored ahead of time */
+	/*
+	 * @brief metric preparation object to be stored ahead of time
+	 */
 	MetricPreparation object;
 
-/* input norm option */
+	/*
+	 * @brief input norm option
+	 */
 	int normOption = -1;
 
-/* group information */
+	/*
+	 * @brief group information
+	 */
 	std::vector<int> group;
 
-/* activityList vector to store event */
+	/*
+	 * @brief activityList vector to store event
+	 */
 	std::vector<string> activityList;
 
-/* timeList vector to store time information */
+	/*
+	 * @brief timeList vector to store time information
+	 */
 	std::vector<string> timeList;
 
-/* store dataset information */
+	/*
+	 * @brief store dataset information
+	 */
 	DataSet ds;
 
-/* how many clusters to be needed */
+	/*
+	 * @brief how many clusters to be needed
+	 */
 	int numberOfClusters = -1;
 
-/* k-means initialization option */
+	/*
+	 * @brief k-means initialization option
+	 */
 	int initializationOption = -1;
 
-/* distance range vector */
+	/*
+	 * @brief distance range vector
+	 */
 	std::vector<float> distRange;
 
-/* Gaussian kernel radius for generating adjacency matrix */
+	/*
+	 * @brief Gaussian kernel radius for generating adjacency matrix
+	 */
 	std::vector<float> sigmaVec;
 
-/* Laplacian option, 1: Unnormalized Laplacian, 2: normalized Laplacian, 3: Random Walk Laplacian */
+	/*
+	 * @brief Laplacian option, 1: Unnormalized Laplacian, 2: normalized Laplacian, 3: Random Walk Laplacian
+	 */
 	int LaplacianOption = -1;
 
-/* what kind of 5-th neighbor point would be obtained? */
+	/*
+	 * @brief what kind of 5-th neighbor point would be obtained?
+	 */
 	bool isDistSorted = -1;
 
-/* what kind of post-processing is to be chosen */
+	/*
+	 * @brief what kind of post-processing is to be chosen
+	 */
 	int postProcessing = -1;
 
-/* extraction option, 1. centroid, closest and furthest, 2. median, 3. statistical representation */
+	/*
+	 * @brief extraction option, 1. centroid, closest and furthest (this is what I implemented), 2. median
+	 */
 	int extractOption = -1;
 
-/* scaling factor for spectral clustering to decide Gaussian kernel size */
+	/*
+	 * @brief scaling factor for spectral clustering to decide Gaussian kernel size
+	 */
 	int SCALING;
 
-/* whether used to find optimal number of clustering */
+	/*
+	 * @brief whether used to find optimal number of clustering
+	 */
 	bool isOptimal;
 
-/* preset number */
+	/*
+	 * @brief preset number
+	 */
 	int presetNumber;
 
-/* whether read cluster */
+	/*
+	 * @brief whether read cluster
+	 */
 	bool readCluster;
 
-/* whether it is a pathlines */
+	/*
+	 * @brief whether it is a pathlines
+	 */
 	bool isPathlines;
 
 
-/**********************************************************************************************************
- **************************************   Private member functions   **************************************
- **********************************************************************************************************/
-
-/* extract features from datasets as representative curves */
+	/*
+	 * @brief extract features from datasets as representative curves and calculate the clustering evaluation
+	 *
+	 * @param[in] storage The size of different clusters
+	 * @param[in] neighborVec The candidates included in each cluster
+	 * @param[in] centroid The centroid coordinates of cluster
+	 */
 	void extractFeatures(const std::vector<int>& storage, const std::vector<std::vector<int> >& neighborVec,
             			 const Eigen::MatrixXf& centroid);
 
-/* set dataset from user command */
+	/*
+	 * @brief set data set from user command
+	 *
+	 * @param[in] argc The count of arguments
+	 * @param[in] argv The char* array of argument string
+	 */
 	void setDataset(const int& argc, char **argv);
 
-/* set parameter */
+
+	/*
+	 * @brief set necessary parameter
+	 */
 	void getParameterUserInput();
 
-/* set automatic parameter */
+
+	/*
+	 * @brief set automatic parameter from the Para object input
+	 *
+	 * @param[in] p The Para object for the parameters
+	 */
 	void setParameterAutomatic(const Para& p);
 
-/* run clustering based on different norm */
+
+	/*
+	 * @brief run spectral clustering based on different norm input
+	 *
+	 * @param[in] norm The norm option
+	 */
 	void clusterByNorm(const int& norm);
 
-/* perform group-labeling information */
+
+	/*
+	 * @brief perform group-labeling information for all the streamlines
+	 *
+	 * @param[in] neighborVec The neighboring vector of candidates belonging to the clusters
+	 * @param[out] storage The individual size of clusters
+	 * @param[out] centroid The centroid coordinates of the clusters
+	 */
 	void setLabel(vector<vector<int> >& neighborVec, vector<int>& storage, Eigen::MatrixXf& centroid);
 
-/* get weighted adjacency matrix by Gaussian kernel */
+
+	/*
+	 * @brief get weighted adjacency matrix by Gaussian kernel
+	 *
+	 * @param[out] adjacencyMatrix The weighted adjacency matrix computed from the Gaussian graph algorithm
+	 */
 	void getAdjacencyMatrix(Eigen::MatrixXf& adjacencyMatrix);
 
-/* get degree matrix */
+
+	/*
+	 * @brief get degree matrix by the adjacency matrix
+	 *
+	 * @param[in] adjacencyMatrix The adjacency matrix as input
+	 * @param[ou] degreeMatrix The degree matrix (diagonal matrix) as output
+	 */
 	void getDegreeMatrix(const Eigen::MatrixXf& adjacencyMatrix, Eigen::DiagonalMatrix<float,Dynamic>& degreeMatrix);
 
-/* get Laplacian matrix */
+
+	/*
+	 * @brief get Laplacian matrix
+	 *
+	 * @param[in] adjacencyMatrix The adjacency matrix as input
+	 * @param[out] degreeMatrix The degree matrix to be updated
+	 * @param[out] laplacianMatrix The Laplacian matrix to be calculated
+	 */
 	void getLaplacianMatrix(const Eigen::MatrixXf& adjacencyMatrix, Eigen::DiagonalMatrix<float,Dynamic>& degreeMatrix,
 							Eigen::MatrixXf& laplacianMatrix);
 
-/* decide optimal cluster number by eigenvectors of Laplacian matrix */
+
+	/*
+	 * @brief decide optimal cluster number by eigenvectors of Laplacian matrix
+	 *
+	 * @param[in] laplacianMatrix The input Laplacian matrix for the eigen-rotation minimization
+	 * @param[in] norm The norm option
+	 */
 	void getEigenClustering(const Eigen::MatrixXf& laplacianMatrix, const int& norm);
 
-/* get local scaling from NIPS 2002 paper */
+
+	/*
+	 * @brief get local scaling from NIPS 2002 paper
+	 */
 	void getSigmaList();
 
-/* get entropy ratio */
+
+	/*
+	 * @brief get entropy ratio from size of clusters as input
+	 *
+	 * @param[in] storage The size of clusters as input
+	 * @param[out] EntropyRatio The entropy ratio to calculate
+	 */
 	void getEntropyRatio(const std::vector<int>& storage, float& EntropyRatio);
 
-/* record find optimal information */
+
+	/*
+	 * @brief record the preset number of clusters
+	 *
+	 * @param[in] number The number of clusters as input
+	 */
 	void recordPreset(const int& number);
 
-/* record find optimal information */
+
+	/*
+	 * @brief record the result of optimal number of clusters
+	 *
+	 * @param[in] normOption The norm option
+	 * @param[in] clusNum The number of clusters
+	 */
 	void recordOptimalResult(const int& normOption, const int& clusNum);
+
 
 /* url: https://www.cs.cmu.edu/~aarti/Class/10701/readings/Luxburg06_TR.pdf */
 /********************************** Perform k-means clustering *********************************************/
-	/* normalize each row first */
+	/*
+	 * @brief normalize each row first
+	 *
+	 * @param[out] eigenVec The matrix with eigen-vectors to be updated
+	 */
 	void normalizeEigenvec(Eigen::MatrixXf& eigenVec);
 
-	/* perform k-means clustering */
+
+	/*
+	 * @brief perform k-means clustering for the normalized eigen vector matrix
+	 *
+	 * @param[in] eigenVec The input eigen vector as matrix
+	 * @param[out] storage The size of clusters to be updated
+	 * @param[out] neighborVec The vector of candidates belonging to clusters
+	 */
 	void performKMeans(const Eigen::MatrixXf& eigenVec,
 					   std::vector<int>& storage,
 					   std::vector<std::vector<int> >& neighborVec);
@@ -193,15 +348,37 @@ private:
 
 /********************************** Vector Rotation from library *********************************************
  ********************************** from library https://github.com/pthimon/clustering ***********************/
+
+	/*
+	 * @brief The max quality initialized value
+	 */
 	float mMaxQuality = 0;
+
+	/*
+	 * @brief The initialized value of mMethod
+	 */
 	int mMethod = -1;
 
-	/* get cluster information based on eigenvector rotation */
+	/*
+	 * @brief get cluster information based on eigenvector rotation
+	 *
+	 * @param[out] storage The size of clusters
+	 * @param[out] neighborVec The candidates belonging to clusters
+	 * @param[out] clusterCenter The centroid coordinates of clusters
+	 * @param[in] X The matrix X
+	 */
 	void getEigvecRotation(std::vector<int>& storage, std::vector<std::vector<int> >& neighborVec,
 			               Eigen::MatrixXf& clusterCenter, const Eigen::MatrixXf& X);
 
 };
 
+
+/*
+ * @brief Calculate the matrix^powNumber, and it would be inv if powNumber is -1
+ *
+ * @param[out] matrix The original matrix
+ * @param[in] powNumber The exponential index
+ */
 void getMatrixPow(Eigen::DiagonalMatrix<float,Dynamic>& matrix, const float& powNumber);
 
 

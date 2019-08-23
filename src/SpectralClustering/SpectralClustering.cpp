@@ -1,12 +1,37 @@
+/*
+ * @brief The SpectralClustering class to perform the spectral clustering on input data set
+ *
+ * @detais
+ * 	Spectral clustering is a graph-based technique to map original streamlines to a spectral embedding space.
+ * The problem itself is a NP-hard and we used instead a relaxed versions with Graph Laplacians.
+ *
+ *  Detailed procedures can be referred at https://tarekmamdouh.wordpress.com/2014/09/28/spectral-clustering/
+ * and TVCG paper http://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=6702500
+ * local scaling for Gaussian kernel size might be defined as 0.05*totalCount as in
+ * Blood Flow Clustering and Applications in Virtual Stenting of Intracranial Aneurysms
+ */
+
+
 #include "SpectralClustering.h"
 
-/* default constructor */
+
+/*
+ * @brief default constructor
+ */
 SpectralClustering::SpectralClustering()
 {
 
 }
 
-/* argument constructor with argc and argv */
+
+/*
+ * @brief The argument constructor with argc and argv
+ *
+ * @param[in] argc The count of arguments
+ * @param[in] argv The char* array of arguments
+ * @param[in] p The Para object
+ * @param[out] automatic The bool flag
+ */
 SpectralClustering::SpectralClustering(const int& argc, char **argv, const Para& p, bool& automatic)
 {
 	setDataset(argc, argv);
@@ -18,13 +43,19 @@ SpectralClustering::SpectralClustering(const int& argc, char **argv, const Para&
 
 }
 
-/* destructor */
+
+/*
+ * @brief destructor
+ */
 SpectralClustering::~SpectralClustering()
 {
 	deleteDistanceMatrix(ds.dataMatrix.rows());
 }
 
-/* perform clustering function */
+
+/*
+ * @brief perform spectral clustering function
+ */
 void SpectralClustering::performClustering()
 {
 	//distance metric type
@@ -134,7 +165,11 @@ void SpectralClustering::performClustering()
 }
 
 
-/* run clustering based on different norm */
+/*
+ * @brief run spectral clustering based on different norm input
+ *
+ * @param[in] norm The norm option
+ */
 void SpectralClustering::clusterByNorm(const int& norm)
 {
 	normOption = norm;
@@ -224,7 +259,13 @@ void SpectralClustering::clusterByNorm(const int& norm)
 }
 
 
-/* perform group-labeling information */
+/*
+ * @brief perform group-labeling information for all the streamlines
+ *
+ * @param[in] neighborVec The neighboring vector of candidates belonging to the clusters
+ * @param[out] storage The individual size of clusters
+ * @param[out] centroid The centroid coordinates of the clusters
+ */
 void SpectralClustering::setLabel(vector<vector<int> >& neighborVec, vector<int>& storage, Eigen::MatrixXf& centroid)
 {
 	std::vector<Ensemble> nodeVec(storage.size());
@@ -263,8 +304,13 @@ void SpectralClustering::setLabel(vector<vector<int> >& neighborVec, vector<int>
 }
 
 
-
-/* extract features from datasets as representative curves */
+/*
+ * @brief extract features from datasets as representative curves and calculate the clustering evaluation
+ *
+ * @param[in] storage The size of different clusters
+ * @param[in] neighborVec The candidates included in each cluster
+ * @param[in] centroid The centroid coordinates of cluster
+ */
 void SpectralClustering::extractFeatures(const std::vector<int>& storage, const std::vector<std::vector<int> >& neighborVec,
 		                  const Eigen::MatrixXf& centroid)
 {
@@ -417,7 +463,13 @@ void SpectralClustering::extractFeatures(const std::vector<int>& storage, const 
 	IOHandler::writeReadme(EntropyRatio, sil, "For norm "+to_string(normOption));
 }
 
-/* set dataset from user command */
+
+/*
+ * @brief set data set from user command
+ *
+ * @param[in] argc The count of arguments
+ * @param[in] argv The char* array of argument string
+ */
 void SpectralClustering::setDataset(const int& argc, char **argv)
 {
 	if(argc!=3)
@@ -440,7 +492,9 @@ void SpectralClustering::setDataset(const int& argc, char **argv)
 }
 
 
-/* get local scaling from NIPS 2002 paper */
+/*
+ * @brief get local scaling from NIPS 2002 paper
+ */
 void SpectralClustering::getSigmaList()
 {
 	const int& Row = ds.dataMatrix.rows();
@@ -452,33 +506,6 @@ void SpectralClustering::getSigmaList()
 	#pragma omp parallel for schedule(static) num_threads(8)
 		for(int i=0;i<Row;++i)
 		{
-			/* this is a n*k implementation by linear scan */
-			/*
-			std::vector<float> limitVec(SCALING, FLT_MAX);
-			float tempDist;
-			for(int j=0;j<Row;++j)
-			{
-				if(i==j)
-					continue;
-				if(distanceMatrix)
-					tempDist = distanceMatrix[i][j];
-				else
-					tempDist = getDisimilarity(ds.dataMatrix, i, j, normOption, object);
-				// element is even larger than the biggest
-				if(tempDist>=limitVec.back())
-					continue;
-
-				// update the SCALING smallest vec elements
-				if(tempDist<limitVec.back())
-					limitVec.back() = tempDist;
-				for(int k=limitVec.size()-1;k>0;--k)
-				{
-					if(limitVec[k]<limitVec[k-1])
-						std::swap(limitVec[k],limitVec[k-1]);
-				}
-			}
-			*/
-
 			/* instead we implement a n*logk priority_queue method for finding k-th smallest element */
 			std::priority_queue<float> limitQueue;
 			float tempDist;
@@ -525,7 +552,12 @@ void SpectralClustering::getSigmaList()
 }
 
 
-/* get entropy ratio, lower value tells dinstinguishable cluster while higher value tells a more uniformality. */
+/*
+ * @brief get entropy ratio from size of clusters as input
+ *
+ * @param[in] storage The size of clusters as input
+ * @param[out] EntropyRatio The entropy ratio to calculate
+ */
 void SpectralClustering::getEntropyRatio(const std::vector<int>& storage, float& EntropyRatio)
 {
 	EntropyRatio = 0;
@@ -539,7 +571,11 @@ void SpectralClustering::getEntropyRatio(const std::vector<int>& storage, float&
 }
 
 
-/* get weighted adjacency matrix by Gaussian kernel */
+/*
+ * @brief get weighted adjacency matrix by Gaussian kernel
+ *
+ * @param[out] adjacencyMatrix The weighted adjacency matrix computed from the Gaussian graph algorithm
+ */
 void SpectralClustering::getAdjacencyMatrix(Eigen::MatrixXf& adjacencyMatrix)
 {
 	//in case of diagonal matrix element is not assigned
@@ -566,7 +602,12 @@ void SpectralClustering::getAdjacencyMatrix(Eigen::MatrixXf& adjacencyMatrix)
 }
 
 
-/* get degree matrix */
+/*
+ * @brief get degree matrix by the adjacency matrix
+ *
+ * @param[in] adjacencyMatrix The adjacency matrix as input
+ * @param[ou] degreeMatrix The degree matrix (diagonal matrix) as output
+ */
 void SpectralClustering::getDegreeMatrix(const Eigen::MatrixXf& adjacencyMatrix, Eigen::DiagonalMatrix<float,Dynamic>& degreeMatrix)
 {
 	degreeMatrix = Eigen::DiagonalMatrix<float,Dynamic>(ds.dataMatrix.rows());
@@ -588,7 +629,13 @@ void SpectralClustering::getDegreeMatrix(const Eigen::MatrixXf& adjacencyMatrix,
 }
 
 
-/* get Laplacian matrix */
+/*
+ * @brief get Laplacian matrix
+ *
+ * @param[in] adjacencyMatrix The adjacency matrix as input
+ * @param[out] degreeMatrix The degree matrix to be updated
+ * @param[out] laplacianMatrix The Laplacian matrix to be calculated
+ */
 void SpectralClustering::getLaplacianMatrix(const Eigen::MatrixXf& adjacencyMatrix,
 		                                    Eigen::DiagonalMatrix<float,Dynamic>& degreeMatrix,
 											Eigen::MatrixXf& laplacianMatrix)
@@ -613,7 +660,12 @@ void SpectralClustering::getLaplacianMatrix(const Eigen::MatrixXf& adjacencyMatr
 }
 
 
-/* decide optimal cluster number by eigenvectors of Laplacian matrix */
+/*
+ * @brief decide optimal cluster number by eigenvectors of Laplacian matrix
+ *
+ * @param[in] laplacianMatrix The input Laplacian matrix for the eigen-rotation minimization
+ * @param[in] norm The norm option
+ */
 void SpectralClustering::getEigenClustering(const Eigen::MatrixXf& laplacianMatrix, const int& norm)
 {
 	struct timeval start, end;
@@ -680,6 +732,12 @@ void SpectralClustering::getEigenClustering(const Eigen::MatrixXf& laplacianMatr
 }
 
 
+/*
+ * @brief Calculate the matrix^powNumber, and it would be inv if powNumber is -1
+ *
+ * @param[out] matrix The original matrix
+ * @param[in] powNumber The exponential index
+ */
 void getMatrixPow(Eigen::DiagonalMatrix<float,Dynamic>& matrix, const float& powNumber)
 {
 	Eigen::VectorXf& m_v = matrix.diagonal();
@@ -689,7 +747,11 @@ void getMatrixPow(Eigen::DiagonalMatrix<float,Dynamic>& matrix, const float& pow
 }
 
 
-/* normalize the matrix */
+/*
+ * @brief normalize each row first
+ *
+ * @param[out] eigenVec The matrix with eigen-vectors to be updated
+ */
 void SpectralClustering::normalizeEigenvec(Eigen::MatrixXf& eigenVec)
 {
 	const int& rows = eigenVec.rows();
@@ -701,7 +763,13 @@ void SpectralClustering::normalizeEigenvec(Eigen::MatrixXf& eigenVec)
 }
 
 
-/* perform k-means clustering */
+/*
+ * @brief perform k-means clustering for the normalized eigen vector matrix
+ *
+ * @param[in] eigenVec The input eigen vector as matrix
+ * @param[out] storage The size of clusters to be updated
+ * @param[out] neighborVec The vector of candidates belonging to clusters
+ */
 void SpectralClustering::performKMeans(const Eigen::MatrixXf& eigenVec,
 									   std::vector<int>& storage,
 									   std::vector<std::vector<int> >& neighborVec)
@@ -809,7 +877,14 @@ void SpectralClustering::performKMeans(const Eigen::MatrixXf& eigenVec,
 }
 
 
-/* get cluster information based on eigenvector rotation */
+/*
+ * @brief get cluster information based on eigenvector rotation
+ *
+ * @param[out] storage The size of clusters
+ * @param[out] neighborVec The candidates belonging to clusters
+ * @param[out] clusterCenter The centroid coordinates of clusters
+ * @param[in] X The matrix X
+ */
 void SpectralClustering::getEigvecRotation(std::vector<int>& storage, std::vector<std::vector<int> >& neighborVec,
         								   Eigen::MatrixXf& clusterCenter, const Eigen::MatrixXf& X)
 {
@@ -890,7 +965,12 @@ void SpectralClustering::getEigvecRotation(std::vector<int>& storage, std::vecto
 	numberOfClusters = neighborVec.size();
 }
 
-/* set automatic parameter */
+
+/*
+ * @brief set automatic parameter from the Para object input
+ *
+ * @param[in] p The Para object for the parameters
+ */
 void SpectralClustering::setParameterAutomatic(const Para& p)
 {
 	std::cout << "It is a pathline data set? 1.Yes, 0.No." << std::endl;
@@ -929,8 +1009,9 @@ void SpectralClustering::setParameterAutomatic(const Para& p)
 }
 
 
-
-/* set parameter */
+/*
+ * @brief set necessary parameter
+ */
 void SpectralClustering::getParameterUserInput()
 {
 	std::cout << "It is a pathline data set? 1.Yes, 0.No." << std::endl;
@@ -1003,7 +1084,12 @@ void SpectralClustering::getParameterUserInput()
 
 }
 
-/* record find optimal information */
+
+/*
+ * @brief record the preset number of clusters
+ *
+ * @param[in] number The number of clusters as input
+ */
 void SpectralClustering::recordPreset(const int& number)
 {
 	std::ofstream readme("../dataset/optimal.txt",ios::out | ios::app);
@@ -1017,7 +1103,13 @@ void SpectralClustering::recordPreset(const int& number)
 	readme.close();
 }
 
-/* record find optimal information */
+
+/*
+ * @brief record the result of optimal number of clusters
+ *
+ * @param[in] normOption The norm option
+ * @param[in] clusNum The number of clusters
+ */
 void SpectralClustering::recordOptimalResult(const int& normOption, const int& clusNum)
 {
 	std::ofstream readme("../dataset/optimal.txt",ios::out | ios::app);

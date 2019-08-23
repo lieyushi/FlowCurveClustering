@@ -7,7 +7,14 @@
 
 #include "Predefined.h"
 
-// remove two elements in template vector
+
+/*
+ * @brief Remove two elements in template vector
+ *
+ * @param[out] original The vector to be operated on
+ * @param[in] first The first index
+ * @param[in] second The second index
+ */
 template <class T>
 void deleteVecElements(std::vector<T>& original, const T& first, const T& second)
 {
