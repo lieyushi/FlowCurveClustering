@@ -1,3 +1,9 @@
+/*
+ * @brief The priliminary functions needed to perform the OTPICS clustering
+ * @author Lieyu Shi
+ */
+
+
 #ifndef _PREDEFINED_H
 #define _PREDEFINED_H
 
@@ -5,6 +11,11 @@
 #include "Initialization.h"
 #include "Silhouette.h"
 
+
+/*
+ * @brief The point type defined by density-based clustering algorithm, based on whether the number of neighborhood
+ * reaches the minPts or not
+ */
 enum PointType
 {
 	CORE = 0,
@@ -12,6 +23,10 @@ enum PointType
 	NOISE
 };
 
+
+/*
+ * @brief point node struct, it has point type (PointType), visited (bool), group (cluser label)
+ */
 struct PointNode
 {
 	int type;
@@ -28,7 +43,9 @@ struct PointNode
 };
 
 
-/* used to store objects with index and distance in priority queue */
+/*
+ * @brief used to store objects with index and distance in priority queue
+ */
 struct OrderedPoint
 {
 	int index;
@@ -43,6 +60,9 @@ struct OrderedPoint
 };
 
 
+/*
+ * @brief The class to define the node of point, this is actually the linked list implementation
+ */
 struct pointNode
 {
 	OrderedPoint value;
@@ -67,7 +87,9 @@ struct pointNode
 };
 
 
-
+/*
+ * @brief The linked list C++ implementation
+ */
 class LinkedList
 {
 public:
@@ -165,7 +187,9 @@ private:
 };
 
 
-
+/*
+ * @brief The class object to define the data set
+ */
 struct DataSet
 {
 	vector<vector<float> > dataVec;

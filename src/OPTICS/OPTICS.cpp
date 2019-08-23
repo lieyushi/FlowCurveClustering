@@ -1,11 +1,34 @@
+/*
+ * @brief The class for OPTICS clustering
+ * @details
+ * 	The algorithm is implemented based on https://en.wikipedia.org/wiki/OPTICS_algorithm
+ * @author Lieyu Shi
+ */
+
+
 #include "OPTICS.h"
 
 std::vector<string> activityList;
 std::vector<string> timeList;
 
+
+/*
+ * @brief ratio to the max distance
+ */
 float multiTimes;
+
+/*
+ * @brief The minPts for neighborhood search of OPTICS clustering
+ */
 int minPts;
 
+
+/*
+ * @brief The constructor with parameters of arguments
+ *
+ * @param[in] argc The count of arguments
+ * @param[in] argv The strings of arguments
+ */
 DensityClustering::DensityClustering(const int& argc,
 									 char **argv)
 {
@@ -85,12 +108,18 @@ DensityClustering::DensityClustering(const int& argc,
 }
 
 
+/*
+ * @brief The destructor
+ */
 DensityClustering::~DensityClustering()
 {
 
 }
 
 
+/*
+ * @brief Perform the OPTICS clustering on the input data set
+ */
 void DensityClustering::performClustering()
 {
 	float radius_eps;
@@ -134,6 +163,12 @@ void DensityClustering::performClustering()
 }
 
 
+/*
+ * @brief Perform the OPTICS clustering with input parameters
+ *
+ * @param[in] radius_eps The radius of neighborhood search for the OPTICS
+ * @param[in] minPts The minimal points for the neighborhood search
+ */
 void DensityClustering::OPTICS(const float& radius_eps,
 							   const int& minPts)
 {
@@ -175,6 +210,15 @@ void DensityClustering::OPTICS(const float& radius_eps,
 }
 
 
+/*
+ * @brief Update the priority queue with the epsilon-neighborhood of two points
+ *
+ * @param[in] index The index of point
+ * @param[in] neighbor The neighborhood points
+ * @param[out] seeds The LinkedList object
+ * @param[in] radius_eps The radius of neighborhood search for the OPTICS
+ * @param[in] minPts The minimal points for the neighborhood search
+ */
 void DensityClustering::update(const int& index, const vector<int>& neighbor,
 	 LinkedList& seeds, //a min heap for orderedPoint
 	 const float& radius_eps, const int& minPts)
@@ -210,6 +254,13 @@ void DensityClustering::update(const int& index, const vector<int>& neighbor,
 }
 
 
+/*
+ * @brief It is to query about the neighborhood candidates for a given point
+ *
+ * @param[in] index The index of the target point
+ * @param[in] radius_eps The radius of neighborhood search for the OPTICS
+ * @return vector<int> object that contains the neighboring candidates
+ */
 const vector<int> DensityClustering::regionQuery(const int& index,
 												 const float& radius_eps)
 {
@@ -231,6 +282,12 @@ const vector<int> DensityClustering::regionQuery(const int& index,
 }
 
 
+/*
+ * @brief Set the data set from the argument and set necessary parameters for the sampling
+ *
+ * @param[in] argc The count of arguments
+ * @param[in] argv The strings of arguments
+ */
 void DensityClustering::setDataset(const int& argc,
 								   char **argv)
 {
@@ -280,6 +337,9 @@ void DensityClustering::setDataset(const int& argc,
 }
 
 
+/*
+ * @brief Set the norm option
+ */
 void DensityClustering::setNormOption()
 {
 	if(isPathlines)
@@ -317,6 +377,12 @@ void DensityClustering::setNormOption()
 }
 
 
+/*
+ * @brief Get the distance range
+ *
+ * @param[out] minDist The minimal distance
+ * @param[out] maxDist The maximal distance
+ */
 void DensityClustering::getDistRange(float& minDist, 
 					                 float& maxDist)
 {
@@ -352,6 +418,9 @@ void DensityClustering::getDistRange(float& minDist,
 }
 
 
+/*
+ * @brief Set the minimal points as parameter
+ */
 const int DensityClustering::setMinPts()
 {
 	/*std::cout << std::endl;
@@ -370,6 +439,13 @@ const int DensityClustering::setMinPts()
 }
 
 
+/*
+ * @brief Set and return the epsilong with ratio to the maxDist
+ *
+ * @param[in] minDist The minimal distance
+ * @param[in] maxDist The maximal distance
+ * @param The selected radius as parameter for the OPTICS clustering
+ */
 const float DensityClustering::setTimesMin(const float& minDist, 
 					  					   const float& maxDist)
 {
@@ -388,6 +464,12 @@ const float DensityClustering::setTimesMin(const float& minDist,
 }
 
 
+/*
+ * @brief Extract closest and furthest representatives and perform clustering evaluation for the clustering results
+ *
+ * @param[in] radius_eps The radius of neighborhood search for the OPTICS
+ * @param[in] minPts The minimal points for the neighborhood search
+ */
 void DensityClustering::extractFeatures(const float& radius_eps,
 							   			const int& minPts)
 {
@@ -592,7 +674,13 @@ void DensityClustering::extractFeatures(const float& radius_eps,
 	IOHandler::writeReadme(entropy, sil, "For norm "+to_string(normOption));
 }
 
-/* compute neighbor information, update core-distance and store neighbor index information*/
+
+/*
+ * @brief Compute the cored distance for the candidates
+ *
+ * @param[in] radius_eps The radius of neighborhood search for the OPTICS
+ * @param[in] minPts The minimal points for the neighborhood search
+ */
 void DensityClustering::computeCoredDistance(const float& radius_eps,
 							  				 const int& minPts)
 {
@@ -650,6 +738,14 @@ void DensityClustering::computeCoredDistance(const float& radius_eps,
 }
 
 
+/*
+ * @brief Get the reachability distance for the target
+ *
+ * @param[in] first The index of first point
+ * @param[in] target The index of target point
+ * @param[in] minPts The min points of the clustering
+ * @return A float value for the distance
+ */
 const float DensityClustering::getReachability(const int& first,
 											   const int& target,
 											   const int& minPts)
@@ -667,7 +763,11 @@ const float DensityClustering::getReachability(const int& first,
 }
 
 
-/* how to get group information based on reachability-plot */
+/*
+ * @brief how to get group information based on reachability-plot
+ *
+ * @param[in] radius_eps The radius of neighborhood search for the OPTICS
+ */
 void DensityClustering::getGroup(const float& radius_eps)
 {
 	std::cout << "----Parameter regime----" << std::endl;
@@ -707,6 +807,9 @@ void DensityClustering::getGroup(const float& radius_eps)
 }
 
 
+/*
+ * @brief Write reachability plot data in the txt for further evaluation
+ */
 void DensityClustering::writeReachability()
 {
 	ofstream ofile("../dataset/reachability.txt", ios::out);
@@ -725,7 +828,11 @@ void DensityClustering::writeReachability()
 }
 
 
-/* set the eps as averaged minPt-th dist */
+/*
+ * @brief set the eps as averaged minPt-th dist
+ *
+ * @param[in] radius_eps The radius of neighborhood search for the OPTICS
+ */
 const float DensityClustering::getMinPt_thDist(const int& minPts)
 {
 	float result = 0.0;
