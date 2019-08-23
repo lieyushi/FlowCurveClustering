@@ -1,9 +1,19 @@
 #include "KMedoids.h"
 
 
+/*
+ * @brief The bool tag whether the data set is from PBF simulation
+ */
 extern bool isPBF;
 
 
+/*
+ * @brief The k-medoids class constructor with parameter and data set input
+ *
+ * @param[in] pm The Parameter class object for the user input control
+ * @param[in] data The matrix coordinates of the streamlines
+ * @param[in] numOfClusters The number of clusters as input
+ */
 KMedoids::KMedoids(const Parameter& pm, 
 				   const Eigen::MatrixXf& data,
 				   const int& numOfClusters)
@@ -14,12 +24,23 @@ KMedoids::KMedoids(const Parameter& pm,
 }
 	
 
+/*
+ * @brief The destructor
+ */
 KMedoids::~KMedoids()
 {
 
 }
 
 
+/*
+ * @brief Perform the k-medoids clustering technique and calculate the clustering evaluation metrics
+ *
+ * @param[out] fline The feature line extraction result (centroid, closest, furthest candidates)
+ * @param[in] normOption The norm option
+ * @param[out] sil Silhouette The Silhouette class object to record clustering evaluation metrics
+ * @param[out] tr The TimeRecorder class object
+ */
 void KMedoids::getMedoids(FeatureLine& fline,
 						  const int& normOption,
 						  Silhouette& sil,
@@ -298,6 +319,13 @@ void KMedoids::getMedoids(FeatureLine& fline,
 }
 
 
+/*
+ * @brief Get the initial centroid by k-medoids initialization
+ *
+ * @param[out] initialCenter The initialized center coordinates
+ * @param[in] object The MetricPreparation object for calculating the distance values
+ * @param[in] normOption The norm option
+ */
 void KMedoids::getInitCenter(MatrixXf& initialCenter,
 							 const MetricPreparation& object,
 							 const int& normOption) const
@@ -305,25 +333,30 @@ void KMedoids::getInitCenter(MatrixXf& initialCenter,
 	switch(initialStates)
 	{
 	case 1:
-		Initialization::generateRandomPos(initialCenter, 
-				data.cols(), data, numOfClusters);
+		Initialization::generateRandomPos(initialCenter, data.cols(), data, numOfClusters);
 		break;
 
 	default:
 	case 2:
-		Initialization::generateFromSamples(initialCenter, 
-				data.cols(), data, numOfClusters);
+		Initialization::generateFromSamples(initialCenter, data.cols(), data, numOfClusters);
 		break;
 
 	case 3:
-		Initialization::generateFarSamples(initialCenter, 
-				data.cols(), data, numOfClusters, normOption, object);
+		Initialization::generateFarSamples(initialCenter, data.cols(), data, numOfClusters, normOption, object);
 		break;
 	}
 	std::cout << "Initialization completed!" << std::endl;
 }
 
 
+/*
+ * @brief Compute the medoids by either calculating the median or iteration
+ *
+ * @param[out] centerTemp The medoid coordinates to be updated
+ * @param[in] neighborVec The neighboring candidates belonging to a cluster
+ * @param[in] normOption The norm option
+ * @param[in] object The MetricPreparation object for distance calculation
+ */
 void KMedoids::computeMedoids(MatrixXf& centerTemp, 
 							  const vector<vector<int> >& neighborVec, 
 							  const int& normOption, 

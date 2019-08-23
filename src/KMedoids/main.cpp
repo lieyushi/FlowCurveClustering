@@ -1,16 +1,48 @@
+/*
+ * @brief The main function to perform k-medoids clustering on input data set
+ * @author Lieyu Shi
+ */
+
+
 #include "KMedoids.h"
 #include <sys/time.h>
 
 using namespace std;
 
+
+/*
+ * @brief Whether the data set is from PBF or not
+ */
 bool isPBF;
 
+/*
+ * @brief Whether read the number of clusters from the local file or by user input in the console
+ */
 bool readCluster;
 
 
+/*
+ * @brief Perform the k-medoids clustering algorithm on the data set and calculate the clustering evaluation metrics
+ *
+ * @param[in] argc The count of arguments
+ * @param[in] argv The char* array of arguments
+ */
 void featureExtraction(const int& argc,
 					   char **argv);
 
+
+/*
+ * @brief Perform the k-medoids clustering on the data set
+ *
+ * @param[in] fileName The file of the data set
+ * @param[in] dataVec The coordinates of the streamlines
+ * @param[in] dimension The dimension of 2 or 3
+ * @param[in] fullName The name of the primary vtk file
+ * @param[in] kmedoid The K-medoid class object
+ * @param[in] normOption The norm option
+ * @param[out] sil The Silhoutte class object
+ * @param[out] tr The TimeRecorder class object
+ */
 void performKMedoids(const string& fileName, 
 					 const std::vector< std::vector<float> >& dataVec,  
 					 const int& dimension, 
@@ -20,6 +52,13 @@ void performKMedoids(const string& fileName,
 					 Silhouette& sil,
 					 TimeRecorder& tr);
 
+
+/*
+ * @brief Read parameters for the k-medoids clustering
+ *
+ * @param[in] pm The Parameter class object
+ * @param[in] sampleOption The sample option
+ */
 void recordInitilization(const Parameter& pm,
 						 const int& sampleOption);
 
@@ -29,6 +68,13 @@ int main(int argc, char* argv[])
 	return 0;
 }
 
+
+/*
+ * @brief Perform the k-medoids clustering algorithm on the data set and calculate the clustering evaluation metrics
+ *
+ * @param[in] argc The count of arguments
+ * @param[in] argv The char* array of arguments
+ */
 void featureExtraction(const int& number,
 					   char **argv)
 {
@@ -199,6 +245,18 @@ void featureExtraction(const int& number,
 }
 
 
+/*
+ * @brief Perform the k-medoids clustering on the data set
+ *
+ * @param[in] fileName The file of the data set
+ * @param[in] dataVec The coordinates of the streamlines
+ * @param[in] dimension The dimension of 2 or 3
+ * @param[in] fullName The name of the primary vtk file
+ * @param[in] kmedoid The K-medoid class object
+ * @param[in] normOption The norm option
+ * @param[out] sil The Silhoutte class object
+ * @param[out] tr The TimeRecorder class object
+ */
 void performKMedoids(const string& fileName, 
 					 const std::vector< std::vector<float> >& dataVec,  
 					 const int& dimension, 
@@ -258,6 +316,12 @@ void performKMedoids(const string& fileName,
 }
 
 
+/*
+ * @brief Read parameters for the k-medoids clustering
+ *
+ * @param[in] pm The Parameter class object
+ * @param[in] sampleOption The sample option
+ */
 void recordInitilization(const Parameter& pm,
 						 const int& sampleOption)
 {
