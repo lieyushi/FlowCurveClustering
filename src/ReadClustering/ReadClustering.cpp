@@ -1,5 +1,5 @@
 /*
- * ReadClustering.cpp
+ * ReadClustering.h
  *
  *  Created on: Mar 13, 2018
  *      Author: lieyu
@@ -7,19 +7,35 @@
 
 #include "ReadClustering.h"
 
+
+/*
+ * @brief The threshold of variance for PCA based clustering
+ */
 const float& TOR_1 = 0.999;
 
+
+/*
+ * @brief The default constructor
+ */
 ReadClustering::ReadClustering() {
 	// TODO Auto-generated constructor stub
 
 }
 
+
+/*
+ * @brief The destructor
+ */
 ReadClustering::~ReadClustering() {
 	// TODO Auto-generated destructor stub
 }
 
 
-/* the public function called by main.cpp */
+/*
+ * @brief The public function called by main.cpp to calculate the clustering evaluation
+ *
+ * @param[in] fileName The name of the vtk file
+ */
 void ReadClustering::getEvaluation(const char* fileName)
 {
 	int isPBFInput;
@@ -40,7 +56,9 @@ void ReadClustering::getEvaluation(const char* fileName)
 }
 
 
-/* write those analysis framework */
+/*
+ * @breif write those analysis framework into the local file
+ */
 void ReadClustering::writeAnalysis()
 {
 	/* write information */
@@ -49,7 +67,11 @@ void ReadClustering::writeAnalysis()
 }
 
 
-/* read data from file and store it into Dataset ds */
+/*
+ * @brief read data from file and store it into Dataset ds
+ *
+ * @param[in] fileName The name of the vtk file as input
+ */
 void ReadClustering::readData(const char* fileName)
 {
 	ifstream fin(fileName, ios::in);
@@ -226,7 +248,12 @@ void ReadClustering::readData(const char* fileName)
 
 }
 
-/* compute four analysis evaluation measures */
+
+/*
+ * @brief Compute evaluation based on norm option
+ *
+ * @param[out] The iterator of the hash map for recording the norm option and the input number
+ */
 void ReadClustering::computeEvaluation()
 {
 	std::unordered_map<string, std::vector<int> >::const_iterator iter;
@@ -238,7 +265,11 @@ void ReadClustering::computeEvaluation()
 }
 
 
-/* compute evaluation based on norm option */
+/*
+ * @brief Compute evaluation based on norm option
+ *
+ * @param[out] The iterator of the hash map for recording the norm option and the input number
+ */
 void ReadClustering::computeEvaluation(std::unordered_map<string, std::vector<int> >::const_iterator& iter)
 {
 	if(iter->second.empty())
@@ -385,6 +416,15 @@ void ReadClustering::computeEvaluation(std::unordered_map<string, std::vector<in
 }
 
 
+/*
+ * @brief Perform SVD decomposition for equal-sized streamlines
+ *
+ * @param[out] cArray The matrix coordinates after the dimensionality reduction process
+ * @param[in] data The matrix coordinates of the input integral curves
+ * @param[in] Row The row size
+ * @param[in] Column The column size
+ * @param[out] PC_Number The number of PCs
+ */
 void ReadClustering::performSVD(MatrixXf& cArray, const Eigen::MatrixXf& data,
 	 const int& Row, const int& Column, int& PC_Number)
 {

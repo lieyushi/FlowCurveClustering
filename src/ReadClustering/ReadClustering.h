@@ -17,6 +17,13 @@
 
 using namespace std;
 
+
+/*
+ * @brief The data set class object that contains the information
+ * @details
+ *  It includes original coordinates, the matrix coordinates, the map of string and candidates, the max group hash map
+ *  with index, the number of elements and the neighbor vector including candidates of the clusters
+ */
 struct Dataset
 {
 	/* original coordinates */
@@ -38,44 +45,95 @@ struct Dataset
 };
 
 
+/*
+ * @brief The read clustering class object to read the clustering data and calculate the clustering evaluation metrics
+ * from the input vtk file
+ */
 class ReadClustering {
 public:
+
+	/*
+	 * @brief The default constructor
+	 */
 	ReadClustering();
+
+
+	/*
+	 * @brief The destructor
+	 */
 	virtual ~ReadClustering();
 
-/* the public function called by main.cpp */
+
+	/*
+	 * @brief The public function called by main.cpp to calculate the clustering evaluation
+	 *
+	 * @param[in] fileName The name of the vtk file
+	 */
 	void getEvaluation(const char* fileName);
 
 private:
 
-/* activityList vector to store event */
+	/*
+	 * @brief The activityList vector to store event
+	 */
 	std::vector<string> activityList;
 
-/* timeList vector to store time information */
+	/*
+	 * @brief The timeList vector to store time information
+	 */
 	std::vector<string> timeList;
 
-/* Dataset object */
+	/*
+	 * @brief Dataset object
+	 */
 	Dataset ds;
 
-/* max element */
+	/*
+	 * @brief the max element
+	 */
 	int maxElements;
 
-/* judge whether it is a PBF or not */
+	/*
+	 * @brief judge whether it is a PBF or not
+	 */
 	bool isPBF;
 
-/* read data from file and store it into Dataset ds */
+	/*
+	 * @brief read data from file and store it into Dataset ds
+	 *
+	 * @param[in] fileName The name of the vtk file as input
+	 */
 	void readData(const char* fileName);
 
-/* compute four analysis evaluation measures */
+
+	/*
+	 * @brief compute four analysis evaluation measures
+	 */
 	void computeEvaluation();
 
-/* write those analysis framework */
+
+	/*
+	 * @breif write those analysis framework into the local file
+	 */
 	void writeAnalysis();
 
-/* compute evaluation based on norm option */
+
+	/*
+	 * @brief Compute evaluation based on norm option
+	 *
+	 * @param[out] The iterator of the hash map for recording the norm option and the input number
+	 */
 	void computeEvaluation(std::unordered_map<string, std::vector<int> >::const_iterator& iter);
 
-/* perform SVD decomposition for equal-sized streamlines */
+	/*
+	 * @brief Perform SVD decomposition for equal-sized streamlines
+	 *
+	 * @param[out] cArray The matrix coordinates after the dimensionality reduction process
+	 * @param[in] data The matrix coordinates of the input integral curves
+	 * @param[in] Row The row size
+	 * @param[in] Column The column size
+	 * @param[out] PC_Number The number of PCs
+	 */
 	void performSVD(MatrixXf& cArray, const Eigen::MatrixXf& data,
 		 const int& Row, const int& Column, int& PC_Number);
 
