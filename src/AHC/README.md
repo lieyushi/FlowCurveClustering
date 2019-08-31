@@ -16,13 +16,21 @@ The program supports two kinds of input for number of clusters
 	- The 'cluster number' has the following format
 
 		0:10       // for similarity measure 0, the input of cluster number is 10
+
 		1:10       // for similarity measure 1, the input of cluster number is 10
+
 		2:10
+
 		4:10
+
 		12:10
+
 		13:10
+
 		14:10
+
 		15:10
+		
 		17:10
 
 		for better batch processing especially in our experiment when the code is automatically run on the server

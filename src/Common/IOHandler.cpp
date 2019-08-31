@@ -468,7 +468,6 @@ void IOHandler::expandArray(MatrixXf& data,
  * @param[in] dimension 2 or 3
  * @param[in] maxElements The max dimension of streamlines
  */
-/* sample equal-sized array by equal arcs given a numOfVertices count */
 void IOHandler::uniformArcSampling(MatrixXf& data,
 								   const std::vector< std::vector<float> >& dataVec,
 								   const int& dimension,
