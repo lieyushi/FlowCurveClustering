@@ -1,0 +1,2 @@
+* linguist-vendored
+src/Common/*.cpp linguist-vendored=false
