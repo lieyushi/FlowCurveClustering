@@ -2,7 +2,7 @@
 
 This code folder provides unsupervised machine learning techniques with similarity measures for clustering integral curves in flow visualization community. It is the released source code for our TVCG paper, 
 
-**Integral Curve Clustering and Simplification for Flow Visualization: A Comparative Evaluation**, by L. Shi, R. S. Laramee and G. Chen, IEEE Transactions on Visualization and Computer Graphics (to appear).
+**Integral Curve Clustering and Simplification for Flow Visualization: A Comparative Evaluation**, by L. Shi, R. S. Laramee and G. Chen, IEEE Transactions on Visualization and Computer Graphics (accepted).
 
 ## Author Information
 
