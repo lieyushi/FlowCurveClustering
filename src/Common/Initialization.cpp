@@ -1,20 +1,5 @@
-/*
- * @brief This is the source cpp for the class Initialization.h. It is for the k-means initialization
- * @author Lieyu Shi
- */
-
-
 #include "Initialization.h"
 
-
-/*
- * @brief To generate the random coordinates for the k-means initialization
- *
- * @param[out] clusterCenter The random initialization to be updated
- * @param[in] column The column size
- * @param[in] cArray The input matrix coordinates
- * @param[in] Cluster The number of centroids
- */
 void Initialization::generateRandomPos(MatrixXf& clusterCenter,
 								  	   const int& column,
 								       const MatrixXf& cArray,
@@ -43,14 +28,6 @@ void Initialization::generateRandomPos(MatrixXf& clusterCenter,
 }
 
 
-/*
- * @brief To generate the initialization from the samples
- *
- * @param[out] clusterCenter The initialized centroid coordinates
- * @param[in] column The size of column
- * @param[in] cArray The original matrix coordinates as input
- * @paramp[in] Cluster The count of clusters
- */
 void Initialization::generateFromSamples(MatrixXf& clusterCenter,
 								    	 const int& column,
 								    	 const MatrixXf& cArray,
@@ -93,18 +70,10 @@ void Initialization::generateFromSamples(MatrixXf& clusterCenter,
 	{
 		clusterCenter.row(i) = cArray.row(number[i]);
 	}
+
 }
 
 
-/*
- * @brief This is the k-means++ initialization
- *
- * @param[out] clusterCenter The cluster centroid to be initialized
- * @param[in] column The size of column
- * @param[in] cArray The matrix coordinates of the lines
- * @param[in] normOption The norm option
- * @param[in] object The MetricPreparation
- */
 void Initialization::generateFarSamples(MatrixXf& clusterCenter,
 								   	    const int& column,
 								   		const MatrixXf& cArray,
@@ -123,7 +92,7 @@ void Initialization::generateFarSamples(MatrixXf& clusterCenter,
 
 	float percentage, nearest, toCentroid;
 	VectorXf distance(Total);
-	double squredSummation;
+	long double squredSummation;
 	float left, right;
 	while(chosen<Cluster)
 	{
@@ -133,7 +102,8 @@ void Initialization::generateFarSamples(MatrixXf& clusterCenter,
 			nearest = FLT_MAX;
 			for (int j = 0; j < chosen; ++j)
 			{
-				toCentroid = getDisimilarity(cArray, i, number[j], normOption, object);
+				toCentroid = getDisimilarity(cArray, i, 
+							number[j], normOption, object);
 				if(nearest>toCentroid)
 					nearest=toCentroid;
 			}
